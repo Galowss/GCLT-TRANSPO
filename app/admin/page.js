@@ -10,10 +10,12 @@ import { Truck, Clock, CheckCircle, ClipboardList, TrendingUp, TrendingDown, Arr
 function formatBookingDate(dateStr, timeStr) {
   if (!dateStr) return '—';
   try {
-    const d = new Date(dateStr + (timeStr ? 'T' + timeStr : ''));
+    const cleanDate = String(dateStr).trim();
+    const cleanTime = timeStr && timeStr !== 'undefined' && timeStr !== 'null' ? String(timeStr).trim() : '';
+    const d = new Date(cleanDate + (cleanTime ? 'T' + cleanTime : ''));
     if (isNaN(d.getTime())) return dateStr;
     return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })
-      + (timeStr ? ' — ' + d.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit', hour12: true }) : '');
+      + (cleanTime ? ' — ' + d.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit', hour12: true }) : '');
   } catch { return dateStr; }
 }
 

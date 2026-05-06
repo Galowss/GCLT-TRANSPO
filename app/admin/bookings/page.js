@@ -17,7 +17,7 @@ function exportToCsv(bookings) {
     b.pickup || '',
     b.delivery || '',
     b.date || '',
-    b.time || '',
+    b.time && b.time !== 'undefined' && b.time !== 'null' ? b.time : '',
     b.weight || '',
     b.cargoSize || '',
     b.paymentMethod === 'stripe' ? 'Stripe' : 'COD',
@@ -283,7 +283,10 @@ export default function BookingManagement() {
                       <td>{booking.userName || (booking.userId === 'anonymous' ? 'Guest' : 'User: ' + booking.userId.slice(0, 6))}</td>
                       <td>{booking.truckRoute}</td>
                       <td style={{ fontSize: '0.8rem' }}>{booking.pickup} {booking.delivery}</td>
-                      <td style={{ fontSize: '0.8rem' }}>{booking.date} {booking.time}</td>
+                      <td style={{ fontSize: '0.8rem' }}>
+                        {booking.date}
+                        {booking.time && booking.time !== 'undefined' && booking.time !== 'null' ? ` ${booking.time}` : ''}
+                      </td>
                       <td>
                         {booking.quotedAmount ? (
                           <strong style={{ color: 'var(--primary)', fontSize: '0.85rem' }}>PHP {booking.quotedAmount?.toLocaleString()}</strong>
@@ -358,7 +361,7 @@ export default function BookingManagement() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.8rem' }}>
                   <div><span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}><Truck size={12} /> Vehicle</span><strong>{selectedBooking.truckRoute}</strong></div>
                   <div><span style={{ color: 'var(--text-muted)', display: 'block' }}>Date</span><strong>{selectedBooking.date}</strong></div>
-                  <div><span style={{ color: 'var(--text-muted)', display: 'block' }}>Time Slot</span><strong>{selectedBooking.time}</strong></div>
+                  <div><span style={{ color: 'var(--text-muted)', display: 'block' }}>Time Slot</span><strong>{selectedBooking.time && selectedBooking.time !== 'undefined' && selectedBooking.time !== 'null' ? selectedBooking.time : 'N/A'}</strong></div>
                   <div><span style={{ color: 'var(--text-muted)', display: 'block' }}>Weight</span><strong>{selectedBooking.weight ? selectedBooking.weight + ' KG' : 'N/A'}</strong></div>
                   {selectedBooking.cargoSize && (
                     <div style={{ gridColumn: '1 / -1' }}><span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}><Package size={12} /> Dimensions</span><strong>{selectedBooking.cargoSize}</strong></div>
