@@ -119,8 +119,8 @@ export default function Dashboard() {
                   <tr key={booking.id}>
                     <td><strong>{booking.truckRoute || 'Transport'}</strong></td>
                     <td>
-                      <div style={{ fontSize: '0.85rem' }}>{booking.pickup}</div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{booking.delivery}</div>
+                      <div style={{ fontSize: '0.85rem' }}><span style={{ fontWeight: 600 }}>Pick-up:</span> {booking.pickup}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}><span style={{ fontWeight: 600 }}>Drop-off:</span> {booking.delivery}</div>
                     </td>
                     <td>{formatBookingDate(booking.date, booking.time)}</td>
                     <td>

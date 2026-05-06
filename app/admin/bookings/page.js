@@ -282,7 +282,12 @@ export default function BookingManagement() {
                       <td><strong style={{ color: 'var(--primary)' }}>{booking.id.slice(-6)}</strong></td>
                       <td>{booking.userName || (booking.userId === 'anonymous' ? 'Guest' : 'User: ' + booking.userId.slice(0, 6))}</td>
                       <td>{booking.truckRoute}</td>
-                      <td style={{ fontSize: '0.8rem' }}>{booking.pickup} {booking.delivery}</td>
+                      <td style={{ fontSize: '0.8rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <span><span style={{ fontWeight: 600 }}>Pick-up:</span> {booking.pickup}</span>
+                          <span style={{ color: 'var(--text-secondary)' }}><span style={{ fontWeight: 600 }}>Drop-off:</span> {booking.delivery}</span>
+                        </div>
+                      </td>
                       <td style={{ fontSize: '0.8rem' }}>
                         {booking.date}
                         {booking.time && booking.time !== 'undefined' && booking.time !== 'null' ? ` ${booking.time}` : ''}

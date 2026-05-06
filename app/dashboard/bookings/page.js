@@ -304,8 +304,8 @@ export default function MyBookings() {
                     <td><strong style={{ color: 'var(--primary)' }}>{booking.id.slice(-8)}</strong></td>
                     <td>{booking.truckRoute}</td>
                     <td>
-                      <div style={{ fontSize: '0.85rem' }}>{booking.pickup}</div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{booking.delivery}</div>
+                      <div style={{ fontSize: '0.85rem' }}><span style={{ fontWeight: 600 }}>Pick-up:</span> {booking.pickup}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}><span style={{ fontWeight: 600 }}>Drop-off:</span> {booking.delivery}</div>
                     </td>
                     <td>{booking.date}</td>
                     <td>
