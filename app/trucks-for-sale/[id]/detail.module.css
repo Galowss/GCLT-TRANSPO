@@ -1,0 +1,199 @@
+.container {
+  min-height: 100vh;
+  background: var(--gray-50);
+  padding: 32px 24px;
+}
+
+.inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+  transition: var(--transition);
+}
+.backLink:hover {
+  color: var(--primary);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mainImage {
+  position: relative;
+  border-radius: var(--border-radius-xl);
+  overflow: hidden;
+}
+
+.imagePlaceholder {
+  height: 400px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #2d3748 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  gap: 12px;
+  font-size: 4rem;
+}
+.imagePlaceholder p {
+  font-size: 1rem;
+  opacity: 0.7;
+}
+
+.truckType {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  padding: 4px 14px;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.thumbRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.thumb {
+  height: 80px;
+  background: var(--gray-200);
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.thumb:hover {
+  background: var(--gray-300);
+}
+
+.details h1 {
+  font-size: 1.75rem;
+  margin-bottom: 12px;
+}
+
+.priceRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.price {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--orange);
+}
+
+.year {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.description {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+
+.specGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.specItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.specLabel {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.specValue {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.features {
+  margin-bottom: 24px;
+}
+
+.features h4 {
+  margin-bottom: 12px;
+}
+
+.featureList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.featureTag {
+  padding: 6px 14px;
+  background: var(--success-light);
+  color: var(--success);
+  border-radius: 100px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.paymentSection {
+  margin-bottom: 24px;
+}
+
+.paymentSection h4 {
+  margin-bottom: 12px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.locationInfo {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .specGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .actions {
+    flex-direction: column;
+  }
+}

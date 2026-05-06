@@ -1,0 +1,25 @@
+{
+  "name": "gclt-capstone",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GCLT Transport & Trucking Services",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@stripe/stripe-js": "^9.3.1",
+    "firebase": "^12.12.1",
+    "lucide-react": "^1.11.0",
+    "next": "^14.2.35",
+    "node-mailjet": "^6.0.11",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "stripe": "^22.1.0"
+  }
+}

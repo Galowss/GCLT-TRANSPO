@@ -1,0 +1,77 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Public: anyone can read trucks for sale
+    match /trucksForSale/{id} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.role == 'admin';
+    }
+
+    // Fleet types: authenticated users can read, only admin can write
+    match /fleetTypes/{id} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.token.role == 'admin';
+    }
+
+    // Users: can read/write their own profile; admin can read all
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read, write: if request.auth != null && request.auth.token.role == 'admin';
+    }
+
+    // Bookings: user can create and read own bookings
+    // User can ONLY update paymentMethod and acceptedAt (for accepting quotes)
+    // User CANNOT modify status, quotedAmount, or any admin fields
+    // Admin has full write access
+    match /bookings/{bookingId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        request.auth.token.role == 'admin'
+      );
+      // Admin: full update access
+      allow update: if request.auth != null && request.auth.token.role == 'admin';
+      // User: can only update allowed fields (paymentMethod, status transitions for accepting)
+      allow update: if request.auth != null &&
+        resource.data.userId == request.auth.uid &&
+        resource.data.status == 'Quoted' &&
+        request.resource.data.status in ['Confirmed', 'Pending Payment', 'Declined'] &&
+        request.resource.data.quotedAmount == resource.data.quotedAmount &&
+        request.resource.data.userId == resource.data.userId &&
+        request.resource.data.pickup == resource.data.pickup &&
+        request.resource.data.delivery == resource.data.delivery;
+      allow delete: if request.auth != null && request.auth.token.role == 'admin';
+    }
+
+    // Purchase requests: authenticated users can create and read their own; admin can read/write all
+    match /purchaseRequests/{id} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        request.auth.token.role == 'admin'
+      );
+      allow update, delete: if request.auth != null && request.auth.token.role == 'admin';
+    }
+
+    // Appointments: authenticated users can create and read their own
+    match /appointments/{id} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        request.auth.token.role == 'admin'
+      );
+      allow update, delete: if request.auth != null && request.auth.token.role == 'admin';
+    }
+
+    // Notifications: users can read/update their own; admin can read/write all
+    match /notifications/{id} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        request.auth.token.role == 'admin' ||
+        resource.data.forAdmin == true
+      );
+    }
+  }
+}
