@@ -1,8 +1,8 @@
 'use client';
 
 import AdminLayout from '@/components/AdminLayout';
-import { useFirestore } from '@/lib/useFirestore';
-import { getFleetTypes, addFleetType, updateFleetType, deleteFleetType } from '@/lib/firebaseService';
+import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
+import { subscribeToFleetTypes, addFleetType, updateFleetType, deleteFleetType } from '@/lib/firebaseService';
 import { compressImage } from '@/lib/compressImage';
 import { useToast } from '@/components/Toast';
 import { useState } from 'react';
@@ -10,11 +10,20 @@ import { Truck, Plus, Pencil, Trash2, X, Upload, Image } from 'lucide-react';
 
 const emptyForm = {
   name: '', capacity: '', description: '', imageUrl: '',
-  available: true,
+  available: true, category: 'Small Trucks',
 };
 
+const FLEET_CATEGORIES = [
+  { value: 'Small Trucks',       label: '🛻 Small Trucks',       desc: 'Up to 2 tons' },
+  { value: 'Medium Trucks',      label: '🚛 Medium Trucks',      desc: '2 – 5 tons' },
+  { value: 'Large Trucks',       label: '🚚 Large Trucks',       desc: '5 – 15 tons' },
+  { value: 'Specialized',        label: '🏗️ Specialized',        desc: 'Refrigerated, flatbed, tanker…' },
+];
+
 export default function AdminFleet() {
-  const { data: fleet, loading, refetch } = useFirestore(getFleetTypes);
+  const { data: fleet, loading } = useRealtimeFirestore(
+    (cb) => subscribeToFleetTypes(cb)
+  );
   const { addToast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -63,6 +72,7 @@ export default function AdminFleet() {
       description: item.description || '',
       imageUrl: item.imageUrl || '',
       available: item.available !== false,
+      category: item.category || 'Small Trucks',
     });
     setImageFile(null);
     setImagePreview(item.imageUrl || null);
@@ -85,6 +95,7 @@ export default function AdminFleet() {
         description: formData.description,
         imageUrl: imageUrl,
         available: formData.available,
+        category: formData.category,
       };
 
       if (editingId) {
@@ -207,6 +218,19 @@ export default function AdminFleet() {
                 <input type="text" name="capacity" className="form-input" placeholder="e.g. 4-6 Tons" value={formData.capacity} onChange={handleChange} />
               </div>
 
+              {/* Category dropdown — drives user-facing booking dropdown */}
+              <div className="form-group">
+                <label className="form-label">Category *</label>
+                <select name="category" className="form-select" value={formData.category} onChange={handleChange} required>
+                  {FLEET_CATEGORIES.map(cat => (
+                    <option key={cat.value} value={cat.value}>{cat.label} — {cat.desc}</option>
+                  ))}
+                </select>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                  This determines which category this truck appears under when users book transport.
+                </span>
+              </div>
+
               <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '24px' }}>
                 <input type="checkbox" name="available" checked={formData.available} onChange={handleChange} style={{ width: '18px', height: '18px', accentColor: 'var(--primary)' }} />
                 <label style={{ fontSize: '0.9rem' }}>Available for Booking</label>
@@ -235,6 +259,7 @@ export default function AdminFleet() {
             <thead>
               <tr>
                 <th>Truck</th>
+                <th>Category</th>
                 <th>Capacity</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -268,6 +293,11 @@ export default function AdminFleet() {
                         {item.description && <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{item.description.slice(0, 60)}</div>}
                       </div>
                     </div>
+                  </td>
+                  <td>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      {FLEET_CATEGORIES.find(c => c.value === item.category)?.label || item.category || '—'}
+                    </span>
                   </td>
                   <td>{item.capacity || '--'}</td>
                   <td>

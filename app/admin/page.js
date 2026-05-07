@@ -3,8 +3,8 @@
 import AdminLayout from '@/components/AdminLayout';
 import Link from 'next/link';
 import { useState } from 'react';
-import { useFirestore } from '@/lib/useFirestore';
-import { getAllBookings } from '@/lib/firebaseService';
+import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
+import { subscribeToAllBookings } from '@/lib/firebaseService';
 import { Truck, Clock, CheckCircle, ClipboardList, TrendingUp, TrendingDown, ArrowRight, BarChart3 } from 'lucide-react';
 
 function formatBookingDate(dateStr, timeStr) {
@@ -20,7 +20,9 @@ function formatBookingDate(dateStr, timeStr) {
 }
 
 export default function AdminDashboard() {
-  const { data: adminBookings, loading: bookingsLoading } = useFirestore(getAllBookings);
+  const { data: adminBookings, loading: bookingsLoading } = useRealtimeFirestore(
+    (cb) => subscribeToAllBookings(cb)
+  );
   const [statsPeriod, setStatsPeriod] = useState('monthly');
 
   const totalBookings = adminBookings?.length || 0;

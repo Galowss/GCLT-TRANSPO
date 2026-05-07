@@ -156,7 +156,7 @@
 
 .truckImage {
   position: relative;
-  height: 220px;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
   background: var(--gray-100);
 }
@@ -169,7 +169,36 @@
 }
 
 .truckCard:hover .truckImage img {
-  transform: scale(1.05);
+  transform: scale(1.03);
+}
+
+/* Image nav arrows */
+.imgArrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  color: var(--white);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 3;
+  transition: background 0.2s ease;
+  opacity: 0;
+}
+
+.truckCard:hover .imgArrow {
+  opacity: 1;
+}
+
+.imgArrow:hover {
+  background: rgba(15, 23, 42, 0.9);
 }
 
 .truckImagePlaceholder {
@@ -427,6 +456,7 @@
   }
   .truckGrid {
     grid-template-columns: 1fr;
+    gap: 14px;
   }
   .inventoryHeader {
     flex-direction: column;
@@ -440,4 +470,33 @@
   .ctaActions {
     justify-content: center;
   }
+  /* Truck card image height on mobile */
+  .truckImage {
+    height: 200px;
+  }
+  .truckInfo {
+    padding: 14px;
+  }
 }
+
+@media (max-width: 480px) {
+  .truckGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .filterBtns {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .filterBtns button {
+    font-size: 0.78rem;
+    padding: 6px 10px;
+  }
+  .truckImage {
+    height: 185px;
+  }
+  .cta {
+    padding: 48px 16px;
+  }
+}
+

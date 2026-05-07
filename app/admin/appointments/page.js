@@ -2,15 +2,17 @@
 
 import AdminLayout from '@/components/AdminLayout';
 import { useState } from 'react';
-import { useFirestore } from '@/lib/useFirestore';
-import { getAppointments, updateBooking, addNotification } from '@/lib/firebaseService';
+import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
+import { subscribeToAppointments, addNotification } from '@/lib/firebaseService';
 import { useToast } from '@/components/Toast';
 import { Calendar, CheckCircle, XCircle, X, MapPin, Clock, User, Phone, Truck } from 'lucide-react';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 export default function AdminAppointments() {
-  const { data: appointments, loading, refetch } = useFirestore(() => getAppointments());
+  const { data: appointments, loading } = useRealtimeFirestore(
+    (cb) => subscribeToAppointments(null, cb)
+  );
   const { addToast } = useToast();
   const [selectedAppointment, setSelectedAppointment] = useState(null);
 
@@ -35,7 +37,7 @@ export default function AdminAppointments() {
 
       addToast(`Appointment ${newStatus.toLowerCase()} successfully.`, 'success');
       setSelectedAppointment(prev => prev ? { ...prev, status: newStatus } : null);
-      refetch();
+      // listener auto-updates the table
     } catch (err) {
       addToast('Failed to update appointment.', 'error');
     }

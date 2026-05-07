@@ -3,10 +3,11 @@
 import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
 import { useAuth } from '@/lib/AuthContext';
-import { useFirestore } from '@/lib/useFirestore';
-import { getRecentBookings, getAppointments } from '@/lib/firebaseService';
+import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
+import { subscribeToRecentBookings, subscribeToAppointments } from '@/lib/firebaseService';
 import { Truck, Calendar, Clock, TrendingUp, MapPin, ArrowRight, ShoppingBag } from 'lucide-react';
 import styles from './dashboard.module.css';
+
 
 function formatBookingDate(dateStr, timeStr) {
   if (!dateStr) return '—';
@@ -22,14 +23,15 @@ function formatBookingDate(dateStr, timeStr) {
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { data: recentBookings, loading: bookingsLoading } = useFirestore(
-    () => getRecentBookings(user?.uid, 5),
+  const { data: recentBookings, loading: bookingsLoading } = useRealtimeFirestore(
+    (cb) => subscribeToRecentBookings(user?.uid, 5, cb),
     [user?.uid]
   );
-  const { data: appointments } = useFirestore(
-    () => getAppointments(user?.uid),
+  const { data: appointments } = useRealtimeFirestore(
+    (cb) => subscribeToAppointments(user?.uid, cb),
     [user?.uid]
   );
+
 
   return (
     <DashboardLayout>

@@ -8,7 +8,7 @@ import { useFirestore } from '@/lib/useFirestore';
 import { getTruckById, addPurchaseRequest, addNotification } from '@/lib/firebaseService';
 import { useAuth } from '@/lib/AuthContext';
 import { useToast } from '@/components/Toast';
-import { Truck, Calendar, Check, ArrowLeft, CreditCard, Banknote, ShieldCheck } from 'lucide-react';
+import { Truck, MapPin, Calendar, Weight, Ruler, Phone, Mail, ChevronLeft, ChevronRight, ArrowLeft, CreditCard, Banknote, ShieldCheck } from 'lucide-react';
 import styles from './detail.module.css';
 
 export default function TruckDetail() {
@@ -160,14 +160,52 @@ export default function TruckDetail() {
           <div className={styles.grid}>
             {/* Image Gallery */}
             <div className={styles.gallery}>
-              <div className={styles.mainImage}>
+              <div className={styles.mainImage} style={{ position: 'relative' }}>
                 {allImages.length > 0 ? (
-                  <img src={allImages[selectedImage] || allImages[0]} alt={truck.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--border-radius-lg)' }} />
+                  <img src={allImages[selectedImage] || allImages[0]} alt={truck.name} />
                 ) : (
                   <div className={styles.imagePlaceholder}>
                     <Truck size={48} />
                     <p>{truck.name}</p>
                   </div>
+                )}
+                {/* Left / Right arrows */}
+                {allImages.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedImage(i => (i - 1 + allImages.length) % allImages.length)}
+                      style={{
+                        position: 'absolute', top: '50%', left: '12px', transform: 'translateY(-50%)',
+                        background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
+                        color: '#fff', border: 'none', borderRadius: '50%',
+                        width: '38px', height: '38px', display: 'flex', alignItems: 'center',
+                        justifyContent: 'center', cursor: 'pointer', zIndex: 2,
+                      }}
+                    >
+                      <ChevronLeft size={20} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedImage(i => (i + 1) % allImages.length)}
+                      style={{
+                        position: 'absolute', top: '50%', right: '12px', transform: 'translateY(-50%)',
+                        background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
+                        color: '#fff', border: 'none', borderRadius: '50%',
+                        width: '38px', height: '38px', display: 'flex', alignItems: 'center',
+                        justifyContent: 'center', cursor: 'pointer', zIndex: 2,
+                      }}
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+                    <span style={{
+                      position: 'absolute', bottom: '12px', right: '14px',
+                      background: 'rgba(0,0,0,0.5)', color: '#fff',
+                      fontSize: '0.75rem', padding: '3px 8px', borderRadius: '20px',
+                    }}>
+                      {selectedImage + 1} / {allImages.length}
+                    </span>
+                  </>
                 )}
                 <span className={styles.truckType} style={{ background: truck.typeColor }}>
                   {truck.type}

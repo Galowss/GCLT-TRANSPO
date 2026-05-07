@@ -1,8 +1,8 @@
 'use client';
 
 import AdminLayout from '@/components/AdminLayout';
-import { useFirestore } from '@/lib/useFirestore';
-import { getTrucksForSale, addTruck, updateTruck, deleteTruck } from '@/lib/firebaseService';
+import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
+import { subscribeToTrucksForSale, addTruck, updateTruck, deleteTruck } from '@/lib/firebaseService';
 import { compressImage } from '@/lib/compressImage';
 import { useToast } from '@/components/Toast';
 import { useState } from 'react';
@@ -19,7 +19,9 @@ const TRANSMISSION_OPTIONS = ['Manual', 'Automatic'];
 const SPEED_GEAR_OPTIONS = ['5-Speed', '6-Speed', '8-Speed', '10-Speed', '12-Speed'];
 
 export default function AdminTrucks() {
-  const { data: trucks, loading, refetch } = useFirestore(getTrucksForSale);
+  const { data: trucks, loading } = useRealtimeFirestore(
+    (cb) => subscribeToTrucksForSale(cb)
+  );
   const { addToast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);

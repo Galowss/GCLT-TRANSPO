@@ -3,17 +3,24 @@
 import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
 import { useState } from 'react';
-import { useFirestore } from '@/lib/useFirestore';
-import { getTrucksForSale } from '@/lib/firebaseService';
-import { Truck, MapPin, DollarSign, Search, ArrowRight, Filter, Calendar } from 'lucide-react';
+import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
+import { subscribeToTrucksForSale } from '@/lib/firebaseService';
+import { Truck, MapPin, DollarSign, Search, ArrowRight, Filter, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import styles from './trucks.module.css';
 
 export default function TrucksForSale() {
-  const { data: trucksForSale, loading } = useFirestore(getTrucksForSale);
+  const { data: trucksForSale, loading } = useRealtimeFirestore(
+    (cb) => subscribeToTrucksForSale(cb)
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterLocation, setFilterLocation] = useState('all');
   const [sortPrice, setSortPrice] = useState('none');
+  const [imageIndexes, setImageIndexes] = useState({});
+
+  const getImgIdx = (id) => imageIndexes[id] || 0;
+  const prevImg = (e, id, total) => { e.preventDefault(); e.stopPropagation(); setImageIndexes(prev => ({ ...prev, [id]: (getImgIdx(id) - 1 + total) % total })); };
+  const nextImg = (e, id, total) => { e.preventDefault(); e.stopPropagation(); setImageIndexes(prev => ({ ...prev, [id]: (getImgIdx(id) + 1) % total })); };
 
   // Compute unique types and locations from data
   const allTypes = [...new Set((trucksForSale || []).map(t => t.type).filter(Boolean))];
@@ -122,19 +129,41 @@ export default function TrucksForSale() {
               <div key={truck.id} className={styles.truckCard}>
                 <Link href={`/trucks-for-sale/${truck.id}`} className={styles.cardLink}>
                   <div className={styles.truckImage}>
-                    {(truck.imageUrls?.[0] || truck.imageUrl) ? (
-                      <img src={truck.imageUrls?.[0] || truck.imageUrl} alt={truck.name} />
-                    ) : (
-                      <div className={styles.truckImagePlaceholder}>
-                        <Truck size={48} opacity={0.5} />
-                      </div>
-                    )}
-                    {truck.imageUrls?.length > 1 && (
-                      <span className={styles.photoCount}>{truck.imageUrls.length} photos</span>
-                    )}
-                    <span className={styles.truckType} style={{ background: truck.typeColor || 'var(--primary)' }}>
-                      {truck.type}
-                    </span>
+                    {(() => {
+                      const imgs = truck.imageUrls?.length ? truck.imageUrls : (truck.imageUrl ? [truck.imageUrl] : []);
+                      const idx = getImgIdx(truck.id);
+                      return imgs.length > 0 ? (
+                        <>
+                          <img src={imgs[idx]} alt={truck.name} />
+                          {imgs.length > 1 && (
+                            <>
+                              <button
+                                type="button"
+                                className={styles.imgArrow}
+                                style={{ left: '8px' }}
+                                onClick={e => prevImg(e, truck.id, imgs.length)}
+                                aria-label="Previous image"
+                              >
+                                <ChevronLeft size={16} />
+                              </button>
+                              <button
+                                type="button"
+                                className={styles.imgArrow}
+                                style={{ right: '8px' }}
+                                onClick={e => nextImg(e, truck.id, imgs.length)}
+                                aria-label="Next image"
+                              >
+                                <ChevronRight size={16} />
+                              </button>
+                              <span className={styles.photoCount}>{idx + 1} / {imgs.length}</span>
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        <div className={styles.truckImagePlaceholder}><Truck size={48} opacity={0.5} /></div>
+                      );
+                    })()}
+                    <span className={styles.truckType} style={{ background: truck.typeColor || 'var(--primary)' }}>{truck.type}</span>
                     <span className={styles.truckPrice}>PHP {truck.price?.toLocaleString()}</span>
                   </div>
                   <div className={styles.truckInfo}>

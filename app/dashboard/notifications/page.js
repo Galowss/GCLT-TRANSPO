@@ -3,8 +3,8 @@
 import DashboardLayout from '@/components/DashboardLayout';
 import { useState } from 'react';
 import { useAuth } from '@/lib/AuthContext';
-import { useFirestore } from '@/lib/useFirestore';
-import { getNotifications, markNotificationRead, markAllNotificationsRead, deleteNotification, deleteAllUserNotifications } from '@/lib/firebaseService';
+import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
+import { subscribeToNotifications, markNotificationRead, markAllNotificationsRead, deleteNotification, deleteAllUserNotifications } from '@/lib/firebaseService';
 import { useToast } from '@/components/Toast';
 import { Bell, Check, Clock, MapPin, MoreHorizontal, Trash2 } from 'lucide-react';
 
@@ -12,28 +12,33 @@ const tabs = ['All', 'Bookings', 'Appointments', 'Payments', 'System'];
 
 export default function NotificationsPage() {
   const { user } = useAuth();
-  const { data: notifications, loading, refetch } = useFirestore(
-    () => getNotifications(user?.uid),
+  const { data: notifications, loading } = useRealtimeFirestore(
+    (cb) => subscribeToNotifications(user?.uid, cb),
     [user?.uid]
   );
   const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState('All');
   const [deleting, setDeleting] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const filtered = activeTab === 'All'
+  const tabFiltered = activeTab === 'All'
     ? notifications
     : notifications?.filter(n => n.type === activeTab.toLowerCase().slice(0, -1));
 
+  const filtered = (tabFiltered || []).filter(n => {
+    const q = searchQuery.toLowerCase();
+    return !q || (n.title || '').toLowerCase().includes(q) || (n.message || '').toLowerCase().includes(q);
+  });
+
   const handleMarkRead = async (notifId) => {
     await markNotificationRead(notifId);
-    refetch();
+    // no refetch needed — listener auto-updates
   };
 
   const handleMarkAllRead = async () => {
     if (!user?.uid) return;
     try {
       await markAllNotificationsRead(user.uid);
-      refetch();
       addToast('All notifications marked as read.', 'success');
     } catch {
       addToast('Failed to mark all as read.', 'error');
@@ -44,7 +49,6 @@ export default function NotificationsPage() {
     setDeleting(notifId);
     try {
       await deleteNotification(notifId);
-      refetch();
     } catch {
       addToast('Failed to delete notification.', 'error');
     }
@@ -56,7 +60,6 @@ export default function NotificationsPage() {
     if (!confirm('Delete all your notifications? This cannot be undone.')) return;
     try {
       await deleteAllUserNotifications(user.uid);
-      refetch();
       addToast('All notifications deleted.', 'success');
     } catch {
       addToast('Failed to delete notifications.', 'error');
@@ -67,9 +70,9 @@ export default function NotificationsPage() {
 
   return (
     <DashboardLayout>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <h1 style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             Notifications
             {unreadCount > 0 && (
               <span className="badge badge-primary" style={{ fontSize: '0.75rem' }}>
@@ -81,7 +84,7 @@ export default function NotificationsPage() {
             Stay updated with your logistics activities in SBMA and Olongapo.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           {unreadCount > 0 && (
             <button className="btn btn-outline btn-sm" style={{ gap: '4px' }} onClick={handleMarkAllRead}>
               <Check size={14} /> Mark all as read
@@ -98,27 +101,43 @@ export default function NotificationsPage() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div style={{ display: 'flex', gap: '0', borderBottom: '1px solid var(--gray-200)', marginBottom: '24px' }}>
-        {tabs.map(tab => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            style={{
-              padding: '12px 20px',
-              fontSize: '0.85rem',
-              fontWeight: activeTab === tab ? '600' : '500',
-              color: activeTab === tab ? 'var(--primary)' : 'var(--text-secondary)',
-              borderBottom: activeTab === tab ? '2px solid var(--primary)' : '2px solid transparent',
-              background: 'none',
-              cursor: 'pointer',
-              transition: 'var(--transition)',
-            }}
-          >
-            {tab}
-          </button>
-        ))}
+      {/* Search + Tabs */}
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ position: 'relative', marginBottom: '16px' }}>
+          <Bell size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+          <input
+            type="text"
+            className="form-input"
+            placeholder="Search notifications..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            style={{ paddingLeft: '40px' }}
+          />
+        </div>
+        <div style={{ display: 'flex', gap: '0', borderBottom: '1px solid var(--gray-200)', overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
+          {tabs.map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{
+                padding: '12px 18px',
+                fontSize: '0.85rem',
+                fontWeight: activeTab === tab ? '600' : '500',
+                color: activeTab === tab ? 'var(--primary)' : 'var(--text-secondary)',
+                borderBottom: activeTab === tab ? '2px solid var(--primary)' : '2px solid transparent',
+                background: 'none',
+                cursor: 'pointer',
+                transition: 'var(--transition)',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+              }}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
       </div>
+      <div style={{ marginBottom: '24px' }}></div>
 
       {/* Notification List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -151,7 +170,7 @@ export default function NotificationsPage() {
                 <Bell size={18} />
               </span>
               <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', flexWrap: 'wrap', gap: '6px' }}>
                   <h4 style={{ fontSize: '0.95rem' }}>{notif.title}</h4>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <Clock size={12} /> {notif.time || '—'}

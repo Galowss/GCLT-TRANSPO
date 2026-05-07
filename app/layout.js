@@ -1,4 +1,6 @@
 import './globals.css';
+import './responsive.css';
+
 import { AuthProvider } from '@/lib/AuthContext';
 import { ToastProvider } from '@/components/Toast';
 import Chatbot from '@/components/Chatbot';

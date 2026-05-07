@@ -1,14 +1,16 @@
 'use client';
 
 import AdminLayout from '@/components/AdminLayout';
-import { useFirestore } from '@/lib/useFirestore';
-import { getAllUsers, updateUserRole } from '@/lib/firebaseService';
+import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
+import { subscribeToAllUsers, updateUserRole } from '@/lib/firebaseService';
 import { useToast } from '@/components/Toast';
 import { useState } from 'react';
 import { Users, Shield, ShieldOff, Search, User } from 'lucide-react';
 
 export default function UserManagement() {
-  const { data: users, loading, refetch } = useFirestore(getAllUsers);
+  const { data: users, loading } = useRealtimeFirestore(
+    (cb) => subscribeToAllUsers(cb)
+  );
   const { addToast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [promoting, setPromoting] = useState(null);
@@ -24,7 +26,7 @@ export default function UserManagement() {
     try {
       await updateUserRole(uid, newRole);
       addToast(`User ${newRole === 'admin' ? 'promoted to admin' : 'demoted to user'} successfully.`, 'success');
-      refetch();
+      // listener auto-updates the list
     } catch (err) {
       addToast('Failed to update user role.', 'error');
     }

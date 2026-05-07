@@ -2,8 +2,8 @@
 
 import AdminLayout from '@/components/AdminLayout';
 import { useState } from 'react';
-import { useFirestore } from '@/lib/useFirestore';
-import { getAllBookings, updateBooking, addNotification } from '@/lib/firebaseService';
+import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
+import { subscribeToAllBookings, updateBooking, addNotification } from '@/lib/firebaseService';
 import { compressImage } from '@/lib/compressImage';
 import { useToast } from '@/components/Toast';
 import { Download, Search, CheckCircle, XCircle, Clock, MoreHorizontal, Mail, DollarSign, Truck, Package, MapPin, Upload, FileImage } from 'lucide-react';
@@ -47,7 +47,9 @@ const STATUS_COLORS = {
 };
 
 export default function BookingManagement() {
-  const { data: bookingsData, loading, refetch } = useFirestore(getAllBookings);
+  const { data: bookingsData, loading } = useRealtimeFirestore(
+    (cb) => subscribeToAllBookings(cb)
+  );
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -78,10 +80,13 @@ export default function BookingManagement() {
       (b.pickup || '').toLowerCase().includes(q) ||
       (b.delivery || '').toLowerCase().includes(q) ||
       (b.userName || '').toLowerCase().includes(q) ||
-      (b.userId || '').toLowerCase().includes(q);
+      (b.userId || '').toLowerCase().includes(q) ||
+      (b.date || '').toLowerCase().includes(q) ||
+      (b.quotedAmount ? String(b.quotedAmount) : '').includes(q);
     const matchesStatus = filterStatus === 'all' || (b.status || '').toLowerCase() === filterStatus;
     return matchesSearch && matchesStatus;
   });
+
 
   const getStatusColor = (status) => STATUS_COLORS[status] || '#6B7280';
   const getStatusClass = (status) => {
@@ -191,7 +196,7 @@ export default function BookingManagement() {
 
   return (
     <AdminLayout>
-      <div style={{ display: 'grid', gridTemplateColumns: selectedBooking ? '1fr 380px' : '1fr', gap: '24px', minHeight: 'calc(100vh - 150px)' }}>
+      <div className="admin-booking-grid" style={{ display: 'grid', gridTemplateColumns: selectedBooking ? '1fr 380px' : '1fr', gap: '24px', minHeight: 'calc(100vh - 150px)' }}>
         {/* Main Content */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
@@ -220,7 +225,7 @@ export default function BookingManagement() {
               <input
                 type="text"
                 className="form-input"
-                placeholder="Search ID, user, truck, or route..."
+                placeholder="Search by ID, user, truck, route, date (e.g. 2026-05-07), or amount..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 style={{ paddingLeft: '36px', width: '100%' }}

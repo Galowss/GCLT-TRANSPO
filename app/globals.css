@@ -934,76 +934,198 @@ h6 { font-size: 0.875rem; font-weight: 600; line-height: 1.5; }
   color: var(--text-secondary);
 }
 
-/* ===== RESPONSIVE ===== */
+/* ====================================================
+   RESPONSIVE — Premium Mobile UI
+   ==================================================== */
+
+/* ── Tablet (≤1024px) ── */
 @media (max-width: 1024px) {
   .footer-inner {
     grid-template-columns: 1fr 1fr;
     gap: 32px;
   }
-}
 
-@media (max-width: 768px) {
-  h1 { font-size: 1.8rem; }
-  h2 { font-size: 1.5rem; }
-  h3 { font-size: 1.25rem; }
-
-  .navbar-links {
-    display: none;
-  }
-
-  .navbar-mobile-toggle {
-    display: block;
-  }
-
-  .sidebar-mobile-toggle {
-    display: block;
-  }
-
-  .sidebar-mobile-header {
-    display: flex;
-  }
-
+  /* Sidebar becomes slide-over on tablet */
   .sidebar {
     transform: translateX(-100%);
-    transition: var(--transition-slow);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-xl);
   }
-  .sidebar.open {
-    transform: translateX(0);
-  }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-mobile-toggle { display: block; }
+  .sidebar-mobile-header { display: flex; }
 
   .dashboard-main {
     margin-left: 0;
-    padding: 80px 16px 16px;
+    padding: 88px 24px 32px;
   }
+}
 
-  .dashboard-topbar-brand {
-    display: flex;
-    align-items: center;
+/* ── Mobile (≤768px) ── */
+@media (max-width: 768px) {
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.4rem; }
+  h3 { font-size: 1.2rem; }
+
+  /* ── Navbar ── */
+  .navbar-links { display: none; }
+  .navbar-mobile-toggle { display: flex; align-items: center; justify-content: center; }
+  .navbar-inner { padding: 0 16px; }
+  .navbar-brand span { font-size: 0.9rem; }
+
+  /* ── Sidebar ── */
+  .sidebar-mobile-toggle { display: block; }
+  .sidebar-mobile-header { display: flex; }
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-xl);
+    width: 260px;
   }
+  .sidebar.open { transform: translateX(0); }
 
-  .dashboard-topbar-brand-link {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 800;
-    color: var(--primary);
+  /* ── Dashboard topbar ── */
+  .dashboard-topbar {
+    padding: 0 16px;
+    backdrop-filter: blur(8px);
   }
-
   .dashboard-topbar-brand-link span {
-    display: none; /* Hide full text on mobile */
+    display: none;
+  }
+  .dashboard-topbar-brand-icon {
+    width: 28px;
+    height: 28px;
   }
 
+  /* ── Dashboard main ── */
+  .dashboard-main {
+    margin-left: 0;
+    padding: 80px 12px 24px;
+    background: var(--gray-50);
+  }
+
+  /* ── Cards ── */
+  .card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+  .card-lg { padding: 18px; }
+
+  /* ── Buttons — bigger tap targets ── */
+  .btn { min-height: 42px; }
+  .btn-sm { min-height: 36px; padding: 6px 14px; }
+  .btn-lg { min-height: 50px; }
+  .btn-full { width: 100%; }
+
+  /* ── Form inputs — proper mobile sizing ── */
+  .form-input, .form-select {
+    min-height: 46px;
+    font-size: 16px; /* prevents iOS auto-zoom */
+    padding: 12px 14px;
+  }
+
+  /* ── Tables → Card-style on mobile ── */
+  .table-container {
+    overflow-x: visible;
+    border-radius: 12px;
+  }
+  .table { min-width: unset; }
+  .table thead { display: none; }
+  .table tbody tr {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    padding: 12px 14px;
+    background: var(--white);
+    box-shadow: var(--shadow-sm);
+    gap: 4px;
+  }
+  .table tbody tr:hover {
+    box-shadow: var(--shadow);
+    background: var(--white);
+  }
+  .table td {
+    padding: 4px 0;
+    border: none;
+    font-size: 0.84rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .table td:first-child {
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--gray-100);
+    padding-bottom: 8px;
+  }
+  /* Label each cell via data-label attribute if desired */
+  .table td::before {
+    content: attr(data-label);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    min-width: 72px;
+  }
+
+  /* ── Admin booking panel — stack below table ── */
+  .admin-booking-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Footer ── */
   .footer-inner {
     grid-template-columns: 1fr;
     gap: 24px;
   }
+  .footer-newsletter { flex-direction: column; gap: 8px; }
+  .footer-newsletter input,
+  .footer-newsletter button {
+    border-radius: var(--border-radius);
+    width: 100%;
+  }
+  .footer { padding: 40px 16px 20px; }
+
+  /* ── Toast — full width ── */
+  .toast-container { left: 10px; right: 10px; top: 10px; }
+  .toast { min-width: unset; max-width: 100%; font-size: 0.82rem; }
+
+  /* ── Status badges ── */
+  .status { font-size: 0.72rem; padding: 3px 10px; }
+  .badge { font-size: 0.7rem; padding: 3px 10px; }
 }
 
+/* ── Small Phone (≤480px) ── */
 @media (max-width: 480px) {
-  h1 { font-size: 1.5rem; }
-  .btn { padding: 8px 18px; font-size: 0.8rem; }
-  .card { padding: 16px; }
+  h1 { font-size: 1.45rem; }
+  h2 { font-size: 1.2rem; }
+
+  .dashboard-main { padding: 76px 10px 20px; }
+
+  .btn { font-size: 0.82rem; padding: 10px 16px; }
+  .card { padding: 13px; }
+
+  /* Topbar brand — icon + short text only */
+  .dashboard-topbar-brand-link span { display: none; }
+
+  /* Chatbot toggle — shift left slightly so it doesn't cover content */
+  .chatbot-toggle { right: 14px; bottom: 18px; width: 50px; height: 50px; }
+
+  /* Stats grid → 2 wide columns */
+  .stats-row-3 { grid-template-columns: 1fr 1fr !important; }
+
+  /* Spec grids → 2 cols */
+  .spec-grid-3 { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Table card cells — hide the auto-label since cards are small */
+  .table td::before { display: none; }
 }
+
 
 /* ===== CHATBOT WIDGET ===== */
 .chatbot-toggle {

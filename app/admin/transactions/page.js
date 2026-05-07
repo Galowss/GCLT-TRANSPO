@@ -1,8 +1,8 @@
 'use client';
 
 import AdminLayout from '@/components/AdminLayout';
-import { useFirestore } from '@/lib/useFirestore';
-import { getAllBookings } from '@/lib/firebaseService';
+import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
+import { subscribeToAllBookings } from '@/lib/firebaseService';
 import { Receipt, Download, Search } from 'lucide-react';
 import { useState } from 'react';
 
@@ -28,7 +28,9 @@ function exportToCsv(transactions) {
 }
 
 export default function TransactionsPage() {
-  const { data: bookings, loading } = useFirestore(getAllBookings);
+  const { data: bookings, loading } = useRealtimeFirestore(
+    (cb) => subscribeToAllBookings(cb)
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDate, setFilterDate] = useState('all');
   const [filterPayment, setFilterPayment] = useState('all');

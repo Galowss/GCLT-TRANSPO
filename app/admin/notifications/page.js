@@ -1,10 +1,12 @@
 'use client';
 
 import AdminLayout from '@/components/AdminLayout';
-import { useFirestore } from '@/lib/useFirestore';
-import { getAdminNotifications, markNotificationRead } from '@/lib/firebaseService';
+import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
+import { subscribeToAdminNotifications, markNotificationRead } from '@/lib/firebaseService';
 import { useToast } from '@/components/Toast';
-import { Bell, Check, Clock, Truck, Calendar } from 'lucide-react';
+import { Bell, Check, Clock, Truck, Calendar, Search } from 'lucide-react';
+import { useState } from 'react';
+
 
 const typeIcon = {
   booking: Truck,
@@ -13,13 +15,16 @@ const typeIcon = {
 };
 
 export default function AdminNotifications() {
-  const { data: notifications, loading, refetch } = useFirestore(getAdminNotifications);
+  const { data: notifications, loading } = useRealtimeFirestore(
+    (cb) => subscribeToAdminNotifications(cb)
+  );
   const { addToast } = useToast();
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleMarkRead = async (notifId) => {
     try {
       await markNotificationRead(notifId);
-      refetch();
+      // listener auto-updates
     } catch {
       addToast('Failed to mark as read.', 'error');
     }
@@ -37,6 +42,18 @@ export default function AdminNotifications() {
   };
 
   const unreadCount = (notifications || []).filter(n => n.isNew).length;
+
+  const filteredNotifications = (notifications || []).filter(n => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      (n.title || '').toLowerCase().includes(q) ||
+      (n.message || '').toLowerCase().includes(q) ||
+      (n.userEmail || '').toLowerCase().includes(q) ||
+      (n.type || '').toLowerCase().includes(q) ||
+      (n.time || '').toLowerCase().includes(q)
+    );
+  });
 
   return (
     <AdminLayout>
@@ -61,18 +78,31 @@ export default function AdminNotifications() {
         )}
       </div>
 
+      {/* Search bar */}
+      <div style={{ position: 'relative', marginBottom: '20px' }}>
+        <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+        <input
+          type="text"
+          className="form-input"
+          placeholder="Search notifications by title, message, user, or type..."
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          style={{ paddingLeft: '36px', width: '100%' }}
+        />
+      </div>
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {loading ? (
           <div className="card" style={{ textAlign: 'center', padding: '40px' }}>
             <div className="spinner" style={{ margin: '0 auto' }}></div>
           </div>
-        ) : !notifications?.length ? (
+        ) : !filteredNotifications.length ? (
           <div className="card" style={{ textAlign: 'center', padding: '60px' }}>
             <Bell size={36} color="var(--text-muted)" style={{ display: 'block', margin: '0 auto' }} />
-            <h3 style={{ marginTop: '16px' }}>No new notifications</h3>
-            <p style={{ color: 'var(--text-muted)' }}>All caught up! Booking submissions will appear here.</p>
+            <h3 style={{ marginTop: '16px' }}>{searchQuery ? 'No notifications match your search.' : 'No new notifications'}</h3>
+            <p style={{ color: 'var(--text-muted)' }}>{searchQuery ? 'Try a different keyword.' : 'All caught up! Booking submissions will appear here.'}</p>
           </div>
-        ) : notifications.map((notif) => {
+        ) : filteredNotifications.map((notif) => {
           const Icon = typeIcon[notif.type] || Bell;
           return (
             <div

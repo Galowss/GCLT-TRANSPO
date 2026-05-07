@@ -40,12 +40,13 @@
 
 .formCard {
   max-width: 900px;
+  margin: 0 auto;
   background: var(--white);
   border-radius: var(--border-radius-xl);
   box-shadow: var(--shadow);
   border: 1px solid var(--gray-200);
   overflow: hidden;
-  padding: 0; /* Override default padding to use custom section padding */
+  padding: 0;
 }
 
 .formHeader {
@@ -197,31 +198,75 @@
   display: block;
 }
 
+/* Fleet Category */
+.fleetCategory {
+  margin-bottom: 28px;
+}
+.fleetCategory:last-child {
+  margin-bottom: 0;
+}
+
+.fleetCategoryHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.fleetCategoryCount {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
 /* Fleet Selection */
 .fleetGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
 }
 
 .fleetCard {
   position: relative;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 12px;
-  padding: 24px 16px;
+  gap: 16px;
+  padding: 14px 20px;
   border: 2px solid var(--gray-200);
   border-radius: var(--border-radius-lg);
   background: var(--white);
   cursor: pointer;
   transition: var(--transition);
+  text-align: left;
 }
 
 .fleetCard:hover {
   border-color: var(--primary-light);
   transform: translateY(-2px);
   box-shadow: var(--shadow);
+}
+
+.fleetCardPlaceholder {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 20px;
+  border-radius: var(--border-radius-lg);
+  border: 2px dashed var(--gray-300);
+  background: var(--gray-50);
+  cursor: not-allowed;
 }
 
 .fleetCardActive {
@@ -248,8 +293,11 @@
 }
 
 .fleetIcon {
-  font-size: 2.5rem;
+  font-size: 2rem;
   color: var(--text-secondary);
+  flex-shrink: 0;
+  width: 44px;
+  text-align: center;
 }
 .fleetCardActive .fleetIcon {
   color: var(--primary);
@@ -259,15 +307,17 @@
   font-weight: 700;
   font-size: 0.95rem;
   color: var(--text-primary);
-  text-align: center;
+  display: block;
+  margin-bottom: 4px;
 }
 
 .fleetCapacity {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
   background: var(--gray-100);
-  padding: 4px 10px;
+  padding: 2px 8px;
   border-radius: 100px;
+  display: inline-block;
 }
 .fleetCardActive .fleetCapacity {
   background: var(--white);
@@ -341,9 +391,10 @@
 
 .bottomBar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   align-items: center;
   max-width: 900px;
+  margin: 0 auto;
   margin-top: 16px;
 }
 
@@ -352,27 +403,91 @@
   gap: 16px;
 }
 
+/* ──────────────────────────────────────────
+   Responsive — Book Transport
+   ────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .stepsGrid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .formCard {
+    max-width: 100%;
+  }
 }
 
 @media (max-width: 768px) {
+  /* Page header */
+  .title { font-size: 1.6rem; margin-bottom: 4px; }
+  .subtitle { font-size: 0.9rem; margin-bottom: 20px; }
+
+  /* Steps progress */
+  .stepsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  /* Form card — full bleed, no horizontal margin */
+  .formCard {
+    max-width: 100%;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Section headers */
+  .sectionHeader {
+    padding: 14px 16px;
+  }
+  .sectionLabel {
+    font-size: 0.88rem;
+    gap: 8px;
+  }
+  .section {
+    padding: 16px;
+  }
+
+  /* Input/Schedule grids → single column */
   .inputGrid,
   .scheduleGrid {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
-  .fleetGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+
+  /* Fleet dropdown full width (already is, just tighten) */
+  .fleetGrid { grid-template-columns: 1fr; }
+
+  /* Bottom bar — stack buttons */
   .bottomActions {
     width: 100%;
     flex-direction: column;
+    gap: 10px;
   }
   .bottomActions button,
   .bottomActions a {
     width: 100%;
     justify-content: center;
+    min-height: 46px;
+  }
+
+  /* Terms */
+  .terms {
+    padding: 12px 16px;
+    font-size: 0.8rem;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  /* Location pin buttons — make them compact */
+  .locationBtns {
+    flex-wrap: wrap;
+    gap: 6px;
   }
 }
+
+@media (max-width: 480px) {
+  .stepsGrid { grid-template-columns: 1fr; }
+  .title { font-size: 1.4rem; }
+  .section { padding: 12px; }
+  .sectionHeader { padding: 12px; }
+}
+
+

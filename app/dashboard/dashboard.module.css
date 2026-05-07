@@ -227,17 +227,56 @@
   color: var(--primary);
 }
 
+/* ─── Tablet ─── */
 @media (max-width: 1024px) {
+  .statsGrid { grid-template-columns: repeat(2, 1fr); }
+  .mainGrid  { grid-template-columns: 1fr; }
+}
+
+/* ─── Mobile ─── */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .headerActions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .headerActions a,
+  .headerActions button {
+    flex: 1;
+    min-width: 120px;
+    justify-content: center;
+    min-height: 42px;
+  }
+  .welcome { font-size: 1.4rem; }
   .statsGrid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
-  .mainGrid {
-    grid-template-columns: 1fr;
+  .statValue { font-size: 1.5rem; }
+  .statCard { padding: 14px; }
+  .bookingsCard { padding: 16px; }
+  .fastBooking { padding: 16px; }
+  .alertsCard { padding: 14px; }
+  .aiCard { padding: 14px; }
+}
+
+/* ─── Small phone ─── */
+@media (max-width: 480px) {
+  .statsGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .statValue { font-size: 1.3rem; }
+  .headerActions a,
+  .headerActions button {
+    min-width: 0;
+    font-size: 0.8rem;
   }
 }
 
-@media (max-width: 768px) {
-  .statsGrid {
-    grid-template-columns: 1fr;
-  }
-}

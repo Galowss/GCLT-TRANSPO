@@ -2,16 +2,16 @@
 
 import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/lib/AuthContext';
-import { useFirestore } from '@/lib/useFirestore';
-import { getAppointments } from '@/lib/firebaseService';
+import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
+import { subscribeToAppointments } from '@/lib/firebaseService';
 import { useToast } from '@/components/Toast';
 import { Calendar, MapPin, Clock, Phone } from 'lucide-react';
 
 export default function Appointments() {
   const { user } = useAuth();
   const { addToast } = useToast();
-  const { data: appointments, loading } = useFirestore(
-    () => getAppointments(user?.uid),
+  const { data: appointments, loading } = useRealtimeFirestore(
+    (cb) => subscribeToAppointments(user?.uid, cb),
     [user?.uid]
   );
 

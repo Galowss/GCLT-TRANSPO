@@ -20,6 +20,7 @@ export default function Profile() {
     locationStreet: '',
     locationBarangay: '',
     locationCity: '',
+    isIndividual: false,
   });
 
   useEffect(() => {
@@ -33,6 +34,7 @@ export default function Profile() {
           locationStreet: profile?.locationStreet || '',
           locationBarangay: profile?.locationBarangay || '',
           locationCity: profile?.locationCity || profile?.location || profile?.address || '',
+          isIndividual: profile?.isIndividual || false,
         });
       });
     }
@@ -106,28 +108,50 @@ export default function Profile() {
               <label className="form-label">Phone Number</label>
               <input type="tel" name="phone" className="form-input" value={formData.phone} onChange={handleChange} placeholder="+63 917 123 4567" />
             </div>
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Company</label>
-              <input type="text" name="company" className="form-input" value={formData.company} onChange={handleChange} placeholder="Company name" />
+
+            {/* Individual / Company toggle */}
+            <div className="form-group" style={{ marginBottom: 0, gridColumn: '1 / -1' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '14px 16px', background: formData.isIndividual ? 'var(--primary-light)' : 'var(--gray-50)', border: `1px solid ${formData.isIndividual ? 'var(--primary)' : 'var(--gray-200)'}`, borderRadius: 'var(--border-radius)', transition: 'var(--transition)' }}>
+                <input
+                  type="checkbox"
+                  name="isIndividual"
+                  checked={formData.isIndividual}
+                  onChange={e => setFormData(prev => ({ ...prev, isIndividual: e.target.checked }))}
+                  style={{ width: '18px', height: '18px', accentColor: 'var(--primary)', cursor: 'pointer' }}
+                />
+                <div>
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)', display: 'block', fontSize: '0.95rem' }}>I am not representing a company</span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Check this if you are booking as an individual client (not a business)</span>
+                </div>
+              </label>
             </div>
+
+            {!formData.isIndividual && (
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">Company</label>
+                <input type="text" name="company" className="form-input" value={formData.company} onChange={handleChange} placeholder="Company name" />
+              </div>
+            )}
             
-            <div className="form-group" style={{ gridColumn: '1 / -1', marginBottom: 0 }}>
-              <label className="form-label">Business Address</label>
-              <div className={styles.locationGrid}>
-                <div>
-                  <input type="text" name="locationStreet" className="form-input" value={formData.locationStreet} onChange={handleChange} placeholder="Street / Building" />
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '6px', display: 'block' }}>e.g. Bldg 23, Argonaut Hwy</span>
-                </div>
-                <div>
-                  <input type="text" name="locationBarangay" className="form-input" value={formData.locationBarangay} onChange={handleChange} placeholder="Barangay" />
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '6px', display: 'block' }}>e.g. Brgy. Cubi</span>
-                </div>
-                <div>
-                  <input type="text" name="locationCity" className="form-input" value={formData.locationCity} onChange={handleChange} placeholder="City / Municipality" />
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '6px', display: 'block' }}>e.g. Olongapo City</span>
+            {!formData.isIndividual && (
+              <div className="form-group" style={{ gridColumn: '1 / -1', marginBottom: 0 }}>
+                <label className="form-label">Business Address</label>
+                <div className={styles.locationGrid}>
+                  <div>
+                    <input type="text" name="locationStreet" className="form-input" value={formData.locationStreet} onChange={handleChange} placeholder="Street / Building" />
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '6px', display: 'block' }}>e.g. Bldg 23, Argonaut Hwy</span>
+                  </div>
+                  <div>
+                    <input type="text" name="locationBarangay" className="form-input" value={formData.locationBarangay} onChange={handleChange} placeholder="Barangay" />
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '6px', display: 'block' }}>e.g. Brgy. Cubi</span>
+                  </div>
+                  <div>
+                    <input type="text" name="locationCity" className="form-input" value={formData.locationCity} onChange={handleChange} placeholder="City / Municipality" />
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '6px', display: 'block' }}>e.g. Olongapo City</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           <div className={styles.actions}>

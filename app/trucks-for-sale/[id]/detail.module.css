@@ -36,8 +36,16 @@
 
 .mainImage {
   position: relative;
+  height: 380px;
   border-radius: var(--border-radius-xl);
   overflow: hidden;
+  background: var(--gray-100);
+}
+
+.mainImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .imagePlaceholder {
@@ -186,6 +194,12 @@
   color: var(--text-secondary);
 }
 
+@media (max-width: 1024px) {
+  .grid {
+    gap: 24px;
+  }
+}
+
 @media (max-width: 768px) {
   .grid {
     grid-template-columns: 1fr;
@@ -196,4 +210,34 @@
   .actions {
     flex-direction: column;
   }
+  .mainImage {
+    height: 260px;
+  }
+  .thumbRow {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .container {
+    padding: 20px 16px;
+  }
 }
+
+@media (max-width: 480px) {
+  .mainImage {
+    height: 220px;
+  }
+  .specGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .thumbRow {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .priceRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .price {
+    font-size: 1.6rem;
+  }
+}
+
