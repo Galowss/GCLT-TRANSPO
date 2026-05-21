@@ -1,7 +1,48 @@
+/* ─── Page Header ─────────────────────────────── */
+.pageHeader {
+  padding-bottom: 24px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid #E0E6E1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+@media (min-width: 768px) {
+  .pageHeader {
+    flex-direction: row;
+  }
+}
+
+.pageTitle {
+  font-family: 'Manrope', sans-serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #101f13;
+  margin-bottom: 8px;
+}
+
+.pageSubtitle {
+  font-size: 1.05rem;
+  color: #3d4a3f;
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+/* ─── Search Bar ──────────────────────────────── */
 .searchBar {
-  background: var(--white);
-  border-bottom: 1px solid var(--gray-200);
-  padding: 24px 32px;
+  background: #e0f3de;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #E0E6E1;
+  margin-bottom: 32px;
 }
 
 .searchInner {
@@ -10,21 +51,23 @@
   display: flex;
   gap: 16px;
   align-items: center;
+  width: 100%;
 }
 
 .searchInput {
   flex: 1;
-  padding: 14px 16px;
-  border: 1px solid var(--gray-300);
-  border-radius: var(--border-radius);
+  padding: 10px 16px 10px 40px;
+  border: 1px solid #E0E6E1;
+  border-radius: 8px;
   font-size: 0.95rem;
-  background: var(--white);
+  background: white;
   transition: var(--transition);
 }
+
 .searchInput:focus {
-  border-color: var(--primary);
-  outline: none;
-  box-shadow: 0 0 0 4px var(--primary-light);
+  outline: 2px solid #006d37;
+  outline-offset: 0;
+  border-color: #006d37;
 }
 
 .filterBtns {
@@ -65,7 +108,7 @@
   cursor: pointer;
 }
 
-/* Inventory */
+/* ─── Inventory ───────────────────────────────── */
 .inventory {
   padding: 48px 32px;
   background: var(--gray-50);
@@ -120,7 +163,7 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* Truck Grid */
+/* ─── Truck Grid ──────────────────────────────── */
 .truckGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -128,12 +171,12 @@
   margin-bottom: 48px;
 }
 
+/* ─── Truck Card ──────────────────────────────── */
 .truckCard {
-  background: var(--white);
-  border-radius: var(--border-radius-lg);
+  background: white;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--gray-200);
+  border: 1px solid #E0E6E1;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   display: flex;
   flex-direction: column;
@@ -141,11 +184,11 @@
 }
 
 .truckCard:hover {
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
   transform: translateY(-4px);
 }
 
-/* This allows the main link to cover the entire top half cleanly */
+/* Card link covers the top clickable section */
 .cardLink {
   text-decoration: none;
   color: inherit;
@@ -154,11 +197,12 @@
   z-index: 1;
 }
 
+/* ─── Truck Image ─────────────────────────────── */
 .truckImage {
   position: relative;
-  aspect-ratio: 1 / 1;
+  height: 240px;
   overflow: hidden;
-  background: var(--gray-100);
+  background: #F4F7F5;
 }
 
 .truckImage img {
@@ -252,6 +296,7 @@
   z-index: 2;
 }
 
+/* ─── Truck Info ──────────────────────────────── */
 .truckInfo {
   padding: 24px;
   flex: 1;
@@ -261,28 +306,76 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   gap: 12px;
 }
 
 .truckNameRow h3 {
-  font-size: 1.1rem;
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.2rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #101f13;
   line-height: 1.3;
   margin: 0;
 }
 
 .truckYear {
-  font-size: 0.85rem;
-  color: var(--primary);
-  font-weight: 700;
-  background: var(--primary-light);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  background: #e6f9e4;
+  color: #006d37;
   padding: 4px 8px;
   border-radius: 6px;
+  font-weight: 600;
   white-space: nowrap;
 }
 
+.truckSubtitle {
+  font-size: 0.9rem;
+  color: #3d4a3f;
+  margin-bottom: 16px;
+}
+
+/* ─── Spec Grid ───────────────────────────────── */
+.specGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.specCell {
+  background: #e0f3de;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+}
+
+.specIcon {
+  color: #006d37;
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+
+.specLabel {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6d7a6e;
+}
+
+.specValue {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #101f13;
+}
+
+/* Legacy spec styles (kept for compatibility) */
 .truckSpecs {
   display: flex;
   gap: 20px;
@@ -297,10 +390,12 @@
   gap: 6px;
 }
 
+/* ─── Card Actions ────────────────────────────── */
 .cardActions {
   display: flex;
   gap: 12px;
-  padding: 0 24px 24px;
+  padding: 16px 24px 24px;
+  border-top: 1px solid #E0E6E1;
   position: relative;
   z-index: 2;
 }
@@ -311,20 +406,20 @@
   justify-content: center;
   gap: 8px;
   flex: 1;
-  padding: 14px;
-  background: var(--orange);
-  color: var(--white);
-  border-radius: var(--border-radius);
+  padding: 12px;
+  background: #006d37;
+  color: white;
+  border-radius: 8px;
   font-weight: 700;
   font-size: 0.9rem;
-  transition: var(--transition);
+  transition: background 0.2s ease;
   text-decoration: none;
   cursor: pointer;
   border: none;
 }
 
 .truckBtn:hover {
-  background: var(--orange-dark);
+  background: #005228;
 }
 
 .viewingBtn {
@@ -332,25 +427,24 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 14px 20px;
-  border: 1px solid var(--gray-300);
-  background: var(--white);
-  color: var(--text-primary);
-  border-radius: var(--border-radius);
+  padding: 12px 16px;
+  border: 1px solid #E0E6E1;
+  background: white;
+  color: #101f13;
+  border-radius: 8px;
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
-  transition: var(--transition);
+  transition: border-color 0.2s ease, color 0.2s ease;
   text-decoration: none;
 }
 
 .viewingBtn:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-  background: var(--gray-50);
+  border-color: #006d37;
+  color: #006d37;
 }
 
-/* Pagination */
+/* ─── Pagination ──────────────────────────────── */
 .pagination {
   display: flex;
   align-items: center;
@@ -405,7 +499,7 @@
   color: var(--primary);
 }
 
-/* CTA */
+/* ─── CTA ─────────────────────────────────────── */
 .cta {
   padding: 80px 32px;
   background: var(--navy);
@@ -439,6 +533,7 @@
   flex-shrink: 0;
 }
 
+/* ─── Responsive ──────────────────────────────── */
 @media (max-width: 1024px) {
   .truckGrid {
     grid-template-columns: repeat(2, 1fr);
@@ -446,6 +541,9 @@
 }
 
 @media (max-width: 768px) {
+  .searchBar {
+    flex-direction: column;
+  }
   .searchInner {
     flex-direction: column;
     align-items: stretch;
@@ -470,12 +568,14 @@
   .ctaActions {
     justify-content: center;
   }
-  /* Truck card image height on mobile */
   .truckImage {
     height: 200px;
   }
   .truckInfo {
     padding: 14px;
+  }
+  .pageHeader {
+    align-items: flex-start;
   }
 }
 
@@ -499,4 +599,3 @@
     padding: 48px 16px;
   }
 }
-

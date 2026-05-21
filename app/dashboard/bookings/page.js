@@ -158,28 +158,70 @@ export default function MyBookings() {
         </div>
       )}
 
+      {/* Page Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1>My Bookings</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Track and manage all your transport bookings.</p>
+          <h1 style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 800, color: '#101f13', margin: 0 }}>My Bookings</h1>
+          <p style={{ color: '#3d4a3f', fontSize: '0.9rem', marginTop: '4px', fontFamily: 'Inter, sans-serif' }}>Manage and track your active freight transport requests.</p>
         </div>
-        <Link href="/dashboard/book" className="btn btn-accent">+ Request Quote</Link>
+        <Link
+          href="/dashboard/book"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: '#006d37',
+            color: '#fff',
+            paddingLeft: '20px',
+            paddingRight: '20px',
+            paddingTop: '10px',
+            paddingBottom: '10px',
+            borderRadius: '8px',
+            fontWeight: 700,
+            fontSize: '0.9rem',
+            textDecoration: 'none',
+          }}
+        >
+          + Request Quote
+        </Link>
       </div>
 
       {/* Filter Bar */}
-      <div className="card" style={{ padding: '14px 16px', marginBottom: '20px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-        <input type="text" className="form-input" placeholder="Search by ID, route, date, or amount..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} style={{ flex: 1, minWidth: '180px' }} />
-        <select className="form-select" style={{ minWidth: '150px', flex: '0 0 auto' }} value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-          <option value="all">Status: All</option>
-          <option value="quote requested">Quote Requested</option>
-          <option value="quoted">Quoted</option>
-          <option value="confirmed">Confirmed</option>
-          <option value="pending payment">Pending Payment</option>
-          <option value="in transit">In Transit</option>
-          <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
-          <option value="declined">Declined</option>
-        </select>
+      <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #E0E6E1', padding: '16px', marginBottom: '20px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <input
+          type="text"
+          className="form-input"
+          placeholder="Search by ID, route, date, or amount..."
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          style={{ flex: 1, minWidth: '200px' }}
+        />
+        {/* Chip filter buttons */}
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', flex: '0 0 auto' }}>
+          {['all', 'quote requested', 'quoted', 'confirmed', 'pending payment', 'in transit', 'completed', 'cancelled', 'declined'].map(status => (
+            <button
+              key={status}
+              onClick={() => setFilterStatus(status)}
+              style={{
+                padding: '6px 14px',
+                borderRadius: '100px',
+                border: filterStatus === status ? '1px solid #006d37' : '1px solid #E0E6E1',
+                background: filterStatus === status ? '#e6f9e4' : 'transparent',
+                color: filterStatus === status ? '#006d37' : '#6d7a6e',
+                fontSize: '0.75rem',
+                fontFamily: 'JetBrains Mono, monospace',
+                fontWeight: 600,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                textTransform: 'capitalize',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              {status === 'all' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)}
+            </button>
+          ))}
+        </div>
+        {/* Date filter */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: '0 0 auto' }}>
           <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Date:</label>
           <input type="date" className="form-input" style={{ width: '145px', fontSize: '0.85rem' }} value={filterDate} onChange={e => setFilterDate(e.target.value)} />
@@ -192,18 +234,19 @@ export default function MyBookings() {
 
       {/* Main Grid — stack on mobile */}
       <div style={{ display: 'grid', gridTemplateColumns: selectedBooking ? '1fr 380px' : '1fr', gap: '24px' }} className="admin-booking-grid">
-        <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
+        {/* Table Card */}
+        <div className="card" style={{ padding: '0', borderRadius: '12px', border: '1px solid #E0E6E1', overflow: 'hidden' }}>
           <div className="table-container">
             <table className="table">
-              <thead>
+              <thead style={{ background: '#f4f7f5' }}>
                 <tr>
-                  <th>Booking ID</th>
-                  <th>Truck &amp; Route</th>
-                  <th>Pickup / Delivery</th>
-                  <th>Scheduled Date</th>
-                  <th>Status</th>
-                  <th>Amount</th>
-                  <th>Actions</th>
+                  <th style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6d7a6e', padding: '14px 16px', borderBottom: '1px solid #E0E6E1', fontWeight: 600 }}>Booking ID</th>
+                  <th style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6d7a6e', padding: '14px 16px', borderBottom: '1px solid #E0E6E1', fontWeight: 600 }}>Truck &amp; Route</th>
+                  <th style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6d7a6e', padding: '14px 16px', borderBottom: '1px solid #E0E6E1', fontWeight: 600 }}>Pickup / Delivery</th>
+                  <th style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6d7a6e', padding: '14px 16px', borderBottom: '1px solid #E0E6E1', fontWeight: 600 }}>Scheduled Date</th>
+                  <th style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6d7a6e', padding: '14px 16px', borderBottom: '1px solid #E0E6E1', fontWeight: 600 }}>Status</th>
+                  <th style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6d7a6e', padding: '14px 16px', borderBottom: '1px solid #E0E6E1', fontWeight: 600 }}>Amount</th>
+                  <th style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6d7a6e', padding: '14px 16px', borderBottom: '1px solid #E0E6E1', fontWeight: 600 }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -216,7 +259,7 @@ export default function MyBookings() {
                   </td></tr>
                 ) : filtered.map((booking) => (
                   <tr key={booking.id} style={{ background: selectedBooking?.id === booking.id ? 'var(--primary-light)' : '', cursor: 'pointer' }} onClick={() => setSelectedBooking(booking)}>
-                    <td><strong style={{ color: 'var(--primary)' }}>{booking.id.slice(-8)}</strong></td>
+                    <td><strong style={{ color: 'var(--primary)', fontFamily: 'JetBrains Mono, monospace' }}>{booking.id.slice(-8)}</strong></td>
                     <td>{booking.truckRoute}</td>
                     <td>
                       <div style={{ fontSize: '0.85rem' }}><span style={{ fontWeight: 600 }}>Pick-up:</span> {booking.pickup}</div>
@@ -224,7 +267,7 @@ export default function MyBookings() {
                     </td>
                     <td>{booking.date}</td>
                     <td>
-                      <span className="badge" style={{ background: getStatusColor(booking.status) + '20', color: getStatusColor(booking.status) }}>{booking.status}</span>
+                      <span className="badge" style={{ background: getStatusColor(booking.status) + '20', color: getStatusColor(booking.status), borderRadius: '100px', padding: '4px 12px', fontSize: '0.72rem', fontFamily: 'JetBrains Mono, monospace', fontWeight: 600, letterSpacing: '0.03em' }}>{booking.status}</span>
                     </td>
                     <td>
                       {booking.quotedAmount ? <strong style={{ color: 'var(--primary)' }}>PHP {booking.quotedAmount?.toLocaleString()}</strong> : <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Awaiting quote</span>}
@@ -241,9 +284,9 @@ export default function MyBookings() {
 
         {/* Detail Sidebar */}
         {selectedBooking && (
-          <div className="card" style={{ padding: '0', height: 'fit-content', position: 'sticky', top: '88px' }}>
+          <div className="card" style={{ padding: '0', height: 'fit-content', position: 'sticky', top: '88px', borderRadius: '12px', border: '1px solid #E0E6E1' }}>
             <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--gray-200)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span className="badge" style={{ background: getStatusColor(selectedBooking.status) + '20', color: getStatusColor(selectedBooking.status) }}>{selectedBooking.status}</span>
+              <span className="badge" style={{ background: getStatusColor(selectedBooking.status) + '20', color: getStatusColor(selectedBooking.status), borderRadius: '100px' }}>{selectedBooking.status}</span>
               <button style={{ background: 'none', fontSize: '1rem', color: 'var(--text-muted)' }} onClick={() => setSelectedBooking(null)}><X size={18} /></button>
             </div>
 
@@ -251,7 +294,7 @@ export default function MyBookings() {
               <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '16px' }}>ID: {selectedBooking.id}</p>
 
               <div style={{ marginBottom: '20px' }}>
-                <h5 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-secondary)', marginBottom: '12px' }}>Route Information</h5>
+                <h5 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)', marginBottom: '12px', fontFamily: 'JetBrains Mono, monospace' }}>Route Information</h5>
                 <div style={{ paddingLeft: '12px', borderLeft: '2px solid var(--primary)' }}>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={12} /> Pickup</p>
                   <p style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '12px' }}>{selectedBooking.pickup}</p>
@@ -261,7 +304,7 @@ export default function MyBookings() {
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <h5 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-secondary)', marginBottom: '12px' }}>Cargo &amp; Schedule</h5>
+                <h5 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)', marginBottom: '12px', fontFamily: 'JetBrains Mono, monospace' }}>Cargo &amp; Schedule</h5>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.8rem' }}>
                   <div><span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}><Truck size={12} /> Vehicle</span><strong>{selectedBooking.truckRoute}</strong></div>
                   <div><span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={12} /> Date</span><strong>{selectedBooking.date}</strong></div>
@@ -280,9 +323,9 @@ export default function MyBookings() {
               </div>
 
               {selectedBooking.quotedAmount && (
-                <div style={{ marginBottom: '20px', padding: '16px', background: 'var(--primary-light)', borderRadius: 'var(--border-radius)', textAlign: 'center' }}>
+                <div style={{ marginBottom: '20px', padding: '16px', background: '#e6f9e4', borderRadius: '12px', textAlign: 'center' }}>
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px' }}>QUOTED AMOUNT</p>
-                  <p style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)' }}>PHP {selectedBooking.quotedAmount?.toLocaleString()}</p>
+                  <p style={{ fontSize: '1.5rem', fontWeight: 800, color: '#006d37' }}>PHP {selectedBooking.quotedAmount?.toLocaleString()}</p>
                   {selectedBooking.paymentMethod && (
                     <span className="badge" style={{ marginTop: '8px', background: selectedBooking.paymentMethod === 'stripe' ? '#E8F5E9' : '#FFF8E1', color: selectedBooking.paymentMethod === 'stripe' ? '#2E7D32' : '#E65100' }}>
                       {selectedBooking.paymentMethod === 'stripe' ? 'Paid (Stripe)' : 'Cash on Delivery'}

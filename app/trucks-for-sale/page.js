@@ -54,8 +54,20 @@ export default function TrucksForSale() {
   return (
     <DashboardLayout>
 
-      {/* Search Bar */}
-      <div className={styles.searchBar}>
+      {/* Inventory */}
+      <section className={styles.inventory}>
+        <div className={styles.inventoryInner}>
+
+          {/* Page Header */}
+          <div className={styles.pageHeader}>
+            <div>
+              <h1 className={styles.pageTitle}>Trucks for Sale</h1>
+              <p className={styles.pageSubtitle}>Browse our inventory of premium, heavy-duty commercial vehicles. All units undergo rigorous 150-point inspections.</p>
+            </div>
+          </div>
+
+          {/* Search Bar */}
+          <div className={styles.searchBar}>
         <div className={styles.searchInner}>
           <div style={{ position: 'relative', flex: 1 }}>
             <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
@@ -104,17 +116,11 @@ export default function TrucksForSale() {
             )}
           </div>
         </div>
-      </div>
-
-      {/* Inventory */}
-      <section className={styles.inventory}>
-        <div className={styles.inventoryInner}>
-          <div className={styles.inventoryHeader}>
-            <div>
-              <h1>Heavy Fleet Inventory</h1>
-              <p>Showing {filteredTrucks.length} available truck{filteredTrucks.length !== 1 ? 's' : ''} in the SBMA and Olongapo region.</p>
-            </div>
           </div>
+
+          <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '24px' }}>
+            Showing {filteredTrucks.length} available truck{filteredTrucks.length !== 1 ? 's' : ''} in the SBMA and Olongapo region.
+          </p>
 
           <div className={styles.truckGrid}>
             {loading ? (
@@ -171,13 +177,18 @@ export default function TrucksForSale() {
                       <h3>{truck.name}</h3>
                       <span className={styles.truckYear}>{truck.year}</span>
                     </div>
-                    <div className={styles.truckSpecs}>
-                      <span className={styles.specItem}><MapPin size={14} color="var(--primary)" /> {truck.location}</span>
-                      <span className={styles.specItem}>{truck.mileage}</span>
-                    </div>
-                    <div className={styles.truckSpecs}>
-                      <span className={styles.specItem}>{truck.engine}</span>
-                      <span className={styles.specItem}>{truck.condition}</span>
+                    <p className={styles.truckSubtitle}>{truck.type}{truck.drivetrain ? ` • ${truck.drivetrain}` : ''}</p>
+                    <div className={styles.specGrid}>
+                      <div className={styles.specCell}>
+                        <span className={styles.specIcon}>⚡</span>
+                        <span className={styles.specLabel}>Mileage</span>
+                        <span className={styles.specValue}>{truck.mileage || 'N/A'}</span>
+                      </div>
+                      <div className={styles.specCell}>
+                        <span className={styles.specIcon}>🔧</span>
+                        <span className={styles.specLabel}>{truck.engine ? 'Engine' : 'Condition'}</span>
+                        <span className={styles.specValue}>{truck.engine || truck.condition || 'N/A'}</span>
+                      </div>
                     </div>
                   </div>
                 </Link>

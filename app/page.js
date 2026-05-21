@@ -29,6 +29,7 @@ export default function Home() {
         <div className={styles.heroInner}>
           <div className={styles.heroContent}>
             <span className={styles.heroBadge}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#27ae60', display: 'inline-block', marginRight: 8 }}></span>
               Incorporated 2019 · Domestic Freight Forwarding
             </span>
             <h1 className={styles.heroTitle}>
@@ -60,19 +61,28 @@ export default function Home() {
             </div>
           </div>
           <div className={styles.heroImage}>
+            <div className={styles.heroBlurOrb}></div>
             <div className={styles.heroImagePlaceholder}>
-              <Image
-                src="/gclt-logo.png"
-                alt="GCLT Transport"
-                width={120}
-                height={120}
-                style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.3 }}
-              />
-              <p>Heavy-Duty Transport</p>
-            </div>
-            <div className={styles.heroStatusBadge}>
-              <span className={styles.statusDot}></span>
-              Port Operations Normal
+              {/* Status badge — top right inside card */}
+              <div className={styles.heroStatusBadge}>
+                <span className={styles.statusDot}></span>
+                Port Operations Normal
+              </div>
+              {/* Logo watermark — centered */}
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Image
+                  src="/gclt-logo.png"
+                  alt="GCLT Transport"
+                  width={120}
+                  height={120}
+                  style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.3 }}
+                />
+              </div>
+              {/* Bottom text block */}
+              <div>
+                <h3 style={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: '1.5rem', color: 'white', marginBottom: '8px' }}>Heavy-Duty Transport</h3>
+                <p className={styles.heroImageSubtext}>Real-time tracking and logistics management.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -82,15 +92,13 @@ export default function Home() {
       <section className={styles.stats}>
         <div className={styles.statsInner}>
           {[
-            { value: '38', label: 'Tractor Head Units', color: '#1B7A3D' },
-            { value: '85', label: 'Chassis Units', color: '#2DA65C' },
-            { value: '24/7', label: 'Operations', color: '#145F2F' },
-            { value: '99.9%', label: 'On-Time Rate', color: '#27AE60' },
+            { value: '38', label: 'Tractor Head Units' },
+            { value: '85', label: 'Chassis Units' },
+            { value: '24/7', label: 'Operations' },
+            { value: '99.9%', label: 'On-Time Rate' },
           ].map((stat) => (
             <div key={stat.label} className={styles.statItem}>
-              <span className={styles.statValue} style={{ color: stat.color }}>
-                {stat.value}
-              </span>
+              <span className={styles.statValue}>{stat.value}</span>
               <span className={styles.statLabel}>{stat.label}</span>
             </div>
           ))}
