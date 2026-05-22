@@ -749,6 +749,8 @@ h6 { font-size: 0.875rem; font-weight: 600; line-height: 1.5; }
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 .dashboard-topbar {
@@ -826,6 +828,9 @@ h6 { font-size: 0.875rem; font-weight: 600; line-height: 1.5; }
   margin-left: var(--sidebar-width);
   padding: 88px 32px 32px;
   min-height: 100vh;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* ===== FOOTER ===== */
@@ -1069,7 +1074,9 @@ h6 { font-size: 0.875rem; font-weight: 600; line-height: 1.5; }
 
   .dashboard-main {
     margin-left: 0;
-    padding: 88px 24px 32px;
+    padding: 88px 16px 32px;
+    width: 100%;
+    max-width: 100vw;
   }
 }
 
@@ -1112,8 +1119,10 @@ h6 { font-size: 0.875rem; font-weight: 600; line-height: 1.5; }
   /* ── Dashboard main ── */
   .dashboard-main {
     margin-left: 0;
-    padding: 80px 12px 24px;
+    padding: 76px 10px 24px;
     background: var(--gray-50);
+    width: 100%;
+    max-width: 100vw;
   }
 
   /* ── Cards ── */
@@ -1217,7 +1226,7 @@ h6 { font-size: 0.875rem; font-weight: 600; line-height: 1.5; }
   h1 { font-size: 1.45rem; }
   h2 { font-size: 1.2rem; }
 
-  .dashboard-main { padding: 76px 10px 20px; }
+  .dashboard-main { padding: 72px 8px 20px; width: 100%; max-width: 100vw; }
 
   .btn { font-size: 0.82rem; padding: 10px 16px; }
   .card { padding: 13px; }
