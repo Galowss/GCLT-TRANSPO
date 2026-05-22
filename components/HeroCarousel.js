@@ -77,7 +77,35 @@ export default function HeroCarousel() {
     return () => clearInterval(timer);
   }, [paused, slides.length]);
 
-  if (loading) return null;
+  if (loading) return (
+    <div className={styles.skeletonWrap} aria-label="Loading carousel...">
+      {/* Left content skeleton */}
+      <div className={styles.skeletonContent}>
+        <div className={styles.skeletonBadge} />
+        <div className={styles.skeletonTitle}>
+          <div className={styles.skeletonTitleLine1} />
+          <div className={styles.skeletonTitleLine2} />
+        </div>
+        <div className={styles.skeletonSubtitle}>
+          <div className={styles.skeletonSubLine} />
+          <div className={styles.skeletonSubLine} />
+        </div>
+        <div className={styles.skeletonCta} />
+      </div>
+
+      {/* Right: pulsing truck icon */}
+      <div className={styles.skeletonIconWrap} aria-hidden="true">
+        <span className={styles.skeletonIcon}>🚛</span>
+      </div>
+
+      {/* Dot indicators skeleton */}
+      <div className={styles.skeletonDots} aria-hidden="true">
+        <div className={styles.skeletonDot} />
+        <div className={styles.skeletonDot} />
+        <div className={styles.skeletonDot} />
+      </div>
+    </div>
+  );
 
   return (
     <section
