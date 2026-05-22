@@ -104,38 +104,7 @@ export default function TruckInventoryCarousel() {
   // ── Render ──
 
   if (loading) {
-    return (
-      <section className={styles.section} id="fleet-inventory">
-        <div className={styles.inner}>
-          <div className={styles.header}>
-            <div className={styles.headerText}>
-              <span className={styles.label}>
-                <span className={styles.labelDot} />
-                Fleet Inventory
-              </span>
-              <h2 className={styles.title}>Trucks for Sale</h2>
-              <p className={styles.subtitle}>
-                Browse our selection of heavy-duty commercial vehicles ready for your fleet.
-              </p>
-            </div>
-          </div>
-          {/* Skeleton loading */}
-          <div className={styles.skeleton}>
-            {[1, 2, 3].map((i) => (
-              <div key={i} className={styles.skeletonCard}>
-                <div className={styles.skeletonImage} />
-                <div className={styles.skeletonBody}>
-                  <div className={`${styles.skeletonLine} ${styles.skeletonLineShort}`} />
-                  <div className={`${styles.skeletonLine} ${styles.skeletonLineLong}`} />
-                  <div className={`${styles.skeletonLine} ${styles.skeletonLineMed}`} />
-                  <div className={`${styles.skeletonLine} ${styles.skeletonLineShort}`} style={{ marginTop: 8 }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
+    return null;
   }
 
   if (trucks.length === 0) {
