@@ -40,13 +40,11 @@ export default function HeroCarousel() {
   // Load real fleet trucks from Firebase
   useEffect(() => {
     getFleetTypes().then((fleet) => {
-      // Only use trucks that have an imageUrl
-      const withImages = fleet.filter((t) => t.imageUrl);
-      if (withImages.length === 0) return; // keep fallback
-
-      const mapped = withImages.map((truck) => ({
+      // Use all fleet trucks; fall back through hero images for those without a photo
+      const FALLBACK_IMGS = ['/hero-slide-1.jpg', '/hero-slide-2.jpg', '/hero-slide-3.jpg'];
+      const mapped = fleet.map((truck, idx) => ({
         id: truck.id,
-        image: truck.imageUrl,
+        image: truck.imageUrl || FALLBACK_IMGS[idx % FALLBACK_IMGS.length],
         badge: truck.category || 'Available Fleet',
         title: truck.name,
         subtitle: truck.description
@@ -54,6 +52,7 @@ export default function HeroCarousel() {
         cta: { label: 'Book This Truck', href: '/dashboard/book' },
       }));
 
+      if (mapped.length === 0) return; // keep fallback
       setSlides(mapped);
     }).catch(() => {/* keep fallback on error */});
   }, []);
