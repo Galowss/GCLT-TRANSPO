@@ -2,7 +2,7 @@
 
 import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useFirestore } from '@/lib/useFirestore';
 import { getTruckById, addAppointment, addNotification } from '@/lib/firebaseService';
@@ -13,6 +13,7 @@ import styles from './viewing.module.css';
 
 export default function ScheduleViewing() {
   const params = useParams();
+  const router = useRouter();
   const { user } = useAuth();
   const { addToast } = useToast();
   const { data: truck, loading: truckLoading } = useFirestore(
@@ -103,6 +104,7 @@ export default function ScheduleViewing() {
 
     addToast(`Viewing appointment scheduled for ${truck?.name}. We will contact you to confirm.`, 'success');
     setSubmitting(false);
+    router.push('/dashboard/appointments');
   };
 
   if (truckLoading || !truck) {
