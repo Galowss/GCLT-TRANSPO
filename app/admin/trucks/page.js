@@ -272,15 +272,47 @@ export default function AdminTrucks() {
               </div>
               <div className="form-group">
                 <label className="form-label">Price (PHP) *</label>
-                <input type="number" name="price" className="form-input" placeholder="e.g. 2500000" value={formData.price} onChange={handleChange} required />
+                <input
+                  type="number"
+                  name="price"
+                  className="form-input"
+                  placeholder="e.g. 2500000"
+                  value={formData.price}
+                  onChange={handleChange}
+                  onKeyDown={(e) => ['e','E','+','-','.'].includes(e.key) && e.preventDefault()}
+                  min="0"
+                  required
+                />
               </div>
               <div className="form-group">
                 <label className="form-label">Mileage *</label>
-                <input type="text" name="mileage" className="form-input" placeholder="e.g. 85,000 km" value={formData.mileage} onChange={handleChange} required />
+                <input
+                  type="text"
+                  name="mileage"
+                  className="form-input"
+                  placeholder="e.g. 85000"
+                  value={formData.mileage}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9,]/g, '');
+                    setFormData(prev => ({ ...prev, mileage: val }));
+                  }}
+                  inputMode="numeric"
+                  required
+                />
               </div>
               <div className="form-group">
                 <label className="form-label">Year</label>
-                <input type="text" name="year" className="form-input" placeholder="e.g. 2019" value={formData.year} onChange={handleChange} />
+                <input
+                  type="number"
+                  name="year"
+                  className="form-input"
+                  placeholder="e.g. 2019"
+                  value={formData.year}
+                  onChange={handleChange}
+                  onKeyDown={(e) => ['e','E','+','-','.'].includes(e.key) && e.preventDefault()}
+                  min="1900"
+                  max="2099"
+                />
               </div>
               <div className="form-group">
                 <label className="form-label">Engine</label>
