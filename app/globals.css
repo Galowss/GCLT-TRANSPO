@@ -774,6 +774,22 @@ h6 { font-size: 0.875rem; font-weight: 600; line-height: 1.5; }
   gap: 10px;
   font-weight: 700;
   font-size: 0.95rem;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dashboard-topbar-brand-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dashboard-topbar-brand-link span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dashboard-topbar-brand-icon {
