@@ -40,15 +40,6 @@ export default function Home() {
 
       {/* ===== STATS BAR ===== */}
       <section className={styles.stats}>
-        {/* Truck watermark */}
-        <Image
-          src="/truck-illustration.png"
-          alt=""
-          width={220}
-          height={160}
-          aria-hidden="true"
-          className={styles.statsTruck}
-        />
         <div className={styles.statsInner}>
           {[
             { value: '38',    label: 'Tractor Units',  delay: '' },
