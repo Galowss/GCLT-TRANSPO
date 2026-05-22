@@ -2,7 +2,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   min-height: calc(100vh - var(--navbar-height));
-  margin-top: 80px;
+  margin-top: var(--navbar-height);
   animation: pageEnter 0.3s cubic-bezier(0.16,1,0.3,1) both;
 }
 
