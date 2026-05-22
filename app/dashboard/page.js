@@ -21,6 +21,49 @@ function formatBookingDate(dateStr, timeStr) {
   } catch { return dateStr; }
 }
 
+const STAT_CONFIGS = [
+  {
+    title: 'Active Bookings',
+    icon: Truck,
+    accent: '#006d37',
+    iconBg: 'rgba(0,109,55,0.12)',
+    bgFrom: 'rgba(0,109,55,0.05)',
+    filter: (b) => b.status !== 'Completed' && b.status !== 'Cancelled',
+    meta: 'Current transport requests',
+    source: 'bookings',
+  },
+  {
+    title: 'Viewings',
+    icon: Calendar,
+    accent: '#0ea5e9',
+    iconBg: 'rgba(14,165,233,0.12)',
+    bgFrom: 'rgba(14,165,233,0.04)',
+    filter: (a) => a.status !== 'Cancelled',
+    meta: 'Fleet sales appointments',
+    source: 'appointments',
+  },
+  {
+    title: 'Pending',
+    icon: Clock,
+    accent: '#f59e0b',
+    iconBg: 'rgba(245,158,11,0.12)',
+    bgFrom: 'rgba(245,158,11,0.04)',
+    filter: (b) => ['Pending', 'Pending Payment', 'Quote Requested', 'Quoted'].includes(b.status),
+    meta: 'Awaiting confirmation',
+    source: 'bookings',
+  },
+  {
+    title: 'Completed',
+    icon: TrendingUp,
+    accent: '#27ae60',
+    iconBg: 'rgba(39,174,96,0.12)',
+    bgFrom: 'rgba(39,174,96,0.05)',
+    filter: (b) => b.status === 'Completed',
+    meta: 'Successfully delivered',
+    source: 'bookings',
+  },
+];
+
 export default function Dashboard() {
   const { user } = useAuth();
   const { data: recentBookings, loading: bookingsLoading } = useRealtimeFirestore(
@@ -32,13 +75,17 @@ export default function Dashboard() {
     [user?.uid]
   );
 
+  const getCount = (cfg) => {
+    const src = cfg.source === 'appointments' ? appointments : recentBookings;
+    return src?.filter(cfg.filter).length || 0;
+  };
 
   return (
     <DashboardLayout>
       {/* Header */}
       <div className={styles.header}>
         <div>
-          <h1 className={styles.welcome}>Welcome back, {user?.displayName || 'User'}</h1>
+          <h1 className={styles.welcome}>Welcome back, {user?.displayName?.split(' ')[0] || 'User'} 👋</h1>
           <p className={styles.subtitle}>
             Managing logistics for <strong>SBMA / Olongapo Port Region</strong>
           </p>
@@ -55,41 +102,29 @@ export default function Dashboard() {
 
       {/* Stats Cards */}
       <div className={styles.statsGrid}>
-        <div className={`card ${styles.statCard}`}>
-          <div className={styles.statHeader}>
-            <span className={styles.statTitle}>Active Bookings</span>
-            <span className={styles.statIcon} style={{ color: 'var(--primary)' }}><Truck size={20} /></span>
-          </div>
-          <span className={styles.statValue}>{recentBookings?.filter(b => b.status !== 'Completed' && b.status !== 'Cancelled').length || 0}</span>
-          <span className={styles.statMeta}>Current active transport requests</span>
-        </div>
-
-        <div className={`card ${styles.statCard}`}>
-          <div className={styles.statHeader}>
-            <span className={styles.statTitle}>Scheduled Viewings</span>
-            <span className={styles.statIcon} style={{ color: 'var(--accent)' }}><Calendar size={20} /></span>
-          </div>
-          <span className={styles.statValue}>{appointments?.filter(a => a.status !== 'Cancelled').length || 0}</span>
-          <span className={styles.statMeta}>Fleet sales appointments</span>
-        </div>
-
-        <div className={`card ${styles.statCard}`}>
-          <div className={styles.statHeader}>
-            <span className={styles.statTitle}>Pending</span>
-            <span className={styles.statIcon} style={{ color: '#F5A623' }}><Clock size={20} /></span>
-          </div>
-          <span className={styles.statValue}>{recentBookings?.filter(b => b.status === 'Pending' || b.status === 'Pending Payment' || b.status === 'Quote Requested' || b.status === 'Quoted').length || 0}</span>
-          <span className={styles.statMeta}>Awaiting confirmation</span>
-        </div>
-
-        <div className={`card ${styles.statCard}`}>
-          <div className={styles.statHeader}>
-            <span className={styles.statTitle}>Completed</span>
-            <span className={styles.statIcon} style={{ color: 'var(--success)' }}><TrendingUp size={20} /></span>
-          </div>
-          <span className={styles.statValue}>{recentBookings?.filter(b => b.status === 'Completed').length || 0}</span>
-          <span className={styles.statMeta}>Successfully delivered</span>
-        </div>
+        {STAT_CONFIGS.map((cfg) => {
+          const Icon = cfg.icon;
+          return (
+            <div
+              key={cfg.title}
+              className={`card ${styles.statCard}`}
+              style={{
+                '--stat-accent': cfg.accent,
+                '--stat-icon-bg': cfg.iconBg,
+                '--stat-bg-from': cfg.bgFrom,
+              }}
+            >
+              <div className={styles.statCardInner}>
+                <div className={styles.statHeader}>
+                  <span className={styles.statTitle}>{cfg.title}</span>
+                  <span className={styles.statIcon}><Icon size={18} /></span>
+                </div>
+                <span className={styles.statValue}>{getCount(cfg)}</span>
+                <span className={styles.statMeta}>{cfg.meta}</span>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Main Content Grid */}
@@ -99,14 +134,14 @@ export default function Dashboard() {
           <div className={styles.cardHeader}>
             <h3>Recent Booking Activity</h3>
             <Link href="/dashboard/bookings" className={styles.viewAll}>
-              View All <ArrowRight size={14} />
+              View All <ArrowRight size={13} />
             </Link>
           </div>
           <div className="table-container">
             <table className="table">
               <thead>
                 <tr>
-                  <th>Truck & Route</th>
+                  <th>Truck &amp; Route</th>
                   <th>Pickup / Delivery</th>
                   <th>Scheduled Date</th>
                   <th>Status</th>
@@ -121,8 +156,8 @@ export default function Dashboard() {
                   <tr key={booking.id}>
                     <td><strong>{booking.truckRoute || 'Transport'}</strong></td>
                     <td>
-                      <div style={{ fontSize: '0.85rem' }}><span style={{ fontWeight: 600 }}>Pick-up:</span> {booking.pickup}</div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}><span style={{ fontWeight: 600 }}>Drop-off:</span> {booking.delivery}</div>
+                      <div style={{ fontSize: '0.84rem' }}><span style={{ fontWeight: 600 }}>Pick-up:</span> {booking.pickup}</div>
+                      <div style={{ fontSize: '0.79rem', color: 'var(--text-muted)' }}><span style={{ fontWeight: 600 }}>Drop-off:</span> {booking.delivery}</div>
                     </td>
                     <td>{formatBookingDate(booking.date, booking.time)}</td>
                     <td>
@@ -150,7 +185,7 @@ export default function Dashboard() {
             <h3>Quick Booking</h3>
             <p>Ready to move cargo from Subic Bay?</p>
             <div className={styles.fastBookingField}>
-              <MapPin size={16} /> From: SBMA Pier 15, Olongapo City
+              <MapPin size={14} /> From: SBMA Pier 15, Olongapo City
             </div>
             <Link href="/dashboard/book" className={styles.fastBookingBtn}>
               Book New Transfer
@@ -158,14 +193,20 @@ export default function Dashboard() {
           </div>
 
           {/* Marketplace Quick Link */}
-          <div className={`card`} style={{ padding: '20px' }}>
+          <div className="card" style={{ padding: '18px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-              <div style={{ width: '40px', height: '40px', background: 'var(--primary-light)', borderRadius: 'var(--border-radius)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
-                <ShoppingBag size={20} />
+              <div style={{
+                width: '38px', height: '38px',
+                background: 'linear-gradient(135deg, rgba(0,109,55,0.12), rgba(0,109,55,0.06))',
+                borderRadius: '10px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'var(--primary)',
+              }}>
+                <ShoppingBag size={18} />
               </div>
               <div>
-                <strong style={{ fontSize: '0.95rem' }}>Truck Marketplace</strong>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Browse available trucks for sale</div>
+                <strong style={{ fontSize: '0.9rem' }}>Truck Marketplace</strong>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Browse available trucks for sale</div>
               </div>
             </div>
             <Link href="/trucks-for-sale" className="btn btn-outline btn-sm btn-full">

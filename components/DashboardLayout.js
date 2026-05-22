@@ -48,6 +48,11 @@ export default function DashboardLayout({ children }) {
           </Link>
         </div>
         <div className="dashboard-topbar-actions">
+          {user?.displayName && (
+            <span style={{ fontSize: '0.82rem', fontWeight: 500, opacity: 0.75, letterSpacing: '0.01em' }}>
+              {user.displayName.split(' ')[0]}
+            </span>
+          )}
           <Link href="/dashboard/notifications" className="dashboard-topbar-notification" aria-label="Notifications">
             <Bell size={20} />
             <span className="notif-badge"></span>
