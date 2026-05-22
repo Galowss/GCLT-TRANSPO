@@ -41,9 +41,8 @@ export default function DashboardLayout({ children }) {
             <Menu size={22} />
           </button>
           <Link href="/dashboard" className="dashboard-topbar-brand-link">
-            <div className="dashboard-topbar-brand-icon">
-              <Truck size={18} />
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/gclt-logo.png" alt="GCLT" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
             <span>GCLT Transport</span>
           </Link>
         </div>
