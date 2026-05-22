@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send } from 'lucide-react';
+import { getTrucksForSale } from '@/lib/firebaseService';
 
 const suggestions = [
   'How do I book a truck?',
@@ -23,7 +24,17 @@ export default function Chatbot() {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [trucks, setTrucks] = useState([]);
   const messagesEndRef = useRef(null);
+
+  // Load truck inventory when chatbot first opens
+  useEffect(() => {
+    if (open && trucks.length === 0) {
+      getTrucksForSale()
+        .then(data => setTrucks(data || []))
+        .catch(() => {});
+    }
+  }, [open]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -44,12 +55,27 @@ export default function Chatbot() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userText,
+          trucks: trucks.map(t => ({
+            name: t.name,
+            year: t.year,
+            price: t.price,
+            type: t.type,
+            condition: t.condition,
+            engine: t.engine,
+            mileage: t.mileage,
+            transmission: t.transmission,
+            speedGear: t.speedGear,
+            capacity: t.capacity,
+            loadSize: t.loadSize,
+            location: t.location,
+          })),
           history: messages.slice(-6).map(m => ({
             role: m.role === 'user' ? 'user' : 'model',
             parts: [{ text: m.text }],
           })),
         }),
       });
+
 
       const data = await res.json();
       setMessages(prev => [

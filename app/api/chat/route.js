@@ -126,7 +126,7 @@ A: GCLT has been a trusted logistics partner since 1998, with 120+ active fleet 
 
 export async function POST(request) {
   try {
-    const { message, history } = await request.json();
+    const { message, history, trucks: clientTrucks } = await request.json();
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
@@ -135,15 +135,24 @@ export async function POST(request) {
       });
     }
 
-    // Fetch live truck inventory from Firestore to give the AI real data
+    // Prefer client-passed truck data (authenticated), fall back to server fetch
     let truckContext = '';
     try {
-      const trucks = await fetchTrucksForSale();
-      if (trucks && trucks.length > 0) {
+      let trucks = [];
+
+      if (Array.isArray(clientTrucks) && clientTrucks.length > 0) {
+        // Use trucks passed from the authenticated client
+        trucks = clientTrucks;
+      } else {
+        // Fallback: attempt server-side Firestore read
+        trucks = await fetchTrucksForSale();
+      }
+
+      if (trucks.length > 0) {
         const truckList = trucks.map(t =>
-          `- ${t.name} (${t.year || 'N/A'}) — PHP ${t.price?.toLocaleString() || 'Contact for price'} | Type: ${t.type || 'N/A'} | Location: ${t.location || 'N/A'} | Condition: ${t.condition || 'N/A'} | Engine: ${t.engine || 'N/A'}`
+          `- ${t.name} (${t.year || 'N/A'}) — PHP ${t.price?.toLocaleString() || 'Contact for price'} | Type: ${t.type || 'N/A'} | Condition: ${t.condition || 'N/A'} | Engine: ${t.engine || 'N/A'} | Mileage: ${t.mileage || 'N/A'} | Transmission: ${t.transmission || 'N/A'}${t.speedGear ? ' ' + t.speedGear : ''} | Location: ${t.location || 'N/A'}`
         ).join('\n');
-        truckContext = `\n\n=== LIVE TRUCK INVENTORY (Currently Available for Sale) ===\n${truckList}\n\nWhen users ask about trucks for sale, list the EXACT truck names above. Do not invent or guess truck models.`;
+        truckContext = `\n\n=== LIVE TRUCK INVENTORY (Currently Available for Sale) ===\n${truckList}\n\nWhen users ask about trucks for sale, list the EXACT truck names, prices, and details above. Do not invent or guess truck models.`;
       } else {
         truckContext = '\n\n=== LIVE TRUCK INVENTORY ===\nNo trucks are currently listed for sale. New inventory arrives regularly — advise the user to check back soon or contact our sales team for upcoming arrivals.';
       }
