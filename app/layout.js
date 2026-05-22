@@ -17,6 +17,11 @@ export const metadata = {
   title: 'GCLT Transport & Trucking Services | Heavy-Duty Logistics in SBMA & Olongapo',
   description: 'Professional logistics and fleet management services. Your trusted partner in heavy transport across Central Luzon, SBMA, and Olongapo.',
   keywords: 'GCLT, transport, trucking, logistics, SBMA, Olongapo, Subic Bay, fleet management, heavy duty transport',
+  icons: {
+    icon: '/gclt-logo.png',
+    shortcut: '/gclt-logo.png',
+    apple: '/gclt-logo.png',
+  },
 };
 
 export default function RootLayout({ children }) {
