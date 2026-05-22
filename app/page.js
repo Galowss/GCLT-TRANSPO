@@ -40,6 +40,15 @@ export default function Home() {
 
       {/* ===== STATS BAR ===== */}
       <section className={styles.stats}>
+        {/* Truck watermark */}
+        <Image
+          src="/truck-illustration.png"
+          alt=""
+          width={220}
+          height={160}
+          aria-hidden="true"
+          className={styles.statsTruck}
+        />
         <div className={styles.statsInner}>
           {[
             { value: '38',    label: 'Tractor Units',  delay: '' },
@@ -220,10 +229,28 @@ export default function Home() {
       {/* ===== CTA BANNER ===== */}
       <section className={styles.cta}>
         <div className={styles.ctaInner}>
-          <h2 className="reveal">Move cargo smarter with GCLT.</h2>
-          <Link href="/login?tab=register" className={`btn btn-accent btn-lg reveal reveal-delay-1`} style={{ background: '#fff', color: 'var(--primary)' }}>
-            Start Your First Booking
-          </Link>
+          {/* Left: text */}
+          <div className={styles.ctaText}>
+            <h2 className="reveal">Move cargo smarter with GCLT.</h2>
+            <Link
+              href="/login?tab=register"
+              className={`btn btn-accent btn-lg reveal reveal-delay-1`}
+              style={{ background: '#fff', color: 'var(--primary)' }}
+            >
+              Start Your First Booking
+            </Link>
+          </div>
+          {/* Right: truck illustration */}
+          <div className={styles.ctaTruckWrap} aria-hidden="true">
+            <Image
+              src="/truck-illustration.png"
+              alt="GCLT Truck"
+              width={480}
+              height={340}
+              className={styles.ctaTruck}
+              priority
+            />
+          </div>
         </div>
       </section>
 
