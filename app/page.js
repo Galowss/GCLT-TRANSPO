@@ -2,6 +2,7 @@
 
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import HeroCarousel from '@/components/HeroCarousel';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Truck, ClipboardList, MessageCircle, Shield, Clock, DollarSign, Check, ArrowRight, MapPin, Phone, Mail, Eye, Target } from 'lucide-react';
@@ -12,81 +13,8 @@ export default function Home() {
     <>
       <Navbar />
 
-      {/* ===== HERO SECTION ===== */}
-      <section className={styles.hero}>
-        {/* Logo watermark background */}
-        <div className={styles.heroWatermark}>
-          <Image
-            src="/gclt-logo.png"
-            alt=""
-            width={600}
-            height={600}
-            style={{ objectFit: 'contain' }}
-            aria-hidden="true"
-            priority
-          />
-        </div>
-        <div className={styles.heroInner}>
-          <div className={styles.heroContent}>
-            <span className={styles.heroBadge}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#27ae60', display: 'inline-block', marginRight: 8 }}></span>
-              Incorporated 2019 · Domestic Freight Forwarding
-            </span>
-            <h1 className={styles.heroTitle}>
-              <span className={styles.heroHighlight}>GCLT</span> Transport{' '}
-              and Trucking Services, Inc.
-            </h1>
-            <p className={styles.heroDesc}>
-              Specializing in Domestic Freight Forwarding, Trucking, Logistics,
-              Transhipment and Transportation — serving the Subic Bay Freeport
-              Zone and surrounding areas with excellence.
-            </p>
-            <div className={styles.heroActions}>
-              <Link href="/login?tab=register" className="btn btn-accent btn-lg">
-                Get Started
-              </Link>
-              <Link href="/trucks-for-sale" className="btn btn-outline btn-lg">
-                Explore Fleet Inventory
-              </Link>
-            </div>
-            <div className={styles.heroSocial}>
-              <div className={styles.heroAvatars}>
-                <span className={styles.heroAvatar} style={{ background: '#C8E6C9', color: '#2E7D32' }}>G</span>
-                <span className={styles.heroAvatar} style={{ background: '#BBDEFB', color: '#1565C0' }}>C</span>
-                <span className={styles.heroAvatar} style={{ background: '#FFE0B2', color: '#E65100' }}>L</span>
-              </div>
-              <span className={styles.heroAvatarText}>
-                <strong>500+ Businesses</strong> trust GCLT for their needs
-              </span>
-            </div>
-          </div>
-          <div className={styles.heroImage}>
-            <div className={styles.heroBlurOrb}></div>
-            <div className={styles.heroImagePlaceholder}>
-              {/* Status badge — top right inside card */}
-              <div className={styles.heroStatusBadge}>
-                <span className={styles.statusDot}></span>
-                Port Operations Normal
-              </div>
-              {/* Logo watermark — centered */}
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Image
-                  src="/gclt-logo.png"
-                  alt="GCLT Transport"
-                  width={120}
-                  height={120}
-                  style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.3 }}
-                />
-              </div>
-              {/* Bottom text block */}
-              <div>
-                <h3 style={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: '1.5rem', color: 'white', marginBottom: '8px' }}>Heavy-Duty Transport</h3>
-                <p className={styles.heroImageSubtext}>Real-time tracking and logistics management.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* ===== HERO CAROUSEL ===== */}
+      <HeroCarousel />
 
       {/* ===== STATS BAR ===== */}
       <section className={styles.stats}>
