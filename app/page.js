@@ -36,7 +36,9 @@ export default function Home() {
       <Navbar />
 
       {/* ===== HERO CAROUSEL ===== */}
-      <HeroCarousel />
+      <div className={styles.heroFadeIn}>
+        <HeroCarousel />
+      </div>
 
       {/* ===== STATS BAR ===== */}
       <section className={styles.stats}>

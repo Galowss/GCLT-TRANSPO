@@ -1,3 +1,20 @@
+/* ── Dashboard page entrance (fires on every mount / navigation) ── */
+@keyframes dashPageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pageEnter {
+  animation: dashPageEnter 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  display: contents; /* transparent wrapper — doesn't affect layout */
+}
+
 .header {
   display: flex;
   justify-content: space-between;
