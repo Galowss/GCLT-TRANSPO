@@ -640,17 +640,13 @@
 }
 
 /* Truck illustration in CTA */
-.ctaTruckWrap {
+.ctaTruck {
   flex-shrink: 0;
   width: 420px;
-  position: relative;
+  height: auto;
   align-self: flex-end;
   margin-bottom: -4px;
-}
-
-.ctaTruck {
-  width: 100%;
-  height: auto;
+  background: transparent;
   filter: brightness(0) invert(1) opacity(0.92);
   transform: scaleX(-1);
   animation: float 5s ease-in-out infinite;
@@ -660,7 +656,7 @@
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {
   .contactGrid { grid-template-columns: repeat(2, 1fr); }
-  .ctaTruckWrap { width: 280px; }
+  .ctaTruck { width: 280px; }
   .ctaText { padding: 48px 0; }
   .statsTruck { display: none; }
 }
@@ -681,7 +677,7 @@
   .trustRow { gap: 6px; }
   .contactGrid { grid-template-columns: 1fr 1fr; }
   /* CTA: hide truck, center text on mobile */
-  .ctaTruckWrap { display: none; }
+  .ctaTruck { display: none; }
   .ctaText { text-align: center; align-items: center; padding: 48px 0; }
 }
 

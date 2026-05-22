@@ -234,16 +234,13 @@ export default function Home() {
             </Link>
           </div>
           {/* Right: truck illustration */}
-          <div className={styles.ctaTruckWrap} aria-hidden="true">
-            <Image
-              src="/truck-illustration.png"
-              alt="GCLT Truck"
-              width={480}
-              height={340}
-              className={styles.ctaTruck}
-              priority
-            />
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/truck-illustration.png"
+            alt=""
+            aria-hidden="true"
+            className={styles.ctaTruck}
+          />
         </div>
       </section>
 
