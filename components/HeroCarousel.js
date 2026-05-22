@@ -45,6 +45,7 @@ export default function HeroCarousel() {
       if (withImages.length === 0) return; // keep fallback
 
       const mapped = withImages.map((truck) => ({
+        id: truck.id,
         image: truck.imageUrl,
         badge: truck.category || 'Available Fleet',
         title: truck.name,
@@ -80,7 +81,7 @@ export default function HeroCarousel() {
       {/* Slides */}
       {slides.map((slide, i) => (
         <div
-          key={i}
+          key={slide.id ?? `slide-${i}`}
           className={`${styles.slide} ${i === current ? styles.slideActive : ''}`}
           aria-hidden={i !== current}
         >
@@ -136,9 +137,9 @@ export default function HeroCarousel() {
 
       {/* Dot indicators */}
       <div className={styles.indicators}>
-        {slides.map((_, i) => (
+        {slides.map((slide, i) => (
           <button
-            key={i}
+            key={slide.id ?? `dot-${i}`}
             className={`${styles.dot} ${i === current ? styles.dotActive : ''}`}
             onClick={() => { setPaused(true); goTo(i); }}
             aria-label={`Go to slide ${i + 1}`}
