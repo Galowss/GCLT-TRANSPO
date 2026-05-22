@@ -1063,6 +1063,79 @@ h6 { font-size: 0.875rem; font-weight: 600; line-height: 1.5; }
   animation: slideInLeft 0.5s ease forwards;
 }
 
+/* ══════════════════════════════════════
+   PAGE TRANSITION  (fires via template.js)
+   ══════════════════════════════════════ */
+
+/* Global page entrance */
+@keyframes pageEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(3px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.page-transition {
+  animation: pageEnter 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: opacity, transform;
+}
+
+/* Login split-screen panel animations */
+@keyframes loginPanelLeft {
+  0% {
+    opacity: 0;
+    transform: perspective(1200px) rotateY(-8deg) translateX(-40px);
+    filter: blur(6px);
+  }
+  60% {
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1200px) rotateY(0deg) translateX(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes loginPanelRight {
+  0% {
+    opacity: 0;
+    transform: perspective(1200px) rotateY(8deg) translateX(40px);
+    filter: blur(6px);
+  }
+  60% {
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1200px) rotateY(0deg) translateX(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes formElementIn {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Overlay shimmer on page load */
+@keyframes pageShimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100vw); }
+}
+
 /* ── Eye-candy keyframes ── */
 @keyframes drift {
   0%   { transform: translate(0, 0)        scale(1);    }

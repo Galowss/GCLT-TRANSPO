@@ -3,6 +3,7 @@
   grid-template-columns: 1fr 1fr;
   min-height: calc(100vh - var(--navbar-height));
   margin-top: 80px;
+  animation: pageEnter 0.3s cubic-bezier(0.16,1,0.3,1) both;
 }
 
 .bgImage {
@@ -13,6 +14,7 @@
   justify-content: space-between;
   padding: 48px;
   overflow: hidden;
+  animation: loginPanelLeft 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
 }
 
 .logoContainer {
@@ -63,6 +65,7 @@
   align-items: center;
   justify-content: center;
   padding: 48px 32px;
+  animation: loginPanelRight 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
 }
 
 .formCard {
@@ -75,6 +78,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
+  animation: formElementIn 0.5s cubic-bezier(0.16,1,0.3,1) 0.25s both;
 }
 
 .formHeader h2 {
@@ -103,6 +107,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 0;
   margin-bottom: 20px;
+  animation: formElementIn 0.5s cubic-bezier(0.16,1,0.3,1) 0.35s both;
 }
 
 .tab {
@@ -141,12 +146,14 @@
   color: var(--primary);
   margin-bottom: 24px;
   letter-spacing: 0.5px;
+  animation: formElementIn 0.5s cubic-bezier(0.16,1,0.3,1) 0.2s both;
 }
 
 .form {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  animation: formElementIn 0.5s cubic-bezier(0.16,1,0.3,1) 0.4s both;
 }
 
 .inputWithIcon {
