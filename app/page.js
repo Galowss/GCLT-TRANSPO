@@ -21,7 +21,7 @@ export default function Home() {
       <section className={styles.stats}>
         <div className={styles.statsInner}>
           {[
-            { value: '38', label: 'Tractor Head Units' },
+            { value: '38', label: 'Tractor Units' },
             { value: '85', label: 'Chassis Units' },
             { value: '24/7', label: 'Operations' },
             { value: '99.9%', label: 'On-Time Rate' },
@@ -37,31 +37,27 @@ export default function Home() {
       {/* ===== FEATURES ===== */}
       <section className={styles.features}>
         <div className={styles.featuresInner}>
-          <h2 className={styles.sectionTitle}>Engineered for Efficiency</h2>
-          <p className={styles.sectionDesc}>
-            Whether you&apos;re moving heavy cargo across Olongapo or purchasing a new fleet for your
-            business, we&apos;ve digitized the entire logistics workflow.
-          </p>
+          <h2 className={styles.sectionTitle}>What We Offer</h2>
           <div className={styles.featureGrid}>
             {[
               {
                 icon: Truck,
-                title: 'Online Truck Booking',
-                desc: 'Request and receive real-time transport services across SBMA and the broader Olongapo area.',
+                title: 'Truck Booking',
+                desc: 'Real-time transport across SBMA and Olongapo.',
                 color: '#1B7A3D',
                 href: '/dashboard/book',
               },
               {
                 icon: ClipboardList,
-                title: 'Sales Appointments',
-                desc: 'Schedule a visit to our fleet sales yard and secure your next heavy-duty vehicle easily and hassle-free.',
+                title: 'Fleet Sales',
+                desc: 'Schedule a viewing and secure your next heavy-duty vehicle.',
                 color: '#2DA65C',
                 href: '/trucks-for-sale',
               },
               {
                 icon: MessageCircle,
-                title: 'GCLT AI Assistant',
-                desc: '24/7 smart support to track your bookings, check vehicle availability, and make inquiries instantly.',
+                title: 'AI Assistant',
+                desc: '24/7 smart support for bookings and inquiries.',
                 color: '#145F2F',
                 href: '/dashboard/ai-assistant',
               },
@@ -78,7 +74,7 @@ export default function Home() {
                   <h3>{feature.title}</h3>
                   <p>{feature.desc}</p>
                   <Link href={feature.href} className={styles.featureLink}>
-                    Learn More <ArrowRight size={14} />
+                    Get Started <ArrowRight size={14} />
                   </Link>
                 </div>
               );
@@ -90,37 +86,8 @@ export default function Home() {
       {/* ===== TRUCK INVENTORY CAROUSEL ===== */}
       <TruckInventoryCarousel />
 
-      {/* ===== MISSION & VISION ===== */}
-      <section className={styles.missionVision} id="about">
-        <div className={styles.mvInner}>
-          <div className={styles.mvCard}>
-            <div className={styles.mvIconWrap} style={{ background: '#1B7A3D15', color: '#1B7A3D' }}>
-              <Target size={28} />
-            </div>
-            <h3>Our Mission</h3>
-            <p>
-              To provide the highest level of transportation services, safe and timely
-              deliveries, with fair and competitive pricing. To keep a safe workplace
-              for employees and maintain integrity, fairness and honesty with clients
-              and business affiliates.
-            </p>
-          </div>
-          <div className={styles.mvCard}>
-            <div className={styles.mvIconWrap} style={{ background: '#2DA65C15', color: '#2DA65C' }}>
-              <Eye size={28} />
-            </div>
-            <h3>Our Vision</h3>
-            <p>
-              To become one of the recognized Leading Road Freight Transportation in
-              the country for short and long-distance trucking and transportation of
-              goods.
-            </p>
-          </div>
-        </div>
-      </section>
-
       {/* ===== LOCAL PARTNER ===== */}
-      <section className={styles.partner}>
+      <section className={styles.partner} id="about">
         <div className={styles.partnerInner}>
           <div className={styles.partnerImage}>
             <div className={styles.partnerImagePlaceholder}>
@@ -131,29 +98,40 @@ export default function Home() {
                 style={{ objectFit: 'cover', borderRadius: 'var(--border-radius-xl)' }}
               />
               <div className={styles.partnerImageOverlay}>
-                <MapPin size={32} />
+                <MapPin size={24} />
                 <p>SBMA Port Operations</p>
               </div>
             </div>
           </div>
           <div className={styles.partnerContent}>
-            <h2>Your Local Partner for Global Logistics</h2>
+            <h2>Your SBMA Logistics Partner</h2>
             <p className={styles.partnerDesc}>
-              Operating directly from the heart of SBMA, GCLT understands the unique
-              regulatory and topographical challenges of the Freeport zone. Our drivers
-              are seasoned professionals who know Olongapo and the surrounding
-              provinces like the back of their hand.
+              Operating from the heart of the Subic Bay Freeport Zone since 2019 — 
+              certified specialists in heavy-duty road freight.
             </p>
             <div className={styles.partnerChecklist}>
               {[
-                'Optimized routes for SBMA Port access',
-                'Secure warehousing in Rizal Highway, Olongapo',
-                '24/7 technical support fleet on standby',
-                'Certified heavy-duty transport specialists',
+                'Optimized SBMA Port access routes',
+                'Secure warehousing on Rizal Highway',
+                '24/7 technical support fleet',
+                'Certified heavy-duty specialists',
               ].map((item) => (
                 <div key={item} className={styles.checkItem}>
                   <span className={styles.checkIcon}><Check size={12} /></span>
                   {item}
+                </div>
+              ))}
+            </div>
+            {/* Trust pillars inline — removes separate section */}
+            <div className={styles.trustRow}>
+              {[
+                { icon: Shield, label: 'GPS-Tracked & Insured' },
+                { icon: Clock,  label: 'On-Time Guarantee' },
+                { icon: DollarSign, label: 'Transparent Pricing' },
+              ].map(({ icon: Icon, label }) => (
+                <div key={label} className={styles.trustPill}>
+                  <Icon size={14} />
+                  {label}
                 </div>
               ))}
             </div>
@@ -164,63 +142,29 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== TRUST BADGES ===== */}
-      <section className={styles.trust}>
-        <div className={styles.trustInner}>
-          {[
-            { icon: Shield, title: 'Unmatched Security', desc: 'Every shipment is insured and tracked with state-of-the-art GPS systems.' },
-            { icon: Clock, title: 'Timely Deliveries', desc: 'Our intelligent routing algorithms minimize downtime and ensure on-time arrivals.' },
-            { icon: DollarSign, title: 'Transparent Pricing', desc: 'No hidden fees. What you see in your booking dashboard is exactly what you pay.' },
-          ].map((item) => {
-            const Icon = item.icon;
-            return (
-              <div key={item.title} className={styles.trustItem}>
-                <div className={styles.trustIcon}><Icon size={28} /></div>
-                <h4>{item.title}</h4>
-                <p>{item.desc}</p>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
       {/* ===== CONTACT SECTION ===== */}
       <section className={styles.contact} id="contact">
         <div className={styles.contactInner}>
           <h2 className={styles.sectionTitle}>Get in Touch</h2>
-          <p className={styles.sectionDesc}>
-            Reach out to our team for bookings, inquiries, or fleet sales appointments.
-          </p>
           <div className={styles.contactGrid}>
             <div className={styles.contactCard}>
-              <div className={styles.contactIcon}>
-                <MapPin size={20} />
-              </div>
-              <h4>Office Address</h4>
+              <div className={styles.contactIcon}><MapPin size={18} /></div>
+              <h4>Address</h4>
               <p>#17 25th St. East Bajac-Bajac, Olongapo City</p>
             </div>
             <div className={styles.contactCard}>
-              <div className={styles.contactIcon}>
-                <Phone size={20} />
-              </div>
-              <h4>Telephone &amp; Fax</h4>
-              <p>Tel: (047) 222-4065</p>
-              <p>Fax: (047) 223-9225</p>
+              <div className={styles.contactIcon}><Phone size={18} /></div>
+              <h4>Phone & Fax</h4>
+              <p>(047) 222-4065 &nbsp;·&nbsp; Fax: (047) 223-9225</p>
             </div>
             <div className={styles.contactCard}>
-              <div className={styles.contactIcon}>
-                <Phone size={20} />
-              </div>
-              <h4>Mobile Contacts</h4>
-              <p><strong>Mr. G.C.L. Tan</strong></p>
-              <p>09399254863 / 09175144002</p>
-              <p style={{ marginTop: '8px' }}><strong>Ms. E.V. Francisco</strong></p>
-              <p>09985622567 / 09178957997</p>
+              <div className={styles.contactIcon}><Phone size={18} /></div>
+              <h4>Mobile</h4>
+              <p>Mr. G.C.L. Tan — 0939 925 4863</p>
+              <p>Ms. E.V. Francisco — 0998 562 2567</p>
             </div>
             <div className={styles.contactCard}>
-              <div className={styles.contactIcon}>
-                <Mail size={20} />
-              </div>
+              <div className={styles.contactIcon}><Mail size={18} /></div>
               <h4>Email</h4>
               <p>
                 <a href="mailto:gclttruckingservices@yahoo.com" style={{ color: 'var(--primary)', fontWeight: 600 }}>
@@ -235,11 +179,7 @@ export default function Home() {
       {/* ===== CTA BANNER ===== */}
       <section className={styles.cta}>
         <div className={styles.ctaInner}>
-          <h2>Ready to streamline your transport operations in Olongapo?</h2>
-          <p>
-            Join hundreds of companies in SBMA that rely on GCLT for their
-            daily heavy-duty transport needs.
-          </p>
+          <h2>Move cargo smarter with GCLT.</h2>
           <Link href="/login?tab=register" className="btn btn-accent btn-lg" style={{ background: '#fff', color: 'var(--primary)' }}>
             Start Your First Booking
           </Link>
