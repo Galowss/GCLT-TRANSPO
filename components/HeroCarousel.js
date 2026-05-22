@@ -4,49 +4,71 @@ import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { getFleetTypes } from '@/lib/firebaseService';
 import styles from './HeroCarousel.module.css';
 
-const SLIDES = [
+// Fallback slides if no fleet data or no images
+const FALLBACK_SLIDES = [
   {
     image: '/hero-slide-1.jpg',
-    badge: 'Featured Inventory',
+    badge: 'Featured Fleet',
     title: '2024 Heavy-Duty Long Hauler',
     subtitle: 'Our latest fleet addition — built for the long road, rigged for the heavy load.',
-    stats: [{ icon: '⚡', label: '500 HP Engine' }, { icon: '🚛', label: 'Heavy Duty' }],
-    cta: { label: 'Browse Trucks for Sale', href: '/trucks-for-sale' },
+    cta: { label: 'Browse Fleet', href: '/trucks-for-sale' },
   },
   {
     image: '/hero-slide-2.jpg',
     badge: 'Transport Services',
     title: 'SBMA & Olongapo Region Logistics',
     subtitle: 'Reliable freight forwarding across Central Luzon — from SBMA Port to your destination.',
-    stats: [{ icon: '📍', label: 'SBMA Coverage' }, { icon: '⏱️', label: '24/7 Operations' }],
     cta: { label: 'Book a Transport', href: '/dashboard/book' },
   },
   {
     image: '/hero-slide-3.jpg',
     badge: 'Our Fleet',
     title: '50+ Active Commercial Units',
-    subtitle: 'A well-maintained fleet of tractor heads, chassis units, and specialized carriers ready for dispatch.',
-    stats: [{ icon: '🚚', label: '38 Tractor Heads' }, { icon: '🏗️', label: '85 Chassis Units' }],
+    subtitle: 'A well-maintained fleet of tractor heads, chassis units, and specialized carriers.',
     cta: { label: 'Get a Quote', href: '/login?tab=register' },
   },
 ];
 
 export default function HeroCarousel() {
+  const [slides, setSlides] = useState(FALLBACK_SLIDES);
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
 
-  const goTo = useCallback((index) => {
-    setCurrent((index + SLIDES.length) % SLIDES.length);
+  // Load real fleet trucks from Firebase
+  useEffect(() => {
+    getFleetTypes().then((fleet) => {
+      // Only use trucks that have an imageUrl
+      const withImages = fleet.filter((t) => t.imageUrl);
+      if (withImages.length === 0) return; // keep fallback
+
+      const mapped = withImages.map((truck) => ({
+        image: truck.imageUrl,
+        badge: truck.category || 'Available Fleet',
+        title: truck.name,
+        subtitle: truck.description
+          || `${truck.capacity ? truck.capacity + ' capacity · ' : ''}Available for booking now.`,
+        cta: { label: 'Book This Truck', href: '/dashboard/book' },
+      }));
+
+      setSlides(mapped);
+    }).catch(() => {/* keep fallback on error */});
   }, []);
 
-  // Auto-advance every 5s
+  const goTo = useCallback((index) => {
+    setCurrent((index + slides.length) % slides.length);
+  }, [slides.length]);
+
+  // Auto-advance every 2 seconds
   useEffect(() => {
     if (paused) return;
-    const timer = setInterval(() => goTo(current + 1), 5000);
+    const timer = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % slides.length);
+    }, 2000);
     return () => clearInterval(timer);
-  }, [current, paused, goTo]);
+  }, [paused, slides.length]);
 
   return (
     <section
@@ -56,21 +78,31 @@ export default function HeroCarousel() {
       aria-label="Hero image carousel"
     >
       {/* Slides */}
-      {SLIDES.map((slide, i) => (
+      {slides.map((slide, i) => (
         <div
           key={i}
           className={`${styles.slide} ${i === current ? styles.slideActive : ''}`}
           aria-hidden={i !== current}
         >
-          {/* Background image */}
-          <Image
-            src={slide.image}
-            alt={slide.title}
-            fill
-            className={styles.slideImg}
-            priority={i === 0}
-            sizes="100vw"
-          />
+          {/* Background image — next/image with fill for known URLs, <img> for external data URLs */}
+          {slide.image?.startsWith('data:') || slide.image?.startsWith('http') ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={slide.image}
+              alt={slide.title}
+              className={styles.slideImg}
+            />
+          ) : (
+            <Image
+              src={slide.image}
+              alt={slide.title}
+              fill
+              className={styles.slideImg}
+              priority={i === 0}
+              sizes="100vw"
+            />
+          )}
+
           {/* Dark overlay */}
           <div className={styles.overlay} />
 
@@ -79,14 +111,6 @@ export default function HeroCarousel() {
             <span className={styles.badge}>{slide.badge}</span>
             <h1 className={styles.title}>{slide.title}</h1>
             <p className={styles.subtitle}>{slide.subtitle}</p>
-            <div className={styles.stats}>
-              {slide.stats.map((s) => (
-                <div key={s.label} className={styles.statItem}>
-                  <span>{s.icon}</span>
-                  <span>{s.label}</span>
-                </div>
-              ))}
-            </div>
             <Link href={slide.cta.href} className={styles.ctaBtn}>
               {slide.cta.label}
             </Link>
@@ -112,7 +136,7 @@ export default function HeroCarousel() {
 
       {/* Dot indicators */}
       <div className={styles.indicators}>
-        {SLIDES.map((_, i) => (
+        {slides.map((_, i) => (
           <button
             key={i}
             className={`${styles.dot} ${i === current ? styles.dotActive : ''}`}
