@@ -33,7 +33,8 @@ const FALLBACK_SLIDES = [
 ];
 
 export default function HeroCarousel() {
-  const [slides, setSlides] = useState(FALLBACK_SLIDES);
+  const [slides, setSlides] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
 
@@ -42,7 +43,6 @@ export default function HeroCarousel() {
     getTrucksForSale().then((trucks) => {
       const FALLBACK_IMGS = ['/hero-slide-1.jpg', '/hero-slide-2.jpg', '/hero-slide-3.jpg'];
       const mapped = trucks.map((truck, idx) => {
-        // Prefer the first image from imageUrls array, then single imageUrl, then fallback
         const imgs = truck.imageUrls?.length ? truck.imageUrls : (truck.imageUrl ? [truck.imageUrl] : []);
         const heroImage = imgs[0] || FALLBACK_IMGS[idx % FALLBACK_IMGS.length];
         return {
@@ -56,9 +56,12 @@ export default function HeroCarousel() {
         };
       });
 
-      if (mapped.length === 0) return; // keep fallback
-      setSlides(mapped);
-    }).catch(() => {/* keep fallback on error */});
+      setSlides(mapped.length > 0 ? mapped : FALLBACK_SLIDES);
+      setLoading(false);
+    }).catch(() => {
+      setSlides(FALLBACK_SLIDES);
+      setLoading(false);
+    });
   }, []);
 
   const goTo = useCallback((index) => {
@@ -73,6 +76,8 @@ export default function HeroCarousel() {
     }, 2000);
     return () => clearInterval(timer);
   }, [paused, slides.length]);
+
+  if (loading) return null;
 
   return (
     <section
