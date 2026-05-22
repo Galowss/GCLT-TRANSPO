@@ -178,18 +178,7 @@ export default function TrucksForSale() {
                       <span className={styles.truckYear}>{truck.year}</span>
                     </div>
                     <p className={styles.truckSubtitle}>{truck.type}{truck.drivetrain ? ` • ${truck.drivetrain}` : ''}</p>
-                    <div className={styles.specGrid}>
-                      <div className={styles.specCell}>
-                        <span className={styles.specIcon}>⚡</span>
-                        <span className={styles.specLabel}>Mileage</span>
-                        <span className={styles.specValue}>{truck.mileage || 'N/A'}</span>
-                      </div>
-                      <div className={styles.specCell}>
-                        <span className={styles.specIcon}>🔧</span>
-                        <span className={styles.specLabel}>{truck.engine ? 'Engine' : 'Condition'}</span>
-                        <span className={styles.specValue}>{truck.engine || truck.condition || 'N/A'}</span>
-                      </div>
-                    </div>
+
                   </div>
                 </Link>
                 <div className={styles.cardActions}>
