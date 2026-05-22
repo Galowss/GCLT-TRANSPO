@@ -222,7 +222,6 @@ export default function Home() {
       {/* ===== CTA BANNER ===== */}
       <section className={styles.cta}>
         <div className={styles.ctaInner}>
-          {/* Left: text */}
           <div className={styles.ctaText}>
             <h2 className="reveal">Move cargo smarter with GCLT.</h2>
             <Link
@@ -233,14 +232,6 @@ export default function Home() {
               Start Your First Booking
             </Link>
           </div>
-          {/* Right: truck illustration */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/truck-illustration.png"
-            alt=""
-            aria-hidden="true"
-            className={styles.ctaTruck}
-          />
         </div>
       </section>
 
