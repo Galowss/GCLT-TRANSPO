@@ -4,10 +4,10 @@ import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { getFleetTypes } from '@/lib/firebaseService';
+import { getTrucksForSale } from '@/lib/firebaseService';
 import styles from './HeroCarousel.module.css';
 
-// Fallback slides if no fleet data or no images
+// Fallback slides if no truck-for-sale data is available
 const FALLBACK_SLIDES = [
   {
     image: '/hero-slide-1.jpg',
@@ -37,20 +37,24 @@ export default function HeroCarousel() {
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
 
-  // Load real fleet trucks from Firebase
+  // Load trucks for sale from Firebase
   useEffect(() => {
-    getFleetTypes().then((fleet) => {
-      // Use all fleet trucks; fall back through hero images for those without a photo
+    getTrucksForSale().then((trucks) => {
       const FALLBACK_IMGS = ['/hero-slide-1.jpg', '/hero-slide-2.jpg', '/hero-slide-3.jpg'];
-      const mapped = fleet.map((truck, idx) => ({
-        id: truck.id,
-        image: truck.imageUrl || FALLBACK_IMGS[idx % FALLBACK_IMGS.length],
-        badge: truck.category || 'Available Fleet',
-        title: truck.name,
-        subtitle: truck.description
-          || `${truck.capacity ? truck.capacity + ' capacity · ' : ''}Available for booking now.`,
-        cta: { label: 'Book This Truck', href: '/dashboard/book' },
-      }));
+      const mapped = trucks.map((truck, idx) => {
+        // Prefer the first image from imageUrls array, then single imageUrl, then fallback
+        const imgs = truck.imageUrls?.length ? truck.imageUrls : (truck.imageUrl ? [truck.imageUrl] : []);
+        const heroImage = imgs[0] || FALLBACK_IMGS[idx % FALLBACK_IMGS.length];
+        return {
+          id: truck.id,
+          image: heroImage,
+          badge: truck.type || 'For Sale',
+          title: truck.name,
+          subtitle: truck.description
+            || `${truck.year ? truck.year + ' · ' : ''}${truck.engine ? truck.engine + ' · ' : ''}PHP ${truck.price?.toLocaleString() || 'Contact for price'}`,
+          cta: { label: 'View Details', href: `/trucks-for-sale/${truck.id}` },
+        };
+      });
 
       if (mapped.length === 0) return; // keep fallback
       setSlides(mapped);

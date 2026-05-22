@@ -25,8 +25,8 @@ export default function Navbar() {
         {/* Brand */}
         <Link href="/" className="navbar-brand">
           <Image
-            src="/gclt-logo.png"
-            alt="GCLT Transport"
+            src="/gclt-logo-new.png"
+            alt="GCLT Transport & Trucking Services"
             width={40}
             height={40}
             style={{ borderRadius: '50%', objectFit: 'contain' }}

@@ -9,7 +9,7 @@ export default function Footer() {
         <div>
           <div className="footer-brand">
             <Image
-              src="/gclt-logo.png"
+              src="/gclt-logo-new.png"
               alt="GCLT"
               width={32}
               height={32}

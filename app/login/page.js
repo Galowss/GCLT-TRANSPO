@@ -105,7 +105,7 @@ function LoginForm() {
     <div className={styles.container}>
       <div className={styles.bgImage}>
         <div className={styles.logoContainer}>
-          <img src="/gclt-logo.png" alt="GCLT Logo" className={styles.heroLogo} />
+          <img src="/gclt-logo-new.png" alt="GCLT Logo" className={styles.heroLogo} />
         </div>
         <div className={styles.bgOverlay}>
           <div className={styles.hqInfo}>
