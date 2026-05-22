@@ -245,12 +245,13 @@ export default function TruckDetail() {
               <p className={styles.description}>{truck.description}</p>
 
               <div className={styles.specGrid}>
-                <div className={styles.specItem}><span className={styles.specLabel}>Engine</span><span className={styles.specValue}>{truck.engine}</span></div>
-                <div className={styles.specItem}><span className={styles.specLabel}>Mileage</span><span className={styles.specValue}>{truck.mileage}</span></div>
-                <div className={styles.specItem}><span className={styles.specLabel}>Transmission</span><span className={styles.specValue}>{truck.specs?.transmission || 'N/A'}</span></div>
-                <div className={styles.specItem}><span className={styles.specLabel}>Horsepower</span><span className={styles.specValue}>{truck.specs?.horsepower || 'N/A'}</span></div>
-                <div className={styles.specItem}><span className={styles.specLabel}>GVW</span><span className={styles.specValue}>{truck.specs?.gvw || 'N/A'}</span></div>
-                <div className={styles.specItem}><span className={styles.specLabel}>Condition</span><span className={styles.specValue}>{truck.condition}</span></div>
+                <div className={styles.specItem}><span className={styles.specLabel}>Engine</span><span className={styles.specValue}>{truck.engine || '—'}</span></div>
+                <div className={styles.specItem}><span className={styles.specLabel}>Mileage</span><span className={styles.specValue}>{truck.mileage || '—'}</span></div>
+                <div className={styles.specItem}><span className={styles.specLabel}>Transmission</span><span className={styles.specValue}>{truck.transmission || '—'}</span></div>
+                <div className={styles.specItem}><span className={styles.specLabel}>Speed / Gear</span><span className={styles.specValue}>{truck.speedGear || '—'}</span></div>
+                <div className={styles.specItem}><span className={styles.specLabel}>Capacity</span><span className={styles.specValue}>{truck.capacity || '—'}</span></div>
+                <div className={styles.specItem}><span className={styles.specLabel}>Condition</span><span className={styles.specValue}>{truck.condition || '—'}</span></div>
+                {truck.loadSize && <div className={styles.specItem}><span className={styles.specLabel}>Load Size</span><span className={styles.specValue}>{truck.loadSize}</span></div>}
               </div>
 
               {truck.specs?.features?.length > 0 && (
