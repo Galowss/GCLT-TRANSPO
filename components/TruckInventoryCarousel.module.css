@@ -1,0 +1,525 @@
+/* ===== TRUCK INVENTORY CAROUSEL ===== */
+/* Based on Stitch "Industrial Excellence System" design spec */
+
+.section {
+  padding: 80px 24px;
+  background: #f9f9ff;
+  overflow: hidden;
+}
+
+.inner {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* ── Section Header ── */
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 40px;
+  gap: 24px;
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #006837;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.labelDot {
+  width: 6px;
+  height: 6px;
+  background: #006837;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.title {
+  font-family: 'Manrope', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 40px;
+  letter-spacing: -0.01em;
+  color: #151c27;
+  margin: 0;
+}
+
+.subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: #3f4940;
+  max-width: 480px;
+  margin: 0;
+}
+
+/* ── Navigation Arrows ── */
+.navArrows {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.navBtn {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  border: 2px solid #111827;
+  background: transparent;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.navBtn:hover {
+  background: #111827;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.navBtn:disabled {
+  border-color: #bec9be;
+  color: #bec9be;
+  cursor: default;
+}
+
+.navBtn:disabled:hover {
+  background: transparent;
+  color: #bec9be;
+  transform: none;
+}
+
+/* ── Carousel Track ── */
+.carouselViewport {
+  overflow: hidden;
+  margin: 0 -12px;
+  padding: 0 12px;
+}
+
+.carouselTrack {
+  display: flex;
+  gap: 24px;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+/* ── Truck Card ── */
+.card {
+  flex: 1 0 0%;
+  min-width: 280px;
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+  overflow: hidden;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+}
+
+/* Card Image Area */
+.cardImageWrap {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  background: #111827;
+}
+
+.cardImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.4s ease;
+}
+
+.card:hover .cardImage {
+  transform: scale(1.04);
+}
+
+/* Status badge on image */
+.statusBadge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 2px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  z-index: 2;
+}
+
+.statusAvailable {
+  background: rgba(0, 104, 55, 0.1);
+  color: #006837;
+  backdrop-filter: blur(4px);
+  background-color: rgba(0, 104, 55, 0.15);
+}
+
+.statusSold {
+  background: rgba(186, 26, 26, 0.1);
+  color: #ba1a1a;
+  backdrop-filter: blur(4px);
+  background-color: rgba(186, 26, 26, 0.15);
+}
+
+.statusReserved {
+  background: rgba(245, 158, 11, 0.1);
+  color: #B45309;
+  backdrop-filter: blur(4px);
+  background-color: rgba(245, 158, 11, 0.15);
+}
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  animation: statusPulse 2s infinite;
+}
+
+.statusDot.green {
+  background: #006837;
+}
+
+.statusDot.red {
+  background: #ba1a1a;
+}
+
+.statusDot.amber {
+  background: #F59E0B;
+}
+
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.4); }
+}
+
+/* Card Body */
+.cardBody {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cardType {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6f7a70;
+}
+
+.cardTitle {
+  font-family: 'Manrope', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 24px;
+  color: #151c27;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Meta row (year, engine, etc.) */
+.cardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.metaChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: #f3f4f6;
+  border-radius: 2px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: #3f4940;
+}
+
+.metaChip svg {
+  flex-shrink: 0;
+}
+
+/* Divider */
+.cardDivider {
+  height: 1px;
+  background: #E5E7EB;
+  margin: 4px 0;
+}
+
+/* Price & CTA row */
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cardPrice {
+  font-family: 'Manrope', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: #004d27;
+  line-height: 1;
+}
+
+.cardPriceLabel {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: #6f7a70;
+  display: block;
+  margin-top: 2px;
+}
+
+.cardCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  background: #004d27;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.cardCta:hover {
+  background: #006837;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 77, 39, 0.3);
+}
+
+/* ── Bottom Indicators / View All ── */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 32px;
+  gap: 16px;
+}
+
+.dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.dot {
+  width: 32px;
+  height: 4px;
+  border-radius: 2px;
+  background: #bec9be;
+  cursor: pointer;
+  transition: background 0.3s ease, width 0.3s ease;
+  border: none;
+  padding: 0;
+}
+
+.dotActive {
+  background: #004d27;
+  width: 48px;
+}
+
+.viewAllLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #004d27;
+  text-decoration: none;
+  transition: gap 0.2s ease, color 0.2s ease;
+}
+
+.viewAllLink:hover {
+  gap: 12px;
+  color: #006837;
+}
+
+/* ── Loading Skeleton ── */
+.skeleton {
+  display: flex;
+  gap: 24px;
+}
+
+.skeletonCard {
+  flex: 1 0 0%;
+  min-width: 280px;
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+  overflow: hidden;
+}
+
+.skeletonImage {
+  width: 100%;
+  height: 220px;
+  background: linear-gradient(90deg, #e2e8f8 25%, #dce2f3 50%, #e2e8f8 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.skeletonBody {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeletonLine {
+  height: 14px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #e2e8f8 25%, #dce2f3 50%, #e2e8f8 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.skeletonLineShort {
+  width: 60%;
+}
+
+.skeletonLineMed {
+  width: 80%;
+}
+
+.skeletonLineLong {
+  width: 100%;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Empty State ── */
+.emptyState {
+  text-align: center;
+  padding: 60px 24px;
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px dashed #bec9be;
+}
+
+.emptyIcon {
+  color: #bec9be;
+  margin-bottom: 16px;
+}
+
+.emptyTitle {
+  font-family: 'Manrope', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #151c27;
+  margin-bottom: 8px;
+}
+
+.emptyDesc {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #6f7a70;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .card {
+    flex: 1 0 0%;
+  }
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 60px 16px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .title {
+    font-size: 28px;
+    line-height: 36px;
+  }
+
+  .card {
+    flex: 1 0 0%;
+    min-width: 260px;
+  }
+
+  .skeleton .skeletonCard {
+    flex: 1 0 0%;
+    min-width: 260px;
+  }
+
+  .footer {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .section {
+    padding: 48px 16px;
+  }
+
+  .title {
+    font-size: 24px;
+    line-height: 32px;
+  }
+
+  .card {
+    flex: 1 0 0%;
+  }
+
+  .cardImageWrap {
+    height: 180px;
+  }
+}

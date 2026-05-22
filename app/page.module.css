@@ -373,19 +373,36 @@
 .partnerImagePlaceholder {
   width: 100%;
   height: 320px;
-  background: linear-gradient(135deg, #1a1a2e 0%, #2d3748 100%);
   border-radius: var(--border-radius-xl);
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: var(--white);
-  gap: 12px;
-  font-size: 3rem;
+  border: 1px solid rgba(109, 122, 110, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
-.partnerImagePlaceholder p {
+
+.partnerImageOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.1) 60%, rgba(0,0,0,0.0) 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 24px;
+  color: var(--white);
+  z-index: 1;
+  border-radius: var(--border-radius-xl);
+}
+
+.partnerImageOverlay p {
   font-size: 0.9rem;
-  opacity: 0.7;
+  opacity: 0.9;
+  margin-top: 8px;
+  font-weight: 600;
 }
 
 .partnerContent h2 {

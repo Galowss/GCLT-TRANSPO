@@ -2,6 +2,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   min-height: calc(100vh - var(--navbar-height));
+  margin-top: 80px;
 }
 
 .bgImage {
@@ -133,7 +134,7 @@
   gap: 6px;
   padding: 6px 14px;
   background: var(--primary-light);
-  border: 1px solid rgba(21, 101, 216, 0.2);
+  border: 1px solid rgba(0, 109, 55, 0.2);
   border-radius: 100px;
   font-size: 0.7rem;
   font-weight: 700;

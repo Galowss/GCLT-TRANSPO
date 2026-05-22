@@ -3,6 +3,7 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import HeroCarousel from '@/components/HeroCarousel';
+import TruckInventoryCarousel from '@/components/TruckInventoryCarousel';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Truck, ClipboardList, MessageCircle, Shield, Clock, DollarSign, Check, ArrowRight, MapPin, Phone, Mail, Eye, Target } from 'lucide-react';
@@ -86,8 +87,11 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ===== TRUCK INVENTORY CAROUSEL ===== */}
+      <TruckInventoryCarousel />
+
       {/* ===== MISSION & VISION ===== */}
-      <section className={styles.missionVision}>
+      <section className={styles.missionVision} id="about">
         <div className={styles.mvInner}>
           <div className={styles.mvCard}>
             <div className={styles.mvIconWrap} style={{ background: '#1B7A3D15', color: '#1B7A3D' }}>
@@ -120,8 +124,16 @@ export default function Home() {
         <div className={styles.partnerInner}>
           <div className={styles.partnerImage}>
             <div className={styles.partnerImagePlaceholder}>
-              <MapPin size={48} />
-              <p>SBMA Port Operations</p>
+              <Image
+                src="/hero-slide-2.jpg"
+                alt="SBMA Port Operations"
+                fill
+                style={{ objectFit: 'cover', borderRadius: 'var(--border-radius-xl)' }}
+              />
+              <div className={styles.partnerImageOverlay}>
+                <MapPin size={32} />
+                <p>SBMA Port Operations</p>
+              </div>
             </div>
           </div>
           <div className={styles.partnerContent}>
@@ -145,7 +157,7 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            <Link href="/login" className={styles.featureLink}>
+            <Link href="/#contact" className={styles.featureLink}>
               Contact Us <ArrowRight size={14} />
             </Link>
           </div>
@@ -173,7 +185,7 @@ export default function Home() {
       </section>
 
       {/* ===== CONTACT SECTION ===== */}
-      <section className={styles.contact}>
+      <section className={styles.contact} id="contact">
         <div className={styles.contactInner}>
           <h2 className={styles.sectionTitle}>Get in Touch</h2>
           <p className={styles.sectionDesc}>

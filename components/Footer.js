@@ -15,7 +15,7 @@ export default function Footer() {
               height={32}
               style={{ borderRadius: '50%', objectFit: 'contain' }}
             />
-            GCLT
+            GCLT Transport
           </div>
           <p className="footer-desc">
             Incorporated in 2019, specializing in Domestic Freight Forwarding,

@@ -44,7 +44,7 @@ export default function DashboardLayout({ children }) {
             <div className="dashboard-topbar-brand-icon">
               <Truck size={18} />
             </div>
-            <span>GCLT Transport & Trucking Services</span>
+            <span>GCLT Transport</span>
           </Link>
         </div>
         <div className="dashboard-topbar-actions">
