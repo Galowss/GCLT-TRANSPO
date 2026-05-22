@@ -482,8 +482,8 @@ export default function BookTransport() {
             </div>
 
             <div className={styles.stepHeader}>
-              <h1 className={styles.stepTitle}>Choose Your Vehicle</h1>
-              <p className={styles.stepSubtitle}>Select the truck that best fits your cargo.</p>
+              <h1 className={styles.stepTitle}>Select Your Vehicle</h1>
+              <p className={styles.stepSubtitle}>Showing fleet options based on your {formData.cargoType || 'general'} cargo requirements.</p>
             </div>
 
             {/* Filter tabs */}
@@ -494,7 +494,7 @@ export default function BookTransport() {
                   className={`${styles.filterTab} ${fleetFilter === tab ? styles.filterTabActive : ''}`}
                   onClick={() => setFleetFilter(tab)}
                 >
-                  {tab === 'all' ? 'All' : FLEET_CATALOG.find(c => c.key.toLowerCase() === tab)?.label || tab}
+                  {tab === 'all' ? 'All Vehicles' : FLEET_CATALOG.find(c => c.key.toLowerCase() === tab)?.label || tab}
                 </button>
               ))}
             </div>
@@ -508,14 +508,20 @@ export default function BookTransport() {
               ) : (
                 filteredFleets.map((fleet, idx) => {
                   const isSelected = selectedFleet === fleet.id;
+                  const isRecommended = idx === 0;
+                  /* Check if truck can handle the user's cargo weight */
+                  const userWeight = Number(formData.weight) || 0;
+                  const fleetCapNum = parseFloat((fleet.capacity || '').replace(/[^0-9.]/g, '')) || 0;
+                  const fleetCapKg = fleetCapNum * 1000; /* assuming capacity stored as tons */
+                  const isInsufficient = userWeight > 0 && fleetCapKg > 0 && userWeight > fleetCapKg;
                   return (
                     <div
                       key={fleet.id}
-                      className={`${styles.truckCard} ${isSelected ? styles.truckCardSelected : ''}`}
-                      onClick={() => setSelectedFleet(fleet.id)}
+                      className={`${styles.truckCard} ${isSelected ? styles.truckCardSelected : ''} ${isRecommended && !isInsufficient ? styles.truckCardRecommended : ''} ${isInsufficient ? styles.truckCardDisabled : ''}`}
+                      onClick={() => { if (!isInsufficient) setSelectedFleet(fleet.id); }}
                     >
-                      {idx === 0 && (
-                        <div className={styles.recommendedBadge}><Star size={12} /> Recommended</div>
+                      {isRecommended && !isInsufficient && (
+                        <div className={styles.recommendedBadge}><Star size={12} /> Recommended for your cargo</div>
                       )}
                       <div className={styles.truckImageWrap}>
                         {fleet.imageUrl ? (
@@ -533,14 +539,43 @@ export default function BookTransport() {
                       </div>
                       <div className={styles.truckSpecs}>
                         <div className={styles.specGrid}>
-                          {fleet.capacity && <div className={styles.specItem}><span className={styles.specLabel}>Capacity</span><span className={styles.specValue}>{fleet.capacity}</span></div>}
-                          {fleet.dimensions && <div className={styles.specItem}><span className={styles.specLabel}>Dimensions</span><span className={styles.specValue}>{fleet.dimensions}</span></div>}
+                          {fleet.capacity && (
+                            <div className={styles.specItem}>
+                              <span className={styles.specLabel}>⚖ Payload</span>
+                              <span className={`${styles.specValue} ${isInsufficient ? styles.specValueDanger : ''}`}>{fleet.capacity}</span>
+                            </div>
+                          )}
+                          {fleet.dimensions && (
+                            <div className={styles.specItem}>
+                              <span className={styles.specLabel}>📐 Dimensions</span>
+                              <span className={`${styles.specValue} ${isInsufficient ? styles.specValueDanger : ''}`}>{fleet.dimensions}</span>
+                            </div>
+                          )}
+                          {fleet.ratePerKm && (
+                            <div className={styles.specItem}>
+                              <span className={styles.specLabel}>💲 Rate</span>
+                              <span className={styles.specValue}>₱{fleet.ratePerKm} / km</span>
+                            </div>
+                          )}
+                          <div className={styles.specItem}>
+                            <span className={styles.specLabel}>{isInsufficient ? '⚠ Warning' : '⛽ Fuel'}</span>
+                            <span className={`${styles.specValue} ${isInsufficient ? styles.specValueDanger : ''}`}>
+                              {isInsufficient ? 'Insufficient Capacity' : (fleet.fuelType || 'Diesel')}
+                            </span>
+                          </div>
                         </div>
                         <div className={styles.truckCardFooter}>
-                          {isSelected ? (
-                            <button className={styles.btnSelected}><Check size={16} /> Selected</button>
+                          {isInsufficient ? (
+                            <button className={styles.btnUnavailable} disabled>Unavailable for Cargo</button>
+                          ) : isSelected ? (
+                            <div className={styles.truckCardActions}>
+                              <button className={styles.btnSelected}><Check size={16} /> Selected</button>
+                            </div>
                           ) : (
-                            <button className={styles.btnSelectVehicle}>Select This Vehicle</button>
+                            <div className={styles.truckCardActions}>
+                              <button className={styles.btnSelectVehicle}>Select Vehicle</button>
+                              <button className={styles.btnCompare} title="Compare">⇄</button>
+                            </div>
                           )}
                         </div>
                       </div>
@@ -552,7 +587,7 @@ export default function BookTransport() {
 
             <div className={styles.stepActions}>
               <button className={styles.btnGhost} onClick={() => setCurrentStep(1)}>
-                <ArrowLeft size={18} /> Back to Route
+                <ArrowLeft size={18} /> Back to Cargo
               </button>
               <button
                 className={styles.btnPrimary}

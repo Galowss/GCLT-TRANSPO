@@ -624,22 +624,23 @@
 .filterTabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
 }
 
 .filterTab {
-  padding: 8px 18px;
+  padding: 8px 20px;
   border-radius: 100px;
-  border: 1.5px solid #bec9be;
-  background: #ebefe8;
+  border: 1px solid #bec9be;
+  background: #e5e9e2;
   color: #181d19;
   font-family: 'Inter', sans-serif;
   font-size: 0.75rem;
   font-weight: 700;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .filterTab:hover {
@@ -651,6 +652,7 @@
   background: #006d3c;
   color: #92ecae;
   border-color: #006d3c;
+  box-shadow: 0 2px 6px rgba(0, 109, 60, 0.15);
 }
 
 .fleetGrid {
@@ -801,11 +803,17 @@
 .truckCardFooter {
   border-top: 1px solid #bec9be;
   padding-top: 14px;
+  margin-top: auto;
+}
+
+.truckCardActions {
+  display: flex;
+  gap: 12px;
 }
 
 .btnSelectVehicle {
-  width: 100%;
-  height: 44px;
+  flex: 1;
+  height: 46px;
   background: transparent;
   border: 2px solid #6f7a70;
   border-radius: 8px;
@@ -827,9 +835,30 @@
   background: #EBF9F1;
 }
 
+.btnCompare {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #bec9be;
+  border-radius: 8px;
+  background: transparent;
+  color: #5f5e5e;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnCompare:hover {
+  border-color: #00522c;
+  color: #00522c;
+}
+
 .btnSelected {
-  width: 100%;
-  height: 44px;
+  flex: 1;
+  height: 46px;
   background: #00522c;
   border: none;
   border-radius: 8px;
@@ -843,6 +872,46 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
+}
+
+.btnUnavailable {
+  width: 100%;
+  height: 46px;
+  background: #dfe4dd;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #5f5e5e;
+  cursor: not-allowed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  opacity: 0.7;
+}
+
+/* Recommended card */
+.truckCardRecommended {
+  border: 2px solid #00522c;
+  box-shadow: 0 4px 12px rgba(0, 109, 60, 0.1);
+}
+
+/* Disabled / insufficient capacity card */
+.truckCardDisabled {
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.truckCardDisabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Spec value in danger (red) */
+.specValueDanger {
+  color: #D32F2F !important;
 }
 
 .loadingState, .emptyState {
