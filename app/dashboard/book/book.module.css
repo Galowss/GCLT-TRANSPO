@@ -1,493 +1,1400 @@
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  margin-bottom: 12px;
-}
+/* ===== BOOKING WIZARD — book.module.css ===== */
 
-.breadcrumb a {
-  color: var(--text-secondary);
-  font-weight: 500;
-  transition: var(--transition);
-}
-.breadcrumb a:hover {
-  color: var(--primary);
-}
-
-.title {
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  margin-bottom: 8px;
-  letter-spacing: -0.5px;
-}
-
-.subtitle {
-  color: var(--text-secondary);
-  font-size: 1rem;
-  margin-bottom: 32px;
-  max-width: 600px;
-  line-height: 1.6;
-}
-
-.form {
+/* ── Page Wrapper ── */
+.wizardPage {
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 0 80px;
   display: flex;
   flex-direction: column;
   gap: 32px;
+  overflow-x: hidden;
 }
 
-.formCard {
-  max-width: 900px;
+/* ── Stepper ── */
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  width: 100%;
+  max-width: 480px;
   margin: 0 auto;
-  background: var(--white);
-  border-radius: var(--border-radius-xl);
-  box-shadow: var(--shadow);
-  border: 1px solid var(--gray-200);
-  overflow: hidden;
-  padding: 0;
 }
 
-.formHeader {
+.stepperGroup {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 32px;
-  background: var(--gray-50);
-  border-bottom: 1px solid var(--gray-200);
+  flex: 1;
 }
 
-.formHeaderIcon {
-  width: 48px;
-  height: 48px;
-  background: var(--primary-light);
-  color: var(--primary);
-  border-radius: var(--border-radius-lg);
+.stepperItem {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 4px rgba(27, 122, 61, 0.1);
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-.formHeader h3 {
-  margin-bottom: 4px;
-  font-size: 1.25rem;
-  color: var(--text-primary);
-}
-
-.formHeader p {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.section {
-  padding: 32px;
-  border-bottom: 1px solid var(--gray-100);
-}
-.section:last-child {
-  border-bottom: none;
-}
-
-.sectionLabel {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 24px;
-}
-
-.sectionLine {
-  width: 4px;
-  height: 24px;
-  background: var(--primary);
-  border-radius: 4px;
-}
-
-/* How It Works Steps */
-.stepsGrid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-}
-
-.stepCard {
-  text-align: center;
-  padding: 24px 16px;
-  background: var(--white);
-  border: 1px solid var(--gray-200);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-sm);
-  transition: var(--transition);
-}
-.stepCard:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow);
-  border-color: var(--primary-light);
-}
-
-.stepNumber {
-  width: 40px;
-  height: 40px;
+.stepperDot {
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: var(--primary-light);
-  color: var(--primary);
+  background: #e5e9e2;
+  color: #5f5e5e;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
-  font-size: 1rem;
-  margin: 0 auto 12px;
-  border: 2px solid var(--white);
-  box-shadow: 0 0 0 2px var(--primary-light);
+  font-size: 0.8rem;
+  font-weight: 700;
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+}
+
+.stepperDotActive {
+  background: #00522c;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 82, 44, 0.3);
+}
+
+.stepperDotDone {
+  background: #00522c;
+  color: #ffffff;
+}
+
+.stepperLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6f7a70;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
+}
+
+.stepperLabelActive {
+  color: #00522c;
+}
+
+.stepperLabelDone {
+  color: #00522c;
+}
+
+.stepperLine {
+  flex: 1;
+  height: 2px;
+  background: #dfe4dd;
+  margin: 0 4px;
+  margin-bottom: 22px;
+  transition: background 0.25s ease;
+}
+
+.stepperLineDone {
+  background: #00522c;
+}
+
+/* ── Step Layouts ── */
+.stepLayout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  min-width: 0;
+  width: 100%;
+}
+
+.formColumn {
+  width: 100%;
+  max-width: 420px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Map panel sits in the right column and stretches to fill */
+.mapPanel {
+  flex: 1;
+  min-width: 0;
+  min-height: 480px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #bec9be;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 88px;
+  align-self: flex-start;
+}
+
+.fullColumn {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ── Step Header ── */
+.stepHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .stepTitle {
+  font-family: 'Manrope', sans-serif;
+  font-size: 2rem;
   font-weight: 700;
-  font-size: 0.9rem;
-  color: var(--text-primary);
-  margin-bottom: 6px;
+  color: #181d19;
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
 }
 
-.stepDesc {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  line-height: 1.5;
+.stepSubtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  color: #3f4941;
+  margin: 0;
 }
 
-/* Form Inputs & Grids */
-.locationSection {
-  background: var(--gray-50);
+/* ── Form Card ── */
+.formCard {
+  background: #ffffff;
+  border: 1px solid #bec9be;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   padding: 24px;
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--gray-200);
-  margin-bottom: 24px;
-}
-
-.locationHeader {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.locationLabel {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.inputGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-.inputHint {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-top: 6px;
-  display: block;
-}
-
-/* Fleet Category */
-.fleetCategory {
-  margin-bottom: 28px;
-}
-.fleetCategory:last-child {
-  margin-bottom: 0;
-}
-
-.fleetCategoryHeader {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 14px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--gray-200);
-}
-
-.fleetCategoryCount {
-  margin-left: auto;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-weight: 500;
-  text-transform: none;
-  letter-spacing: 0;
-}
-
-/* Fleet Selection */
-.fleetGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-}
-
-.fleetCard {
+/* ── Location Group ── */
+.locationGroup {
   position: relative;
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 16px;
-  padding: 14px 20px;
-  border: 2px solid var(--gray-200);
-  border-radius: var(--border-radius-lg);
-  background: var(--white);
-  cursor: pointer;
-  transition: var(--transition);
-  text-align: left;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.fleetCard:hover {
-  border-color: var(--primary-light);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow);
+.locationConnector {
+  position: absolute;
+  left: 11px;
+  top: 44px;
+  bottom: 44px;
+  width: 2px;
+  background: #bec9be;
+  z-index: 0;
 }
 
-.fleetCardPlaceholder {
+.locationRow {
   display: flex;
-  flex-direction: row;
-  align-items: center;
   gap: 16px;
-  padding: 14px 20px;
-  border-radius: var(--border-radius-lg);
-  border: 2px dashed var(--gray-300);
-  background: var(--gray-50);
+  align-items: flex-start;
+  position: relative;
+  z-index: 1;
+}
+
+.locationIconWrap {
+  padding-top: 30px;
+  flex-shrink: 0;
+}
+
+.locationDotPickup {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #00522c;
+  background: #ffffff;
+}
+
+.locationDotDropoff {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ba1a1a;
+  border: 2px solid #ba1a1a;
+}
+
+.locationFields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.locationSubFields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.locationActions {
+  display: flex;
+  gap: 8px;
+}
+
+.locBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1.5px solid #bec9be;
+  background: transparent;
+  color: #3f4941;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.locBtn:hover {
+  border-color: #00522c;
+  color: #00522c;
+  background: #f0f5ee;
+}
+
+.locBtn:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-.fleetCardActive {
-  border-color: var(--primary);
-  background: var(--primary-light);
-  box-shadow: 0 4px 12px rgba(27, 122, 61, 0.15);
-}
-
-.fleetCheck {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 24px;
-  height: 24px;
-  background: var(--primary);
-  color: var(--white);
-  border-radius: 50%;
+/* ── Field Styles ── */
+.fieldGroup {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
-  font-weight: bold;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  flex-direction: column;
+  gap: 6px;
 }
 
-.fleetIcon {
-  font-size: 2rem;
-  color: var(--text-secondary);
-  flex-shrink: 0;
-  width: 44px;
-  text-align: center;
-}
-.fleetCardActive .fleetIcon {
-  color: var(--primary);
-}
-
-.fleetName {
+.fieldLabel {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.7rem;
   font-weight: 700;
-  font-size: 0.95rem;
-  color: var(--text-primary);
-  display: block;
-  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #3f4941;
 }
 
-.fleetCapacity {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  background: var(--gray-100);
-  padding: 2px 8px;
-  border-radius: 100px;
-  display: inline-block;
-}
-.fleetCardActive .fleetCapacity {
-  background: var(--white);
-  color: var(--primary);
+.fieldInput {
+  height: 44px;
+  padding: 0 14px;
+  border: 1.5px solid #bec9be;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  color: #181d19;
+  background: #ffffff;
+  transition: all 0.2s ease;
+  width: 100%;
 }
 
-/* Schedule & Cargo */
+.fieldInput:focus {
+  outline: none;
+  border-color: #00522c;
+  box-shadow: 0 0 0 3px rgba(0, 82, 44, 0.1);
+}
+
+.fieldInput::placeholder {
+  color: #9aaa9b;
+}
+
+/* ── Schedule Grid ── */
 .scheduleGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  margin-bottom: 24px;
-}
-
-.inputWithSuffix {
-  position: relative;
-}
-
-.suffix {
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-muted);
-}
-
-.routeAlert {
-  margin-top: 24px;
-  padding: 16px 20px;
-  border-radius: var(--border-radius-lg);
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-}
-
-.routeAlertIcon {
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.routeAlertTitle {
-  font-weight: 700;
-  font-size: 0.95rem;
-  margin-bottom: 4px;
-}
-
-.routeAlertDesc {
-  font-size: 0.85rem;
-  opacity: 0.9;
-  line-height: 1.5;
-}
-
-/* Terms & Bottom Bar */
-.terms {
-  padding: 20px 32px;
-  background: var(--gray-50);
-  border-top: 1px solid var(--gray-200);
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
-  display: flex;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
 
-.bottomBar {
+/* ── Divider ── */
+.divider {
+  height: 1px;
+  background: #bec9be;
+}
+
+/* ── Cargo Type ── */
+.cargoTypeGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.cargoTypeBtn {
   display: flex;
-  justify-content: center;
   align-items: center;
-  max-width: 900px;
-  margin: 0 auto;
-  margin-top: 16px;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  border: 1.5px solid #bec9be;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #5f5e5e;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
-.bottomActions {
+.cargoTypeBtn:hover {
+  background: #f0f5ee;
+  border-color: #6f7a70;
+}
+
+.cargoTypeBtnActive {
+  border-color: #00522c;
+  background: #EBF9F1;
+  color: #00522c;
+}
+
+/* ── Step Actions ── */
+.stepActions {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 4px;
+}
+
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 28px;
+  background: #00522c;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 82, 44, 0.25);
+  text-decoration: none;
+}
+
+.btnPrimary:hover {
+  background: #003d20;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 82, 44, 0.3);
+}
+
+.btnPrimary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btnGhost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 24px;
+  background: transparent;
+  color: #181d19;
+  border: 2px solid #1A1A1A;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btnGhost:hover {
+  background: #f0f5ee;
+  border-color: #00522c;
+  color: #00522c;
+}
+
+/* ── Map Panel (Step 1 right column) ── */
+.mapPanelInner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 520px;
+}
+
+.mapPlaceholder {
+  flex: 1;
+  background: #e8f0e9;
+  position: relative;
+  overflow: hidden;
+  min-height: 460px;
+}
+
+.mapGrid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+}
+
+.mapCell {
+  border: 1px solid rgba(0, 82, 44, 0.07);
+}
+
+.mapPin {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+.mapPinLabel {
+  background: #ffffff;
+  border: 1px solid #bec9be;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #181d19;
+  white-space: nowrap;
+  margin-bottom: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.mapPinDotGreen {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #00522c;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.mapPinDotRed {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ba1a1a;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.routeSvg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.mapControls {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mapControlBtn {
+  width: 36px;
+  height: 36px;
+  background: #ffffff;
+  border: 1px solid #bec9be;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #181d19;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: background 0.15s ease;
+}
+
+.mapControlBtn:hover {
+  background: #f0f5ee;
+}
+
+.mapEmptyState {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+  padding: 32px;
+}
+
+.mapEmptyState p {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  color: #6f7a70;
+  max-width: 200px;
+}
+
+.routeChip {
+  padding: 12px 16px;
+  background: #ffffff;
+  border-top: 1px solid #bec9be;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  color: #3f4941;
+  flex-wrap: wrap;
+}
+
+.routeChipDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Route Alert ── */
+.routeAlert {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border-width: 1px;
+  border-style: solid;
+  font-family: 'Inter', sans-serif;
+  animation: fadeSlideIn 0.25s ease;
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.routeAlertExpress {
+  background: #EBF9F1;
+  border-color: #80d99d;
+}
+
+.routeAlertOldRoad {
+  background: #FFF8E1;
+  border-color: #F5A623;
+}
+
+.routeAlertIcon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.routeAlertTitle {
+  font-size: 0.875rem;
+  color: #181d19;
+  margin: 0 0 3px;
+}
+
+.routeAlertTitle strong {
+  color: #00522c;
+}
+
+.routeAlertOldRoad .routeAlertTitle strong {
+  color: #E65100;
+}
+
+.routeAlertDesc {
+  font-size: 0.78rem;
+  color: #5f5e5e;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Fleet Grid (Step 2) ── */
+.filterTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filterTab {
+  padding: 8px 18px;
+  border-radius: 100px;
+  border: 1.5px solid #bec9be;
+  background: #ebefe8;
+  color: #181d19;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filterTab:hover {
+  border-color: #6f7a70;
+  background: #dfe4dd;
+}
+
+.filterTabActive {
+  background: #006d3c;
+  color: #92ecae;
+  border-color: #006d3c;
+}
+
+.fleetGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.truckCard {
+  background: #f6fbf3;
+  border: 1.5px solid #bec9be;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.truckCard:hover {
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+  border-color: #6f7a70;
+}
+
+.truckCardSelected {
+  border-color: #00522c;
+  box-shadow: 0 4px 16px rgba(0, 82, 44, 0.15);
+  background: #ffffff;
+}
+
+.recommendedBadge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: #00522c;
+  color: #92ecae;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 10;
+  text-transform: uppercase;
+}
+
+.truckImageWrap {
+  height: 180px;
+  background: #ebefe8;
+  position: relative;
+  overflow: hidden;
+}
+
+.truckImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  mix-blend-mode: multiply;
+  opacity: 0.9;
+  transition: transform 0.5s ease;
+}
+
+.truckCard:hover .truckImage {
+  transform: scale(1.04);
+}
+
+.truckImagePlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ebefe8, #dfe4dd);
+}
+
+.truckEmoji {
+  font-size: 3rem;
+}
+
+.truckImageOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.55), transparent);
+}
+
+.truckImageLabel {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  color: #ffffff;
+}
+
+.truckName {
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 2px;
+}
+
+.truckSubtype {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  opacity: 0.88;
+  margin: 0;
+}
+
+.truckSpecs {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
   gap: 16px;
+  flex: 1;
 }
 
-/* ──────────────────────────────────────────
-   Responsive — Book Transport
-   ────────────────────────────────────────── */
+.specGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.specItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.specLabel {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #5f5e5e;
+}
+
+.specValue {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #181d19;
+}
+
+.truckCardFooter {
+  border-top: 1px solid #bec9be;
+  padding-top: 14px;
+}
+
+.btnSelectVehicle {
+  width: 100%;
+  height: 44px;
+  background: transparent;
+  border: 2px solid #6f7a70;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #181d19;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btnSelectVehicle:hover {
+  border-color: #00522c;
+  color: #00522c;
+  background: #EBF9F1;
+}
+
+.btnSelected {
+  width: 100%;
+  height: 44px;
+  background: #00522c;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.loadingState, .emptyState {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 24px;
+  color: #6f7a70;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+}
+
+/* ── Review Layout (Step 3) ── */
+.reviewLayout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.reviewDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.reviewCard {
+  background: #ffffff;
+  border: 1px solid #bec9be;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.reviewCardTitle {
+  font-family: 'Manrope', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #181d19;
+  margin: 0 0 16px;
+}
+
+.reviewRouteVisual {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-left: 4px;
+}
+
+.reviewRoutePoint {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.reviewRoutePoint p {
+  margin: 0;
+}
+
+.reviewRouteLabel {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.72rem;
+  color: #6f7a70;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.reviewRouteValue {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #181d19;
+}
+
+.reviewRouteLine {
+  width: 2px;
+  height: 24px;
+  background: #bec9be;
+  margin-left: 6px;
+}
+
+.reviewMeta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #ebefe8;
+}
+
+.reviewMetaLabel {
+  display: block;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6f7a70;
+  margin-bottom: 2px;
+}
+
+.reviewMetaValue {
+  display: block;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #181d19;
+}
+
+.reviewVehicle {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.reviewVehicleImg {
+  width: 72px;
+  height: 56px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #bec9be;
+}
+
+.reviewVehicleImgPlaceholder {
+  width: 72px;
+  height: 56px;
+  border-radius: 8px;
+  background: #ebefe8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+}
+
+.reviewVehicleName {
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #181d19;
+  margin: 0 0 2px;
+}
+
+.reviewVehicleMeta {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.825rem;
+  color: #6f7a70;
+  margin: 0;
+}
+
+.reviewTextarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid #bec9be;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  color: #181d19;
+  background: #ffffff;
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color 0.2s ease;
+}
+
+.reviewTextarea:focus {
+  outline: none;
+  border-color: #00522c;
+  box-shadow: 0 0 0 3px rgba(0, 82, 44, 0.1);
+}
+
+.reviewTextarea::placeholder {
+  color: #9aaa9b;
+}
+
+/* ── Review Sidebar ── */
+.reviewSidebar {
+  position: sticky;
+  top: 88px;
+}
+
+.reviewSidebarCard {
+  background: #ffffff;
+  border: 1px solid #bec9be;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.reviewSidebarTitle {
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #181d19;
+  margin: 0;
+}
+
+.reviewSidebarAmount {
+  text-align: center;
+  padding: 20px;
+  background: #EBF9F1;
+  border-radius: 10px;
+}
+
+.reviewSidebarLabel {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6f7a70;
+  margin: 0 0 8px;
+}
+
+.reviewSidebarPrice {
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #00522c;
+  margin: 0 0 6px;
+}
+
+.reviewSidebarNote {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  color: #6f7a70;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.reviewTrust {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.reviewTrust p {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  color: #3f4941;
+  margin: 0;
+}
+
+/* ── Same Destination Warning ── */
+.sameDestWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #FFF0F0;
+  border: 1px solid #f5a0a0;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.825rem;
+  color: #ba1a1a;
+  animation: fadeSlideIn 0.25s ease;
+}
+
+.sameDestWarning span {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ── Responsive ── */
+
+/* Tablet */
 @media (max-width: 1024px) {
-  .stepsGrid {
+  .wizardPage {
+    padding: 24px 12px 60px;
+    gap: 24px;
+  }
+
+  .stepLayout {
+    flex-direction: column;
+  }
+
+  .formColumn {
+    width: 100%;
+    max-width: none;
+  }
+
+  .mapPanel {
+    position: relative;
+    top: auto;
+    min-height: 350px;
+    width: 100%;
+  }
+
+  .fleetGrid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .formCard {
-    max-width: 100%;
+
+  .reviewLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .reviewSidebar {
+    position: relative;
+    top: auto;
+  }
+
+  .stepTitle {
+    font-size: 1.65rem;
+  }
+
+  .stepper {
+    max-width: 400px;
+  }
+
+  .stepHeader {
+    padding: 0 4px;
   }
 }
 
-@media (max-width: 768px) {
-  /* Page header */
-  .title { font-size: 1.6rem; margin-bottom: 4px; }
-  .subtitle { font-size: 0.9rem; margin-bottom: 20px; }
-
-  /* Steps progress */
-  .stepsGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+/* Mobile */
+@media (max-width: 640px) {
+  .wizardPage {
+    padding: 12px 6px 48px;
+    gap: 16px;
   }
 
-  /* Form card — full bleed, no horizontal margin */
+  .stepper {
+    max-width: 280px;
+    gap: 0;
+    padding: 0 4px;
+  }
+
+  .stepperDot {
+    width: 28px;
+    height: 28px;
+    font-size: 0.68rem;
+  }
+
+  .stepperLabel {
+    font-size: 0.58rem;
+    letter-spacing: 0.02em;
+  }
+
+  .stepperLine {
+    margin-bottom: 18px;
+  }
+
+  .stepHeader {
+    padding: 0 4px;
+  }
+
+  .stepTitle {
+    font-size: 1.3rem;
+  }
+
+  .stepSubtitle {
+    font-size: 0.82rem;
+  }
+
   .formCard {
-    max-width: 100%;
-    border-radius: 12px;
-    box-shadow: var(--shadow-sm);
+    padding: 14px;
+    gap: 16px;
+    border-radius: 10px;
   }
 
-  /* Section headers */
-  .sectionHeader {
-    padding: 14px 16px;
-  }
-  .sectionLabel {
-    font-size: 0.88rem;
-    gap: 8px;
-  }
-  .section {
-    padding: 16px;
+  .fieldInput {
+    height: 40px;
+    font-size: 0.82rem;
+    padding: 0 10px;
   }
 
-  /* Input/Schedule grids → single column */
-  .inputGrid,
+  .fieldLabel {
+    font-size: 0.65rem;
+  }
+
   .scheduleGrid {
     grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  /* Fleet dropdown full width (already is, just tighten) */
-  .fleetGrid { grid-template-columns: 1fr; }
-
-  /* Bottom bar — stack buttons */
-  .bottomActions {
-    width: 100%;
-    flex-direction: column;
     gap: 10px;
   }
-  .bottomActions button,
-  .bottomActions a {
-    width: 100%;
-    justify-content: center;
-    min-height: 46px;
-  }
 
-  /* Terms */
-  .terms {
-    padding: 12px 16px;
-    font-size: 0.8rem;
-    flex-direction: column;
+  .locationSubFields {
+    grid-template-columns: 1fr;
     gap: 6px;
   }
 
-  /* Location pin buttons — make them compact */
-  .locationBtns {
+  .locationActions {
     flex-wrap: wrap;
     gap: 6px;
   }
+
+  .locBtn {
+    font-size: 0.66rem;
+    padding: 4px 8px;
+  }
+
+  .cargoTypeGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .cargoTypeBtn {
+    height: 40px;
+    font-size: 0.7rem;
+    gap: 5px;
+  }
+
+  .mapPanel {
+    min-height: 260px;
+    border-radius: 10px;
+  }
+
+  .routeChip {
+    padding: 8px 10px;
+    font-size: 0.68rem;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+
+  .routeAlert,
+  .sameDestWarning {
+    padding: 10px 12px;
+    font-size: 0.78rem;
+    border-radius: 8px;
+  }
+
+  .routeAlertTitle {
+    font-size: 0.82rem;
+  }
+
+  .routeAlertDesc {
+    font-size: 0.72rem;
+  }
+
+  .divider {
+    margin: 0;
+  }
+
+  /* Actions */
+  .stepActions {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+
+  .stepActions > * {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .btnPrimary,
+  .btnGhost {
+    height: 44px;
+    font-size: 0.82rem;
+    padding: 0 16px;
+    justify-content: center;
+    width: 100%;
+  }
+
+  /* Fleet grid */
+  .fleetGrid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .truckImageWrap {
+    height: 150px;
+  }
+
+  .truckName {
+    font-size: 1rem;
+  }
+
+  .filterTabs {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .filterTab {
+    padding: 6px 12px;
+    font-size: 0.68rem;
+  }
+
+  /* Review */
+  .reviewCard {
+    padding: 14px;
+  }
+
+  .reviewCardTitle {
+    font-size: 0.92rem;
+  }
+
+  .reviewSidebarCard {
+    padding: 14px;
+  }
+
+  .reviewMeta {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .reviewVehicle {
+    gap: 10px;
+  }
+
+  .reviewVehicleImg {
+    width: 52px;
+    height: 40px;
+  }
+
+  .reviewVehicleName {
+    font-size: 0.9rem;
+  }
+
+  .reviewTextarea {
+    font-size: 0.82rem;
+    min-height: 60px;
+    padding: 10px 12px;
+  }
+
+  .reviewSidebarPrice {
+    font-size: 1.3rem;
+  }
+
+  .fullColumn {
+    gap: 20px;
+  }
 }
 
-@media (max-width: 480px) {
-  .stepsGrid { grid-template-columns: 1fr; }
-  .title { font-size: 1.4rem; }
-  .section { padding: 12px; }
-  .sectionHeader { padding: 12px; }
+/* Small phone */
+@media (max-width: 400px) {
+  .wizardPage {
+    padding: 8px 4px 40px;
+    gap: 14px;
+  }
+
+  .stepper {
+    max-width: 240px;
+  }
+
+  .stepperLabel {
+    font-size: 0.52rem;
+  }
+
+  .stepTitle {
+    font-size: 1.15rem;
+  }
+
+  .formCard {
+    padding: 12px;
+    gap: 14px;
+  }
+
+  .cargoTypeGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .specGrid {
+    grid-template-columns: 1fr;
+  }
 }
-
-

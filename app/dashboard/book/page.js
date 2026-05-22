@@ -8,10 +8,12 @@ import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToFleetTypes, addBooking, addNotification } from '@/lib/firebaseService';
 import { useAuth } from '@/lib/AuthContext';
 import { useToast } from '@/components/Toast';
-import { MapPin, Truck, Info, Package, Route, Navigation, Map, X } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { MapPin, Navigation, Check, ArrowRight, ArrowLeft, Star, AlertTriangle, Snowflake, Package, Wrench } from 'lucide-react';
+import LeafletMapModal from '@/components/LeafletMapModalDynamic';
+import LeafletInlineMap from '@/components/LeafletInlineMapDynamic';
 import styles from './book.module.css';
 
+/* ── Auto-route logic ── */
 function determineRouteType(weight, cargoSize) {
   const w = Number(weight) || 0;
   const sizeStr = (cargoSize || '').toLowerCase();
@@ -25,41 +27,30 @@ function determineRouteType(weight, cargoSize) {
   return { route: 'Expressway', reason: 'Light/standard cargo routed via Expressway for faster delivery.' };
 }
 
-const BOOKING_TYPES = [
-  { value: 'standard', label: 'Standard Delivery' },
-  { value: 'express', label: 'Express Delivery' },
-  { value: 'port_transfer', label: 'Port Transfer' },
-  { value: 'warehouse', label: 'Warehouse to Warehouse' },
+/* ── Constants ── */
+const CARGO_TYPES = [
+  { value: 'general', label: 'General', Icon: Package },
+  { value: 'refrigerated', label: 'Refrigerated', Icon: Snowflake },
+  { value: 'hazardous', label: 'Hazardous', Icon: AlertTriangle },
+  { value: 'oversized', label: 'Oversized', Icon: Wrench },
 ];
 
-// Hardcoded categories — always visible as placeholders
 const FLEET_CATALOG = [
-  {
-    key: 'Small Trucks',
-    label: 'Small Trucks',
-    description: 'Ideal for light cargo up to 2 tons',
-    placeholder: { name: 'Small Truck (e.g. L300, AUV)', capacity: 'Up to 2 tons', icon: '🛻' },
-  },
-  {
-    key: 'Medium Trucks',
-    label: 'Medium Trucks',
-    description: 'For moderate loads, 2–5 tons',
-    placeholder: { name: 'Medium Truck (e.g. Elf, Canter)', capacity: '2 – 5 tons', icon: '🚛' },
-  },
-  {
-    key: 'Large Trucks',
-    label: 'Large Trucks',
-    description: 'Heavy-duty freight, 5–15 tons',
-    placeholder: { name: 'Large Truck (e.g. 10-Wheeler)', capacity: '5 – 15 tons', icon: '🚚' },
-  },
-  {
-    key: 'Specialized',
-    label: 'Specialized Vehicles',
-    description: 'Refrigerated, flatbed, tanker, etc.',
-    placeholder: { name: 'Specialized Vehicle', capacity: 'Varies', icon: '🏗️' },
-  },
+  { key: 'Small Trucks', label: 'Small Trucks', description: 'Ideal for light cargo up to 2 tons', placeholder: { name: 'Small Truck (e.g. L300, AUV)', capacity: 'Up to 2 tons' } },
+  { key: 'Medium Trucks', label: 'Medium Trucks', description: 'For moderate loads, 2–5 tons', placeholder: { name: 'Medium Truck (e.g. Elf, Canter)', capacity: '2 – 5 tons' } },
+  { key: 'Large Trucks', label: 'Large Trucks', description: 'Heavy-duty freight, 5–15 tons', placeholder: { name: 'Large Truck (e.g. 10-Wheeler)', capacity: '5 – 15 tons' } },
+  { key: 'Specialized', label: 'Specialized Vehicles', description: 'Refrigerated, flatbed, tanker, etc.', placeholder: { name: 'Specialized Vehicle', capacity: 'Varies' } },
 ];
 
+const STEPS = [
+  { number: 1, label: 'Route' },
+  { number: 2, label: 'Vehicle' },
+  { number: 3, label: 'Confirm' },
+];
+
+/* ══════════════════════════════════════════════════════════════
+   Component
+   ══════════════════════════════════════════════════════════════ */
 export default function BookTransport() {
   const { user } = useAuth();
   const { addToast } = useToast();
@@ -67,27 +58,25 @@ export default function BookTransport() {
   const { data: fleetTypes, loading: fleetLoading } = useRealtimeFirestore(
     (cb) => subscribeToFleetTypes(cb)
   );
+
+  /* ── UI state ── */
+  const [currentStep, setCurrentStep] = useState(1);
   const [selectedFleet, setSelectedFleet] = useState('');
+  const [fleetFilter, setFleetFilter] = useState('all');
   const [loading, setLoading] = useState(false);
   const [locating, setLocating] = useState(false);
   const [locatingTarget, setLocatingTarget] = useState('pickup');
   const [showMapsModal, setShowMapsModal] = useState(false);
   const [mapsTarget, setMapsTarget] = useState('pickup');
-  const [mapsAddress, setMapsAddress] = useState('');
+  const [specialInstructions, setSpecialInstructions] = useState('');
+
+  /* ── Form data ── */
   const [formData, setFormData] = useState({
-    bookingType: 'standard',
-    pickupStreet: '',
-    pickupBarangay: '',
-    pickupCity: '',
-    deliveryStreet: '',
-    deliveryBarangay: '',
-    deliveryCity: '',
-    date: '',
-    time: '',
-    weight: '',
-    cargoLength: '',
-    cargoWidth: '',
-    cargoHeight: '',
+    cargoType: 'general',
+    pickupStreet: '', pickupBarangay: '', pickupCity: '',
+    deliveryStreet: '', deliveryBarangay: '', deliveryCity: '',
+    date: '', time: '',
+    weight: '', cargoLength: '', cargoWidth: '', cargoHeight: '',
     notes: '',
   });
 
@@ -96,24 +85,25 @@ export default function BookTransport() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  /* ── Derived values ── */
   const pickupFull = [formData.pickupStreet, formData.pickupBarangay, formData.pickupCity].filter(Boolean).join(', ');
   const deliveryFull = [formData.deliveryStreet, formData.deliveryBarangay, formData.deliveryCity].filter(Boolean).join(', ');
-
   const cargoSizeFull = (formData.cargoLength || formData.cargoWidth || formData.cargoHeight)
     ? `${formData.cargoLength || 0}m × ${formData.cargoWidth || 0}m × ${formData.cargoHeight || 0}m`
     : '';
+  const routeInfo = useMemo(() => determineRouteType(formData.weight, cargoSizeFull), [formData.weight, cargoSizeFull]);
 
-  const routeInfo = useMemo(
-    () => determineRouteType(formData.weight, cargoSizeFull),
-    [formData.weight, cargoSizeFull]
-  );
+  /* ── Fleet data ── */
+  const allFleets = useMemo(() => (fleetTypes || []).filter(f => f.available !== false), [fleetTypes]);
+  const filteredFleets = useMemo(() => {
+    if (fleetFilter === 'all') return allFleets;
+    const cat = FLEET_CATALOG.find(c => c.key.toLowerCase() === fleetFilter.toLowerCase());
+    return cat ? allFleets.filter(f => (f.category || 'Small Trucks') === cat.key) : allFleets;
+  }, [allFleets, fleetFilter]);
 
-  // Use current location with nearest landmark detection
+  /* ── Geolocation ── */
   const handleUseLocation = (target = 'pickup') => {
-    if (!navigator.geolocation) {
-      addToast('Geolocation is not supported by your browser.', 'error');
-      return;
-    }
+    if (!navigator.geolocation) { addToast('Geolocation is not supported by your browser.', 'error'); return; }
     setLocatingTarget(target);
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
@@ -123,84 +113,46 @@ export default function BookTransport() {
           const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1`);
           const data = await res.json();
           const addr = data.address || {};
-
-          const landmark =
-            addr.amenity || addr.tourism || addr.building ||
-            addr.office || addr.shop || addr.road ||
-            addr.house_number || `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
-
+          const landmark = addr.amenity || addr.tourism || addr.building || addr.office || addr.shop || addr.road || addr.house_number || `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
           if (target === 'delivery') {
-            setFormData(prev => ({
-              ...prev,
-              deliveryStreet: landmark,
-              deliveryBarangay: addr.suburb || addr.neighbourhood || addr.village || '',
-              deliveryCity: addr.city || addr.town || addr.municipality || addr.county || '',
-            }));
+            setFormData(prev => ({ ...prev, deliveryStreet: landmark, deliveryBarangay: addr.suburb || addr.neighbourhood || addr.village || '', deliveryCity: addr.city || addr.town || addr.municipality || addr.county || '' }));
           } else {
-            setFormData(prev => ({
-              ...prev,
-              pickupStreet: landmark,
-              pickupBarangay: addr.suburb || addr.neighbourhood || addr.village || '',
-              pickupCity: addr.city || addr.town || addr.municipality || addr.county || '',
-            }));
+            setFormData(prev => ({ ...prev, pickupStreet: landmark, pickupBarangay: addr.suburb || addr.neighbourhood || addr.village || '', pickupCity: addr.city || addr.town || addr.municipality || addr.county || '' }));
           }
           addToast('Location detected! Nearest landmark filled in.', 'success');
-        } catch {
-          addToast('Could not determine your address. Please enter manually.', 'error');
-        }
+        } catch { addToast('Could not determine your address. Please enter manually.', 'error'); }
         setLocating(false);
       },
-      () => {
-        addToast('Location access denied. Please enter your address manually.', 'error');
-        setLocating(false);
-      },
+      () => { addToast('Location access denied. Please enter your address manually.', 'error'); setLocating(false); },
       { timeout: 10000 }
     );
   };
 
-  // Apply the address from the Maps modal to pickup or delivery
-  const handleApplyMapsAddress = () => {
-    if (!mapsAddress.trim()) {
-      addToast('Please click on the map or type an address.', 'error');
-      return;
-    }
-    const parts = mapsAddress.split(',').map(s => s.trim());
+  /* ── Map modal callback ── */
+  const handleApplyMapsAddress = (rawAddress) => {
+    const parts = rawAddress.split(',').map(s => s.trim());
     if (mapsTarget === 'delivery') {
-      setFormData(prev => ({
-        ...prev,
-        deliveryStreet: parts[0] || mapsAddress,
-        deliveryBarangay: parts[1] || '',
-        deliveryCity: parts[2] || '',
-      }));
+      setFormData(prev => ({ ...prev, deliveryStreet: parts[0] || rawAddress, deliveryBarangay: parts[1] || '', deliveryCity: parts[2] || '' }));
     } else {
-      setFormData(prev => ({
-        ...prev,
-        pickupStreet: parts[0] || mapsAddress,
-        pickupBarangay: parts[1] || '',
-        pickupCity: parts[2] || '',
-      }));
+      setFormData(prev => ({ ...prev, pickupStreet: parts[0] || rawAddress, pickupBarangay: parts[1] || '', pickupCity: parts[2] || '' }));
     }
     setShowMapsModal(false);
-    setMapsAddress('');
     addToast(`${mapsTarget === 'delivery' ? 'Delivery' : 'Pickup'} location set from map!`, 'success');
   };
 
+  /* ── Email helper ── */
   const sendEmailNotification = async (bookingData) => {
     try {
       await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ to: user?.email, type: 'booking_confirmation', data: bookingData }),
       });
-    } catch (err) {
-      console.error('Email notification failed:', err);
-    }
+    } catch (err) { console.error('Email notification failed:', err); }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  /* ── Submit booking ── */
+  const handleSubmit = async () => {
     setLoading(true);
-
     const fleet = fleetTypes?.find(f => f.id === selectedFleet);
     if (!fleet) { addToast('Please select a fleet type.', 'error'); setLoading(false); return; }
     if (!formData.time) { addToast('Please select a specific time.', 'error'); setLoading(false); return; }
@@ -209,28 +161,26 @@ export default function BookTransport() {
     const timeString = now.toLocaleString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
     const bookingData = {
-      bookingType: formData.bookingType,
+      bookingType: formData.cargoType,
       truckRoute: fleet.name,
       pickup: pickupFull, pickupStreet: formData.pickupStreet, pickupBarangay: formData.pickupBarangay, pickupCity: formData.pickupCity,
       delivery: deliveryFull, deliveryStreet: formData.deliveryStreet, deliveryBarangay: formData.deliveryBarangay, deliveryCity: formData.deliveryCity,
       date: formData.date, time: formData.time, weight: formData.weight,
       cargoSize: cargoSizeFull, cargoLength: formData.cargoLength, cargoWidth: formData.cargoWidth, cargoHeight: formData.cargoHeight,
-      routeType: routeInfo.route, notes: formData.notes, fleetType: selectedFleet,
+      routeType: routeInfo.route, notes: specialInstructions, fleetType: selectedFleet,
       status: 'Quote Requested', requestedAt: now.toISOString(),
       userId: user?.uid || 'anonymous', userEmail: user?.email || '', userName: user?.displayName || 'Guest',
     };
 
-    const bookingTypeLabel = BOOKING_TYPES.find(t => t.value === formData.bookingType)?.label || formData.bookingType;
-
     const userNotif = {
       title: 'Quote Request Submitted',
-      message: `Your ${bookingTypeLabel} quote request for ${fleet.name} (${pickupFull} to ${deliveryFull}) has been received. Route: ${routeInfo.route}. Our team will calculate the cost and get back to you shortly.`,
+      message: `Your ${formData.cargoType} cargo quote request for ${fleet.name} (${pickupFull} to ${deliveryFull}) has been received. Route: ${routeInfo.route}. Our team will calculate the cost and get back to you shortly.`,
       type: 'booking', isNew: true, time: timeString, userId: user?.uid || 'anonymous',
     };
 
     const adminNotif = {
       title: 'New Quote Request',
-      message: `${user?.displayName || 'A user'} submitted a ${bookingTypeLabel} quote request for ${fleet.name} -- ${pickupFull} to ${deliveryFull}. Weight: ${formData.weight || 'N/A'} KG, Size: ${cargoSizeFull || 'N/A'}. Auto-route: ${routeInfo.route}.`,
+      message: `${user?.displayName || 'A user'} submitted a ${formData.cargoType} cargo quote request for ${fleet.name} -- ${pickupFull} to ${deliveryFull}. Weight: ${formData.weight || 'N/A'} KG, Size: ${cargoSizeFull || 'N/A'}. Auto-route: ${routeInfo.route}.`,
       type: 'booking', isNew: true, time: timeString, forAdmin: true, userId: 'admin', userEmail: user?.email || '',
     };
 
@@ -247,428 +197,509 @@ export default function BookTransport() {
     }
   };
 
+  /* ── Validation ── */
+  const isSameDestination = !!(formData.pickupCity && formData.deliveryCity &&
+    formData.pickupStreet && formData.deliveryStreet &&
+    formData.pickupStreet.trim().toLowerCase() === formData.deliveryStreet.trim().toLowerCase() &&
+    formData.pickupCity.trim().toLowerCase() === formData.deliveryCity.trim().toLowerCase());
+  const canProceedStep1 = formData.pickupStreet && formData.pickupCity && formData.deliveryStreet && formData.deliveryCity && formData.date && formData.time && !isSameDestination;
+  const canProceedStep2 = !!selectedFleet;
   const today = new Date().toISOString().split('T')[0];
+  const selectedFleetData = fleetTypes?.find(f => f.id === selectedFleet);
 
-  // Map fleet types from Firestore into their categories
-  const fleetByCategory = useMemo(() => {
-    if (!fleetTypes) return {};
-    const available = fleetTypes.filter(f => f.available !== false);
-    return available.reduce((acc, fleet) => {
-      const cat = fleet.category || 'Small Trucks'; // default to first category
-      if (!acc[cat]) acc[cat] = [];
-      acc[cat].push(fleet);
-      return acc;
-    }, {});
-  }, [fleetTypes]);
+  /* ── Inline map pin callback ── */
+  const handleMapPin = (target, { street, barangay, city }) => {
+    if (target === 'delivery') {
+      setFormData(prev => ({ ...prev, deliveryStreet: street, deliveryBarangay: barangay, deliveryCity: city }));
+    } else {
+      setFormData(prev => ({ ...prev, pickupStreet: street, pickupBarangay: barangay, pickupCity: city }));
+    }
+    addToast(`${target === 'delivery' ? 'Drop-off' : 'Pickup'} pinned on map!`, 'success');
+  };
 
-  // Leaflet map ref
-  const mapRef = useRef(null);
-  const mapInstanceRef = useRef(null);
-  const markerRef = useRef(null);
-
-  useEffect(() => {
-    if (!showMapsModal) return;
-    // Load Leaflet CSS + JS from CDN dynamically
-    const loadLeaflet = async () => {
-      if (!document.getElementById('leaflet-css')) {
-        const link = document.createElement('link');
-        link.id = 'leaflet-css';
-        link.rel = 'stylesheet';
-        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-        document.head.appendChild(link);
-      }
-      if (!window.L) {
-        await new Promise((resolve, reject) => {
-          const script = document.createElement('script');
-          script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-          script.onload = resolve;
-          script.onerror = reject;
-          document.head.appendChild(script);
-        });
-      }
-      // Small delay to ensure DOM is mounted
-      setTimeout(() => {
-        if (!mapRef.current || mapInstanceRef.current) return;
-        const L = window.L;
-        const map = L.map(mapRef.current).setView([14.82, 120.28], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-        mapInstanceRef.current = map;
-
-        map.on('click', async (e) => {
-          const { lat, lng } = e.latlng;
-          // Drop/move marker
-          if (markerRef.current) {
-            markerRef.current.setLatLng([lat, lng]);
-          } else {
-            markerRef.current = L.marker([lat, lng]).addTo(map);
-          }
-          // Reverse geocode with Nominatim
-          try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`);
-            const data = await res.json();
-            setMapsAddress(data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`);
-          } catch {
-            setMapsAddress(`${lat.toFixed(5)}, ${lng.toFixed(5)}`);
-          }
-        });
-      }, 300);
-    };
-    loadLeaflet();
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-        markerRef.current = null;
-      }
-    };
-  }, [showMapsModal]);
-
+  /* ═══════════════ RENDER ═══════════════ */
   return (
     <DashboardLayout>
-      {/* Maps Modal — Leaflet click-to-select */}
+      {/* ── Leaflet Map Modal (client-only via next/dynamic) ── */}
       {showMapsModal && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', zIndex: 10000,
-        }}>
-          <div style={{ background: 'var(--white)', borderRadius: '16px', width: '92%', maxWidth: '640px', overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid var(--gray-200)' }}>
-              <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}><Map size={18} color={mapsTarget === 'delivery' ? 'var(--danger)' : 'var(--primary)'} /> Pin {mapsTarget === 'delivery' ? 'Delivery Destination' : 'Pickup Location'}</h3>
-              <button style={{ background: 'none', color: 'var(--text-muted)' }} onClick={() => setShowMapsModal(false)}><X size={20} /></button>
-            </div>
-            <div style={{ padding: '12px 20px 4px' }}>
-              <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: 0 }}>
-                🖱️ Click anywhere on the map — the address will be auto-detected below.
-              </p>
-            </div>
-            {/* Leaflet map container */}
-            <div ref={mapRef} style={{ width: '100%', height: '300px' }} />
-            <div style={{ padding: '16px 20px' }}>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="Detected address will appear here, or type manually..."
-                  value={mapsAddress}
-                  onChange={e => setMapsAddress(e.target.value)}
-                  style={{ flex: 1 }}
-                  onKeyDown={e => e.key === 'Enter' && handleApplyMapsAddress()}
-                />
-                <button className="btn btn-accent" onClick={handleApplyMapsAddress}>
-                  Use This Location
-                </button>
-              </div>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '8px' }}>
-                Tip: You can also type a landmark or address (e.g. "Gate 1, Brgy. Cubi, SBFZ")
-              </p>
-            </div>
-          </div>
-        </div>
+        <LeafletMapModal
+          target={mapsTarget}
+          onApply={handleApplyMapsAddress}
+          onClose={() => setShowMapsModal(false)}
+        />
       )}
 
-      {/* Breadcrumb */}
-      <div className={styles.breadcrumb}>
-        <Link href="/dashboard">Dashboard</Link>
-        <span>&rsaquo;</span>
-        <span>Request a Quote</span>
-      </div>
+      {/* ── Page Wrapper ── */}
+      <div className={styles.wizardPage}>
 
-      <h1 className={styles.title}>Request a Transport Quote</h1>
-      <p className={styles.subtitle}>Fill in your cargo details below. Our team will calculate and send you a quotation.</p>
-
-      <form onSubmit={handleSubmit} className={styles.form}>
-        <div className={styles.formCard}>
-          {/* Form Header */}
-          <div className={styles.formHeader}>
-            <div className={styles.formHeaderIcon}><Truck size={24} /></div>
-            <div>
-              <h3>Logistics Detail Form</h3>
-              <p>Verified PH Routes: SBMA - Olongapo Metropolitan Area</p>
-            </div>
-          </div>
-
-          {/* How It Works */}
-          <div className={styles.section}>
-            <h4 className={styles.sectionLabel}>
-              <span className={styles.sectionLine}></span>
-              How It Works
-            </h4>
-            <div className={styles.stepsGrid}>
-              {[
-                { step: '1', title: 'Submit Details', desc: 'Fill in your cargo and route info' },
-                { step: '2', title: 'Receive Quote', desc: 'Our team calculates the cost' },
-                { step: '3', title: 'Confirm & Pay', desc: 'Accept the quote and choose payment' },
-                { step: '4', title: 'Get Moving', desc: 'Your transport is scheduled' },
-              ].map((item) => (
-                <div key={item.step} className={styles.stepCard}>
-                  <div className={styles.stepNumber}>{item.step}</div>
-                  <div className={styles.stepTitle}>{item.title}</div>
-                  <div className={styles.stepDesc}>{item.desc}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Section 1: Route Info */}
-          <div className={styles.section}>
-            <h4 className={styles.sectionLabel}>
-              <span className={styles.sectionLine}></span>
-              1. Route Information
-            </h4>
-
-            {/* Pickup Location */}
-            <div className={styles.locationSection}>
-              <div className={styles.locationHeader}>
-                <label className={styles.locationLabel}>
-                  <MapPin size={14} color="var(--primary)" /> Pickup Location *
-                </label>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    type="button"
-                    className="btn btn-outline btn-sm"
-                    style={{ gap: '6px' }}
-                    onClick={() => handleUseLocation('pickup')}
-                    disabled={locating && locatingTarget === 'pickup'}
-                  >
-                    <Navigation size={14} /> {locating && locatingTarget === 'pickup' ? 'Detecting...' : 'Use My Location'}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-outline btn-sm"
-                    style={{ gap: '6px' }}
-                    onClick={() => { setMapsTarget('pickup'); setShowMapsModal(true); }}
-                  >
-                    <Map size={14} /> Pin on Maps
-                  </button>
-                </div>
-              </div>
-              <div className={styles.inputGrid}>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <input type="text" name="pickupStreet" className="form-input" placeholder="Street / Building / Landmark" value={formData.pickupStreet} onChange={handleChange} required />
-                  <span className={styles.inputHint}>e.g. Gate 1 SBFZ or Bldg 23, Argonaut Hwy</span>
-                </div>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <input type="text" name="pickupBarangay" className="form-input" placeholder="Barangay" value={formData.pickupBarangay} onChange={handleChange} />
-                  <span className={styles.inputHint}>e.g. Brgy. Cubi</span>
-                </div>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <input type="text" name="pickupCity" className="form-input" placeholder="City / Municipality" value={formData.pickupCity} onChange={handleChange} required />
-                  <span className={styles.inputHint}>e.g. Subic Bay Freeport Zone</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Delivery Destination */}
-            <div className={styles.locationSection} style={{ marginBottom: 0, background: 'var(--white)' }}>
-              <div className={styles.locationHeader}>
-                <label className={styles.locationLabel}>
-                  <MapPin size={14} color="var(--danger)" /> Delivery Destination *
-                </label>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    type="button"
-                    className="btn btn-outline btn-sm"
-                    style={{ gap: '6px' }}
-                    onClick={() => handleUseLocation('delivery')}
-                    disabled={locating && locatingTarget === 'delivery'}
-                  >
-                    <Navigation size={14} /> {locating && locatingTarget === 'delivery' ? 'Detecting...' : 'Use My Location'}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-outline btn-sm"
-                    style={{ gap: '6px' }}
-                    onClick={() => { setMapsTarget('delivery'); setShowMapsModal(true); }}
-                  >
-                    <Map size={14} /> Pin on Maps
-                  </button>
-                </div>
-              </div>
-              <div className={styles.inputGrid}>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <input type="text" name="deliveryStreet" className="form-input" placeholder="Street / Building" value={formData.deliveryStreet} onChange={handleChange} required />
-                  <span className={styles.inputHint}>e.g. Rizal Avenue</span>
-                </div>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <input type="text" name="deliveryBarangay" className="form-input" placeholder="Barangay" value={formData.deliveryBarangay} onChange={handleChange} />
-                  <span className={styles.inputHint}>e.g. Brgy. East Bajac-Bajac</span>
-                </div>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <input type="text" name="deliveryCity" className="form-input" placeholder="City / Municipality" value={formData.deliveryCity} onChange={handleChange} required />
-                  <span className={styles.inputHint}>e.g. Olongapo City</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Section 2: Fleet Selection */}
-          <div className={styles.section}>
-            <h4 className={styles.sectionLabel}>
-              <span className={styles.sectionLine}></span>
-              2. Fleet Selection
-            </h4>
-            <div className="form-group">
-              <label className="form-label">Select Truck / Vehicle Type *</label>
-              <select
-                className="form-input"
-                value={selectedFleet}
-                onChange={e => setSelectedFleet(e.target.value)}
-                required
-                style={{ cursor: 'pointer' }}
-              >
-                <option value="">— Choose a vehicle category and type —</option>
-                {FLEET_CATALOG.map(cat => {
-                  const realFleets = fleetByCategory[cat.key] || [];
-                  return (
-                    <optgroup key={cat.key} label={`${cat.placeholder.icon} ${cat.label} — ${cat.description}`}>
-                      {realFleets.length > 0 ? (
-                        realFleets.map(fleet => (
-                          <option key={fleet.id} value={fleet.id}>
-                            {fleet.name}{fleet.capacity ? ` (${fleet.capacity})` : ''}
-                          </option>
-                        ))
-                      ) : (
-                        <option disabled value="">
-                          {cat.placeholder.name} — Not yet available
-                        </option>
-                      )}
-                    </optgroup>
-                  );
-                })}
-              </select>
-              {selectedFleet && (() => {
-                const fleet = fleetTypes?.find(f => f.id === selectedFleet);
-                return fleet ? (
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: '12px',
-                    marginTop: '10px', padding: '10px 14px',
-                    background: 'var(--primary-light)', borderRadius: 'var(--border-radius)',
-                    border: '1px solid var(--primary)',
-                  }}>
-                    {fleet.imageUrl && (
-                      <img src={fleet.imageUrl} alt={fleet.name}
-                        style={{ width: '48px', height: '48px', borderRadius: '6px', objectFit: 'cover', flexShrink: 0 }} />
+        {/* ════════════════════════════════════════════════════
+            STEP 1 — Route & Schedule
+            ════════════════════════════════════════════════════ */}
+        {currentStep === 1 && (
+          <>
+            {/* Stepper — spans full width above the two columns */}
+            <div className={styles.stepper}>
+              {STEPS.map((step, i) => {
+                const isDone = currentStep > step.number;
+                const isActive = currentStep === step.number;
+                return (
+                  <div key={step.number} className={styles.stepperGroup}>
+                    <div className={styles.stepperItem}>
+                      <div className={`${styles.stepperDot} ${isDone ? styles.stepperDotDone : ''} ${isActive ? styles.stepperDotActive : ''}`}>
+                        {isDone ? <Check size={14} /> : step.number}
+                      </div>
+                      <span className={`${styles.stepperLabel} ${isActive ? styles.stepperLabelActive : ''} ${isDone ? styles.stepperLabelDone : ''}`}>
+                        {step.label}
+                      </span>
+                    </div>
+                    {i < STEPS.length - 1 && (
+                      <div className={`${styles.stepperLine} ${currentStep > step.number ? styles.stepperLineDone : ''}`} />
                     )}
-                    <div>
-                      <div style={{ fontWeight: 700, color: 'var(--primary)', fontSize: '0.9rem' }}>✓ {fleet.name}</div>
-                      {fleet.capacity && <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Capacity: {fleet.capacity}</div>}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Step Header — sits ABOVE the two-column layout so map aligns with form card */}
+            <div className={styles.stepHeader}>
+              <h1 className={styles.stepTitle}>Plan Your Route</h1>
+              <p className={styles.stepSubtitle}>Enter pickup and drop-off details to begin.</p>
+            </div>
+
+            {/* Two-column layout: form (left) + map (right) — both start at same level */}
+            <div className={styles.stepLayout}>
+              {/* ── Left column ── */}
+              <div className={styles.formColumn}>
+                <div className={styles.formCard}>
+                  {/* Location Group */}
+                  <div className={styles.locationGroup}>
+                    <div className={styles.locationConnector} />
+
+                    {/* Pickup */}
+                    <div className={styles.locationRow}>
+                      <div className={styles.locationIconWrap}>
+                        <span className={styles.locationDotPickup} />
+                      </div>
+                      <div className={styles.locationFields}>
+                        <label className={styles.fieldLabel}>PICKUP LOCATION</label>
+                        <input className={styles.fieldInput} type="text" name="pickupStreet" placeholder="Street / Building / Landmark *" value={formData.pickupStreet} onChange={handleChange} required />
+                        <div className={styles.locationSubFields}>
+                          <input className={styles.fieldInput} type="text" name="pickupBarangay" placeholder="Barangay (optional)" value={formData.pickupBarangay} onChange={handleChange} />
+                          <input className={styles.fieldInput} type="text" name="pickupCity" placeholder="City / Municipality *" value={formData.pickupCity} onChange={handleChange} required />
+                        </div>
+                        <div className={styles.locationActions}>
+                          <button type="button" className={styles.locBtn} onClick={() => handleUseLocation('pickup')} disabled={locating && locatingTarget === 'pickup'}>
+                            <Navigation size={12} /> {locating && locatingTarget === 'pickup' ? 'Detecting...' : 'Use My Location'}
+                          </button>
+                          <button type="button" className={styles.locBtn} onClick={() => { setMapsTarget('pickup'); setShowMapsModal(true); }}>
+                            <MapPin size={12} /> Pin on Map
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Drop-off */}
+                    <div className={styles.locationRow}>
+                      <div className={styles.locationIconWrap}>
+                        <span className={styles.locationDotDropoff} />
+                      </div>
+                      <div className={styles.locationFields}>
+                        <label className={styles.fieldLabel}>DROP-OFF LOCATION</label>
+                        <input className={styles.fieldInput} type="text" name="deliveryStreet" placeholder="Street / Building / Landmark *" value={formData.deliveryStreet} onChange={handleChange} required />
+                        <div className={styles.locationSubFields}>
+                          <input className={styles.fieldInput} type="text" name="deliveryBarangay" placeholder="Barangay (optional)" value={formData.deliveryBarangay} onChange={handleChange} />
+                          <input className={styles.fieldInput} type="text" name="deliveryCity" placeholder="City / Municipality *" value={formData.deliveryCity} onChange={handleChange} required />
+                        </div>
+                        <div className={styles.locationActions}>
+                          <button type="button" className={styles.locBtn} onClick={() => handleUseLocation('delivery')} disabled={locating && locatingTarget === 'delivery'}>
+                            <Navigation size={12} /> {locating && locatingTarget === 'delivery' ? 'Detecting...' : 'Use My Location'}
+                          </button>
+                          <button type="button" className={styles.locBtn} onClick={() => { setMapsTarget('delivery'); setShowMapsModal(true); }}>
+                            <MapPin size={12} /> Pin on Map
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                ) : null;
-              })()}
-            </div>
-          </div>
 
+                  <div className={styles.divider} />
 
-          {/* Section 3: Cargo & Schedule */}
-          <div className={styles.section}>
-            <h4 className={styles.sectionLabel}>
-              <span className={styles.sectionLine}></span>
-              3. Cargo &amp; Schedule Details
-            </h4>
-            <div className={styles.scheduleGrid}>
-              <div className="form-group">
-                <label className="form-label">Preferred Date *</label>
-                <input type="date" name="date" className="form-input" value={formData.date} onChange={handleChange} required min={today} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Preferred Time *</label>
-                <input type="time" name="time" className="form-input" value={formData.time} onChange={handleChange} required />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Estimated Cargo Weight *</label>
-                <div className={styles.inputWithSuffix}>
-                  <input type="number" name="weight" className="form-input" placeholder="In Kilograms" value={formData.weight} onChange={handleChange} required min="1" />
-                  <span className={styles.suffix}>KG</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Cargo Dimensions */}
-            <div>
-              <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
-                <Package size={14} /> Cargo Dimensions (L × W × H) *
-              </label>
-              <div className={styles.inputGrid}>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <div className={styles.inputWithSuffix}>
-                    <input type="number" name="cargoLength" className="form-input" placeholder="Length" value={formData.cargoLength} onChange={handleChange} required min="0.01" step="0.01" />
-                    <span className={styles.suffix}>m</span>
+                  {/* Date & Time */}
+                  <div className={styles.scheduleGrid}>
+                    <div className={styles.fieldGroup}>
+                      <label className={styles.fieldLabel}>DATE</label>
+                      <input className={styles.fieldInput} type="date" name="date" value={formData.date} onChange={handleChange} min={today} required />
+                    </div>
+                    <div className={styles.fieldGroup}>
+                      <label className={styles.fieldLabel}>TIME</label>
+                      <input className={styles.fieldInput} type="time" name="time" value={formData.time} onChange={handleChange} required />
+                    </div>
                   </div>
-                  <span className={styles.inputHint}>Length</span>
-                </div>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <div className={styles.inputWithSuffix}>
-                    <input type="number" name="cargoWidth" className="form-input" placeholder="Width" value={formData.cargoWidth} onChange={handleChange} required min="0.01" step="0.01" />
-                    <span className={styles.suffix}>m</span>
+
+                  <div className={styles.divider} />
+
+                  {/* Cargo Type */}
+                  <div>
+                    <label className={styles.fieldLabel}>CARGO TYPE</label>
+                    <div className={styles.cargoTypeGrid}>
+                      {CARGO_TYPES.map(({ value, label, Icon }) => (
+                        <label key={value} className={`${styles.cargoTypeBtn} ${formData.cargoType === value ? styles.cargoTypeBtnActive : ''}`}>
+                          <input type="radio" name="cargoType" value={value} checked={formData.cargoType === value} onChange={handleChange} style={{ display: 'none' }} />
+                          <Icon size={18} />
+                          <span>{label}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
-                  <span className={styles.inputHint}>Width</span>
-                </div>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <div className={styles.inputWithSuffix}>
-                    <input type="number" name="cargoHeight" className="form-input" placeholder="Height" value={formData.cargoHeight} onChange={handleChange} required min="0.01" step="0.01" />
-                    <span className={styles.suffix}>m</span>
+
+                  <div className={styles.divider} />
+
+                  {/* Cargo Weight & Dimensions */}
+                  <div>
+                    <label className={styles.fieldLabel}>
+                      CARGO WEIGHT &amp; DIMENSIONS{' '}
+                      <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, color: '#6f7a70' }}>(for route &amp; truck matching)</span>
+                    </label>
+                    <div className={styles.scheduleGrid} style={{ marginTop: '10px' }}>
+                      <div className={styles.fieldGroup}>
+                        <label className={styles.fieldLabel}>Weight (KG)</label>
+                        <input className={styles.fieldInput} type="number" name="weight" placeholder="e.g. 5000" value={formData.weight} onChange={handleChange} min="0" />
+                      </div>
+                      <div className={styles.fieldGroup}>
+                        <label className={styles.fieldLabel}>Length (m)</label>
+                        <input className={styles.fieldInput} type="number" name="cargoLength" placeholder="e.g. 6" value={formData.cargoLength} onChange={handleChange} min="0" step="0.1" />
+                      </div>
+                      <div className={styles.fieldGroup}>
+                        <label className={styles.fieldLabel}>Width (m)</label>
+                        <input className={styles.fieldInput} type="number" name="cargoWidth" placeholder="e.g. 2.5" value={formData.cargoWidth} onChange={handleChange} min="0" step="0.1" />
+                      </div>
+                      <div className={styles.fieldGroup}>
+                        <label className={styles.fieldLabel}>Height (m)</label>
+                        <input className={styles.fieldInput} type="number" name="cargoHeight" placeholder="e.g. 2" value={formData.cargoHeight} onChange={handleChange} min="0" step="0.1" />
+                      </div>
+                    </div>
                   </div>
-                  <span className={styles.inputHint}>Height</span>
+                </div>
+
+                {/* Same Destination Warning */}
+                {isSameDestination && (
+                  <div className={styles.sameDestWarning}>
+                    <span>⚠️</span>
+                    <div>
+                      <p style={{ fontWeight: 700, margin: '0 0 2px' }}>Pickup and drop-off are the same</p>
+                      <p style={{ margin: 0 }}>Please enter a different delivery location.</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Auto Route Alert */}
+                {!isSameDestination && (formData.weight || cargoSizeFull) && (
+                  <div className={`${styles.routeAlert} ${routeInfo.route === 'Old Road' ? styles.routeAlertOldRoad : styles.routeAlertExpress}`}>
+                    <div className={styles.routeAlertIcon}>
+                      {routeInfo.route === 'Old Road' ? '🛣️' : '🚀'}
+                    </div>
+                    <div>
+                      <p className={styles.routeAlertTitle}>Auto-assigned Route: <strong>{routeInfo.route}</strong></p>
+                      <p className={styles.routeAlertDesc}>{routeInfo.reason}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className={styles.stepActions}>
+                  <Link href="/dashboard" className={styles.btnGhost}>Cancel</Link>
+                  <button
+                    className={styles.btnPrimary}
+                    disabled={isSameDestination}
+                    onClick={() => {
+                      if (isSameDestination) { addToast('Pickup and drop-off cannot be the same location.', 'error'); return; }
+                      if (!canProceedStep1) { addToast('Please fill in all required fields.', 'error'); return; }
+                      setCurrentStep(2);
+                    }}
+                  >
+                    Continue to Vehicle <ArrowRight size={18} />
+                  </button>
+                </div>
+              </div>
+
+              {/* ── Right column: REAL Leaflet map ── */}
+              <div className={styles.mapPanel}>
+                <LeafletInlineMap
+                  pickupCity={formData.pickupCity}
+                  deliveryCity={formData.deliveryCity}
+                  pickupFull={pickupFull}
+                  deliveryFull={deliveryFull}
+                  onPinLocation={handleMapPin}
+                />
+                {/* Route chip at bottom of map panel */}
+                {pickupFull && deliveryFull && (
+                  <div className={styles.routeChip}>
+                    <span className={styles.routeChipDot} style={{ background: '#00522c' }} />
+                    <span style={{ fontWeight: 700 }}>{formData.pickupCity || 'Pickup'}</span>
+                    <ArrowRight size={12} color="#6f7a70" />
+                    <span className={styles.routeChipDot} style={{ background: '#ba1a1a' }} />
+                    <span style={{ fontWeight: 700 }}>{formData.deliveryCity || 'Drop-off'}</span>
+                    {(formData.weight || cargoSizeFull) && (
+                      <>
+                        <span style={{ margin: '0 4px', color: '#bec9be' }}>|</span>
+                        <span style={{ fontWeight: 700, color: routeInfo.route === 'Old Road' ? '#E65100' : '#00522c' }}>
+                          {routeInfo.route === 'Old Road' ? '🛣️' : '🚀'} {routeInfo.route}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ════════════════════════════════════════════════════
+            STEP 2 — Choose Vehicle
+            ════════════════════════════════════════════════════ */}
+        {currentStep === 2 && (
+          <div className={styles.fullColumn}>
+            <div className={styles.stepper}>
+              {STEPS.map((step, i) => {
+                const isDone = currentStep > step.number;
+                const isActive = currentStep === step.number;
+                return (
+                  <div key={step.number} className={styles.stepperGroup}>
+                    <div className={styles.stepperItem}>
+                      <div className={`${styles.stepperDot} ${isDone ? styles.stepperDotDone : ''} ${isActive ? styles.stepperDotActive : ''}`}>
+                        {isDone ? <Check size={14} /> : step.number}
+                      </div>
+                      <span className={`${styles.stepperLabel} ${isActive ? styles.stepperLabelActive : ''} ${isDone ? styles.stepperLabelDone : ''}`}>
+                        {step.label}
+                      </span>
+                    </div>
+                    {i < STEPS.length - 1 && (
+                      <div className={`${styles.stepperLine} ${currentStep > step.number ? styles.stepperLineDone : ''}`} />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className={styles.stepHeader}>
+              <h1 className={styles.stepTitle}>Choose Your Vehicle</h1>
+              <p className={styles.stepSubtitle}>Select the truck that best fits your cargo.</p>
+            </div>
+
+            {/* Filter tabs */}
+            <div className={styles.filterTabs}>
+              {['all', ...FLEET_CATALOG.map(c => c.key.toLowerCase())].map(tab => (
+                <button
+                  key={tab}
+                  className={`${styles.filterTab} ${fleetFilter === tab ? styles.filterTabActive : ''}`}
+                  onClick={() => setFleetFilter(tab)}
+                >
+                  {tab === 'all' ? 'All' : FLEET_CATALOG.find(c => c.key.toLowerCase() === tab)?.label || tab}
+                </button>
+              ))}
+            </div>
+
+            {/* Fleet grid */}
+            <div className={styles.fleetGrid}>
+              {fleetLoading ? (
+                <div className={styles.loadingState}>Loading fleet...</div>
+              ) : filteredFleets.length === 0 ? (
+                <div className={styles.emptyState}>No vehicles found in this category.</div>
+              ) : (
+                filteredFleets.map((fleet, idx) => {
+                  const isSelected = selectedFleet === fleet.id;
+                  return (
+                    <div
+                      key={fleet.id}
+                      className={`${styles.truckCard} ${isSelected ? styles.truckCardSelected : ''}`}
+                      onClick={() => setSelectedFleet(fleet.id)}
+                    >
+                      {idx === 0 && (
+                        <div className={styles.recommendedBadge}><Star size={12} /> Recommended</div>
+                      )}
+                      <div className={styles.truckImageWrap}>
+                        {fleet.imageUrl ? (
+                          <img src={fleet.imageUrl} alt={fleet.name} className={styles.truckImage} />
+                        ) : (
+                          <div className={styles.truckImagePlaceholder}>
+                            <span className={styles.truckEmoji}>🚛</span>
+                          </div>
+                        )}
+                        <div className={styles.truckImageOverlay} />
+                        <div className={styles.truckImageLabel}>
+                          <p className={styles.truckName}>{fleet.name}</p>
+                          <p className={styles.truckSubtype}>{fleet.category || 'General'}</p>
+                        </div>
+                      </div>
+                      <div className={styles.truckSpecs}>
+                        <div className={styles.specGrid}>
+                          {fleet.capacity && <div className={styles.specItem}><span className={styles.specLabel}>Capacity</span><span className={styles.specValue}>{fleet.capacity}</span></div>}
+                          {fleet.dimensions && <div className={styles.specItem}><span className={styles.specLabel}>Dimensions</span><span className={styles.specValue}>{fleet.dimensions}</span></div>}
+                        </div>
+                        <div className={styles.truckCardFooter}>
+                          {isSelected ? (
+                            <button className={styles.btnSelected}><Check size={16} /> Selected</button>
+                          ) : (
+                            <button className={styles.btnSelectVehicle}>Select This Vehicle</button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <div className={styles.stepActions}>
+              <button className={styles.btnGhost} onClick={() => setCurrentStep(1)}>
+                <ArrowLeft size={18} /> Back to Route
+              </button>
+              <button
+                className={styles.btnPrimary}
+                onClick={() => {
+                  if (!canProceedStep2) { addToast('Please select a vehicle.', 'error'); return; }
+                  setCurrentStep(3);
+                }}
+              >
+                Continue to Review <ArrowRight size={18} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ════════════════════════════════════════════════════
+            STEP 3 — Review & Confirm
+            ════════════════════════════════════════════════════ */}
+        {currentStep === 3 && (
+          <div className={styles.fullColumn}>
+            <div className={styles.stepper}>
+              {STEPS.map((step, i) => {
+                const isDone = currentStep > step.number;
+                const isActive = currentStep === step.number;
+                return (
+                  <div key={step.number} className={styles.stepperGroup}>
+                    <div className={styles.stepperItem}>
+                      <div className={`${styles.stepperDot} ${isDone ? styles.stepperDotDone : ''} ${isActive ? styles.stepperDotActive : ''}`}>
+                        {isDone ? <Check size={14} /> : step.number}
+                      </div>
+                      <span className={`${styles.stepperLabel} ${isActive ? styles.stepperLabelActive : ''} ${isDone ? styles.stepperLabelDone : ''}`}>
+                        {step.label}
+                      </span>
+                    </div>
+                    {i < STEPS.length - 1 && (
+                      <div className={`${styles.stepperLine} ${currentStep > step.number ? styles.stepperLineDone : ''}`} />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className={styles.stepHeader}>
+              <h1 className={styles.stepTitle}>Review &amp; Confirm</h1>
+              <p className={styles.stepSubtitle}>Double-check everything before submitting your quote request.</p>
+            </div>
+
+            <div className={styles.reviewLayout}>
+              {/* Left: details */}
+              <div className={styles.reviewDetails}>
+                {/* Route summary */}
+                <div className={styles.reviewCard}>
+                  <h3 className={styles.reviewCardTitle}>Route Summary</h3>
+                  <div className={styles.reviewRouteVisual}>
+                    <div className={styles.reviewRoutePoint}>
+                      <span className={styles.locationDotPickup} />
+                      <div>
+                        <p className={styles.reviewRouteLabel}>Pickup</p>
+                        <p className={styles.reviewRouteValue}>{pickupFull || '—'}</p>
+                      </div>
+                    </div>
+                    <div className={styles.reviewRouteLine} />
+                    <div className={styles.reviewRoutePoint}>
+                      <span className={styles.locationDotDropoff} />
+                      <div>
+                        <p className={styles.reviewRouteLabel}>Drop-off</p>
+                        <p className={styles.reviewRouteValue}>{deliveryFull || '—'}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className={styles.reviewMeta}>
+                    <div><span className={styles.reviewMetaLabel}>Date</span><span className={styles.reviewMetaValue}>{formData.date || '—'}</span></div>
+                    <div><span className={styles.reviewMetaLabel}>Time</span><span className={styles.reviewMetaValue}>{formData.time || '—'}</span></div>
+                    <div><span className={styles.reviewMetaLabel}>Cargo Type</span><span className={styles.reviewMetaValue} style={{ textTransform: 'capitalize' }}>{formData.cargoType}</span></div>
+                    <div><span className={styles.reviewMetaLabel}>Route</span><span className={styles.reviewMetaValue} style={{ color: routeInfo.route === 'Old Road' ? '#E65100' : '#00522c', fontWeight: 700 }}>{routeInfo.route}</span></div>
+                    {formData.weight && <div><span className={styles.reviewMetaLabel}>Weight</span><span className={styles.reviewMetaValue}>{formData.weight} KG</span></div>}
+                    {cargoSizeFull && <div><span className={styles.reviewMetaLabel}>Dimensions</span><span className={styles.reviewMetaValue}>{cargoSizeFull}</span></div>}
+                  </div>
+                </div>
+
+                {/* Vehicle */}
+                <div className={styles.reviewCard}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 className={styles.reviewCardTitle}>Selected Vehicle</h3>
+                    <button className={styles.locBtn} onClick={() => setCurrentStep(2)}>Change</button>
+                  </div>
+                  {selectedFleetData ? (
+                    <div className={styles.reviewVehicle}>
+                      {selectedFleetData.imageUrl ? (
+                        <img src={selectedFleetData.imageUrl} alt={selectedFleetData.name} className={styles.reviewVehicleImg} />
+                      ) : (
+                        <div className={styles.reviewVehicleImgPlaceholder}>🚛</div>
+                      )}
+                      <div>
+                        <p className={styles.reviewVehicleName}>{selectedFleetData.name}</p>
+                        <p className={styles.reviewVehicleMeta}>{selectedFleetData.category || 'General'}{selectedFleetData.capacity ? ` • ${selectedFleetData.capacity}` : ''}</p>
+                      </div>
+                    </div>
+                  ) : <p style={{ color: '#6f7a70' }}>No vehicle selected.</p>}
+                </div>
+
+                {/* Special instructions */}
+                <div className={styles.reviewCard}>
+                  <h3 className={styles.reviewCardTitle}>Special Instructions</h3>
+                  <textarea
+                    className={styles.reviewTextarea}
+                    placeholder="Gate pass requirements, fragile handling, contact persons at drop-off..."
+                    value={specialInstructions}
+                    onChange={e => setSpecialInstructions(e.target.value)}
+                    rows={4}
+                  />
+                </div>
+              </div>
+
+              {/* Right: cost summary */}
+              <div className={styles.reviewSidebar}>
+                <div className={styles.reviewSidebarCard}>
+                  <h3 className={styles.reviewSidebarTitle}>Cost Summary</h3>
+                  <div className={styles.reviewSidebarAmount}>
+                    <p className={styles.reviewSidebarLabel}>Estimated Total</p>
+                    <p className={styles.reviewSidebarPrice}>Awaiting Quote</p>
+                    <p className={styles.reviewSidebarNote}>Our team will review your details and send a quotation. You'll be notified via the dashboard and email.</p>
+                  </div>
+                  <button
+                    className={styles.btnPrimary}
+                    style={{ width: '100%', justifyContent: 'center' }}
+                    onClick={handleSubmit}
+                    disabled={loading}
+                  >
+                    {loading ? 'Submitting...' : 'Request a Quote'} {!loading && <ArrowRight size={18} />}
+                  </button>
+                  <div className={styles.reviewTrust}>
+                    <p>✓ No payment required until quote accepted</p>
+                    <p>✓ Cancel anytime before confirmation</p>
+                    <p>✓ Admin response within 2–4 hours</p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Auto-Route Display */}
-            {(formData.weight || cargoSizeFull) && (
-              <div className={styles.routeAlert} style={{
-                background: routeInfo.route === 'Old Road' ? '#FFF8E1' : 'var(--primary-light)',
-                border: `1px solid ${routeInfo.route === 'Old Road' ? '#F5A623' : 'var(--primary-light)'}`,
-              }}>
-                <div className={styles.routeAlertIcon} style={{ background: routeInfo.route === 'Old Road' ? '#FFE0B2' : 'var(--primary)' }}>
-                  <Route size={16} color={routeInfo.route === 'Old Road' ? '#E65100' : 'var(--white)'} />
-                </div>
-                <div>
-                  <h5 className={styles.routeAlertTitle} style={{ color: routeInfo.route === 'Old Road' ? '#E65100' : 'var(--primary-dark)' }}>
-                    Travelling Route: {routeInfo.route}
-                  </h5>
-                  <p className={styles.routeAlertDesc} style={{ color: routeInfo.route === 'Old Road' ? '#E65100' : 'var(--primary-dark)' }}>
-                    {routeInfo.reason}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            <div className="form-group" style={{ marginTop: '24px' }}>
-              <label className="form-label">Special Instructions / Notes</label>
-              <textarea
-                name="notes"
-                className="form-input form-textarea"
-                placeholder="Please provide any additional information such as gate pass requirements in SBMA, fragile handling, or specific contact persons at Olongapo drop off."
-                value={formData.notes}
-                onChange={handleChange}
-              ></textarea>
+            <div className={styles.stepActions}>
+              <button className={styles.btnGhost} onClick={() => setCurrentStep(2)}>
+                <ArrowLeft size={18} /> Back to Vehicle
+              </button>
             </div>
           </div>
-
-          {/* Terms */}
-          <div className={styles.terms}>
-            <Info size={16} />
-            <div>
-              By submitting this request, you agree to our Transport Terms of Service. A GCLT representative will review your cargo details and send you a quotation via notifications. You can then confirm and choose your payment method (Cash or Stripe).
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.bottomBar}>
-          <div className={styles.bottomActions}>
-            <Link href="/dashboard" className="btn btn-outline btn-lg">
-              Cancel &amp; Return
-            </Link>
-            <button type="submit" className="btn btn-accent btn-lg" disabled={loading}>
-              {loading ? 'Submitting...' : 'Request a Quote'}
-            </button>
-          </div>
-        </div>
-      </form>
+        )}
+      </div>
     </DashboardLayout>
   );
 }

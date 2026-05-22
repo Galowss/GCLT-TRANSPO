@@ -6,6 +6,12 @@ import { ToastProvider } from '@/components/Toast';
 import Chatbot from '@/components/Chatbot';
 import Head from 'next/head';
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export const metadata = {
   title: 'GCLT Transport & Trucking Services | Heavy-Duty Logistics in SBMA & Olongapo',
   description: 'Professional logistics and fleet management services. Your trusted partner in heavy transport across Central Luzon, SBMA, and Olongapo.',
