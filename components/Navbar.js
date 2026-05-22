@@ -20,8 +20,6 @@ export default function Navbar() {
     { label: 'Contact',         href: '/#contact',        isActive: false },
   ];
 
-  const isLoginPage = pathname.startsWith('/login');
-
   const handleLogout = async () => {
     setMobileOpen(false);
     await logout();
@@ -45,22 +43,20 @@ export default function Navbar() {
           <span>GCLT Transport</span>
         </Link>
 
-        {/* Desktop Nav Links — hidden on login page */}
-        {!isLoginPage && (
-          <div className="navbar-links">
-            {navLinks.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className={`navbar-link${link.isActive ? ' active' : ''}`}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-        )}
+        {/* Desktop Nav Links */}
+        <div className="navbar-links">
+          {navLinks.map((link) => (
+            <Link
+              key={link.label}
+              href={link.href}
+              className={`navbar-link${link.isActive ? ' active' : ''}`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
 
-        {/* Actions — hidden on login page for non-authed users */}
+        {/* Actions */}
         <div className="navbar-actions">
           {user ? (
             <>
@@ -81,9 +77,9 @@ export default function Navbar() {
                 <LogOut size={18} />
               </button>
             </>
-          ) : !isLoginPage ? (
+          ) : (
             <>
-              {/* Not authenticated and NOT on login page: show Login + Register */}
+              {/* Not authenticated: Login + Register */}
               <Link href="/login" className="navbar-link">
                 Login
               </Link>
@@ -91,18 +87,16 @@ export default function Navbar() {
                 Register
               </Link>
             </>
-          ) : null}
-
-          {/* Mobile hamburger — hidden on login page */}
-          {!isLoginPage && (
-            <button
-              className="navbar-mobile-toggle"
-              onClick={() => setMobileOpen(!mobileOpen)}
-              aria-label="Toggle menu"
-            >
-              {mobileOpen ? <X size={22} /> : <Menu size={22} />}
-            </button>
           )}
+
+          {/* Mobile hamburger */}
+          <button
+            className="navbar-mobile-toggle"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
         </div>
       </div>
 
