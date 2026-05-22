@@ -118,14 +118,14 @@ export default function Home() {
           <div className={`${styles.partnerImage} reveal-left`}>
             <div className={styles.partnerImagePlaceholder}>
               <Image
-                src="/hero-slide-2.jpg"
-                alt="SBMA Port Operations"
+                src="/gclt-fleet.jpg"
+                alt="GCLT Active Fleet"
                 fill
                 style={{ objectFit: 'cover', borderRadius: 'var(--border-radius-xl)' }}
               />
               <div className={styles.partnerImageOverlay}>
                 <MapPin size={24} />
-                <p>SBMA Port Operations</p>
+                <p>GCLT Active Fleet</p>
               </div>
             </div>
           </div>
