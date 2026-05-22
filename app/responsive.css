@@ -11,6 +11,48 @@
  */
 
 /* ═══════════════════════════════════════════
+   UNIVERSAL — prevent content overflow on mobile
+   ═══════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Force all cards, divs, and content to respect container width */
+  .card,
+  .card-lg,
+  [class*="card"],
+  main > div,
+  .dashboard-main > div {
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  /* Ensure flex children don't overflow */
+  .card > div,
+  .card-lg > div {
+    min-width: 0;
+  }
+
+  /* All paragraphs, headings — wrap text */
+  p, h1, h2, h3, h4, h5, h6, span, label {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  /* Inputs — full width */
+  .form-input,
+  input[type="text"],
+  input[type="search"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="password"],
+  input[type="number"],
+  textarea,
+  select {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+/* ═══════════════════════════════════════════
    SHARED — page-header row (title + actions)
    ═══════════════════════════════════════════ */
 @media (max-width: 768px) {

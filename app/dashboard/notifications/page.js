@@ -158,37 +158,41 @@ export default function NotificationsPage() {
               borderColor: notif.isNew ? 'var(--primary)' : 'var(--gray-200)',
               borderWidth: notif.isNew ? '2px' : '1px',
               animation: 'fadeIn 0.3s ease',
+              overflow: 'hidden',
             }}
           >
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', minWidth: 0 }}>
               <span style={{
-                width: '40px', height: '40px', borderRadius: '50%',
+                width: '36px', height: '36px', borderRadius: '50%',
                 background: 'var(--primary-light)', display: 'flex',
                 alignItems: 'center', justifyContent: 'center', color: 'var(--primary)',
                 flexShrink: 0,
               }}>
-                <Bell size={18} />
+                <Bell size={16} />
               </span>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', flexWrap: 'wrap', gap: '6px' }}>
-                  <h4 style={{ fontSize: '0.95rem' }}>{notif.title}</h4>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Clock size={12} /> {notif.time || '—'}
+              <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', flexWrap: 'wrap', gap: '4px' }}>
+                  <h4 style={{ fontSize: '0.9rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{notif.title}</h4>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                    <Clock size={11} /> {notif.time || '—'}
                   </span>
                 </div>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '8px' }}>
+                <p style={{
+                  fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.6',
+                  marginBottom: '8px', overflowWrap: 'break-word', wordBreak: 'break-word',
+                }}>
                   {notif.message}
                 </p>
                 {notif.location && (
-                  <p style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: '500', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <MapPin size={12} /> {notif.location}
+                  <p style={{ fontSize: '0.78rem', color: 'var(--primary)', fontWeight: '500', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+                    <MapPin size={12} style={{ flexShrink: 0 }} /> {notif.location}
                   </p>
                 )}
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   {notif.isNew && (
                     <button
                       className="btn btn-outline btn-sm"
-                      style={{ fontSize: '0.78rem' }}
+                      style={{ fontSize: '0.75rem' }}
                       onClick={() => handleMarkRead(notif.id)}
                     >
                       <Check size={12} /> Mark as Read
@@ -196,7 +200,7 @@ export default function NotificationsPage() {
                   )}
                   <button
                     className="btn btn-outline btn-sm"
-                    style={{ fontSize: '0.78rem', color: 'var(--danger)', borderColor: 'var(--danger)' }}
+                    style={{ fontSize: '0.75rem', color: 'var(--danger)', borderColor: 'var(--danger)' }}
                     onClick={() => handleDelete(notif.id)}
                     disabled={deleting === notif.id}
                   >
@@ -204,9 +208,6 @@ export default function NotificationsPage() {
                   </button>
                 </div>
               </div>
-              <button style={{ background: 'none', color: 'var(--text-muted)', padding: '4px' }}>
-                <MoreHorizontal size={18} />
-              </button>
             </div>
           </div>
         ))}
