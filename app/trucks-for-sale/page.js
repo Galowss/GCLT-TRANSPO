@@ -62,7 +62,6 @@ export default function TrucksForSale() {
           <div className={styles.pageHeader}>
             <div>
               <h1 className={styles.pageTitle}>Trucks for Sale</h1>
-              <p className={styles.pageSubtitle}>Browse our inventory of premium, heavy-duty commercial vehicles. All units undergo rigorous 150-point inspections.</p>
             </div>
           </div>
 
