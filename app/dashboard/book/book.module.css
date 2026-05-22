@@ -675,14 +675,28 @@
 .truckCard:hover {
   box-shadow: 0 6px 20px rgba(0,0,0,0.1);
   transform: translateY(-2px);
-  border-color: #6f7a70;
+  border-color: #00522c;
 }
 
 .truckCardSelected {
   border-color: #00522c;
-  box-shadow: 0 4px 16px rgba(0, 82, 44, 0.15);
+  border-width: 2px;
+  box-shadow: 0 4px 16px rgba(0, 82, 44, 0.18);
   background: #ffffff;
 }
+
+.truckCardRecommended {
+  border-color: #00522c;
+  border-width: 2px;
+  box-shadow: 0 4px 12px rgba(0, 109, 60, 0.12);
+}
+
+.truckCardDisabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.truckCardDisabled .truckSpecs { opacity: 0.8; }
 
 .recommendedBadge {
   position: absolute;
@@ -774,13 +788,17 @@
 .specGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 10px;
 }
 
 .specItem {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  background: #f0f5ee;
+  border: 1px solid #dfe4dd;
+  border-radius: 8px;
+  padding: 10px 12px;
 }
 
 .specLabel {

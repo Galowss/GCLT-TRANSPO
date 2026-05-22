@@ -539,29 +539,40 @@ export default function BookTransport() {
                       </div>
                       <div className={styles.truckSpecs}>
                         <div className={styles.specGrid}>
+                          {/* PAYLOAD */}
                           {fleet.capacity && (
                             <div className={styles.specItem}>
                               <span className={styles.specLabel}>⚖ Payload</span>
                               <span className={`${styles.specValue} ${isInsufficient ? styles.specValueDanger : ''}`}>{fleet.capacity}</span>
                             </div>
                           )}
+                          {/* DIMENSIONS */}
                           {fleet.dimensions && (
                             <div className={styles.specItem}>
                               <span className={styles.specLabel}>📐 Dimensions</span>
                               <span className={`${styles.specValue} ${isInsufficient ? styles.specValueDanger : ''}`}>{fleet.dimensions}</span>
                             </div>
                           )}
-                          {fleet.ratePerKm && (
-                            <div className={styles.specItem}>
-                              <span className={styles.specLabel}>💲 Rate</span>
-                              <span className={styles.specValue}>₱{fleet.ratePerKm} / km</span>
-                            </div>
-                          )}
+                          {/* PRICE (replaces Mileage) */}
                           <div className={styles.specItem}>
-                            <span className={styles.specLabel}>{isInsufficient ? '⚠ Warning' : '⛽ Fuel'}</span>
-                            <span className={`${styles.specValue} ${isInsufficient ? styles.specValueDanger : ''}`}>
-                              {isInsufficient ? 'Insufficient Capacity' : (fleet.fuelType || 'Diesel')}
+                            <span className={styles.specLabel}>💰 Price</span>
+                            <span className={styles.specValue} style={{ color: '#006d3c', fontWeight: 700 }}>
+                              {fleet.ratePerKm ? `₱${fleet.ratePerKm} / km` : fleet.price ? `₱${fleet.price}` : 'Request Quote'}
                             </span>
+                          </div>
+                          {/* TRUCK NAME (replaces Engine) */}
+                          <div className={styles.specItem}>
+                            {isInsufficient ? (
+                              <>
+                                <span className={styles.specLabel}>⚠ Warning</span>
+                                <span className={`${styles.specValue} ${styles.specValueDanger}`}>Insufficient Capacity</span>
+                              </>
+                            ) : (
+                              <>
+                                <span className={styles.specLabel}>🚛 Truck Name</span>
+                                <span className={styles.specValue}>{fleet.name}</span>
+                              </>
+                            )}
                           </div>
                         </div>
                         <div className={styles.truckCardFooter}>
