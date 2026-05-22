@@ -118,7 +118,7 @@ export default function Home() {
           <div className={`${styles.partnerImage} reveal-left`}>
             <div className={styles.partnerImagePlaceholder}>
               <Image
-                src="/gclt-fleet.jpg"
+                src="/gclt-fleet.png"
                 alt="GCLT Active Fleet"
                 fill
                 style={{ objectFit: 'cover', borderRadius: 'var(--border-radius-xl)' }}
