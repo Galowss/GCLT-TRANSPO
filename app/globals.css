@@ -349,7 +349,7 @@ h6 { font-size: 0.875rem; font-weight: 600; line-height: 1.5; }
 
 .form-input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(21, 101, 216, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 109, 60, 0.1);
 }
 
 .form-input::placeholder {

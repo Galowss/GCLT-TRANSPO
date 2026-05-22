@@ -1,5 +1,6 @@
 import './globals.css';
 import './responsive.css';
+import './admin.css';
 
 import { AuthProvider } from '@/lib/AuthContext';
 import { ToastProvider } from '@/components/Toast';
