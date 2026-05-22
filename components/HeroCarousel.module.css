@@ -1,18 +1,11 @@
 /* ===== HERO CAROUSEL ===== */
 
-@keyframes carouselFadeIn {
-  0%   { opacity: 0; transform: translateY(18px) scale(0.995); filter: blur(3px); }
-  60%  { filter: blur(0); }
-  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-}
-
 .carousel {
   position: relative;
   width: 100%;
   height: 600px;
   overflow: hidden;
   background: #111827;
-  animation: carouselFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
 }
 
 /* ── Slides ── */
