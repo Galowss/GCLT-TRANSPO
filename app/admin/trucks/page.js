@@ -155,7 +155,6 @@ export default function AdminTrucks() {
       setImageFiles([]);
       setImagePreviews([]);
       setEditingId(null);
-      refetch();
     } catch (err) {
       addToast('Failed to save truck: ' + err.message, 'error');
     }
@@ -168,7 +167,7 @@ export default function AdminTrucks() {
     try {
       await deleteTruck(truckId);
       addToast('Truck deleted successfully.', 'success');
-      refetch();
+
     } catch (err) {
       addToast('Failed to delete truck.', 'error');
     }
