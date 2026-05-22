@@ -32,7 +32,7 @@ export default function Home() {
   }, []);
 
   return (
-    <>
+    <div className={styles.pageEnter}>
       <Navbar />
 
       {/* ===== HERO CAROUSEL ===== */}
@@ -246,6 +246,6 @@ export default function Home() {
       </section>
 
       <Footer />
-    </>
+    </div>
   );
 }

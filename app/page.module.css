@@ -1,3 +1,20 @@
+/* ── Page transition (landing only) ── */
+@keyframes landingPageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.988);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.pageEnter {
+  animation: landingPageEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+
 /* ===== HERO ===== */
 .hero {
   background: linear-gradient(135deg, #ecffea 0%, #e0f3de 50%, #e6f9e4 100%);
