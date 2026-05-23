@@ -4,6 +4,7 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/AuthContext';
 import Navbar from '@/components/Navbar';
+import Turnstile from '@/components/Turnstile';
 import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import styles from './login.module.css';
 
@@ -15,6 +16,8 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -29,11 +32,34 @@ function LoginForm() {
     setError('');
   };
 
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setTurnstileToken('');
+    setError('');
+    setTurnstileResetKey(prev => prev + 1);
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
+    if (!turnstileToken) {
+      setError('Please complete the security challenge.');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
+      // 1. Verify Turnstile token on the backend
+      const verifyRes = await fetch('/api/verify-turnstile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: turnstileToken }),
+      });
+      const verifyData = await verifyRes.json();
+      if (!verifyData.success) {
+        throw new Error(verifyData.error || 'Bot verification failed.');
+      }
+
+      // 2. Proceed with login
       const user = await login(formData.email, formData.password);
       if (!user.emailVerified) {
         router.push('/verify-email');
@@ -43,6 +69,10 @@ function LoginForm() {
         router.push('/dashboard');
       }
     } catch (err) {
+      // Reset security widget on error
+      setTurnstileToken('');
+      setTurnstileResetKey(prev => prev + 1);
+
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
         setError('Invalid email or password. Please try again.');
       } else if (err.code === 'auth/too-many-requests') {
@@ -64,12 +94,32 @@ function LoginForm() {
       setError('Password must be at least 6 characters.');
       return;
     }
+    if (!turnstileToken) {
+      setError('Please complete the security challenge.');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
+      // 1. Verify Turnstile token on the backend
+      const verifyRes = await fetch('/api/verify-turnstile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: turnstileToken }),
+      });
+      const verifyData = await verifyRes.json();
+      if (!verifyData.success) {
+        throw new Error(verifyData.error || 'Bot verification failed.');
+      }
+
+      // 2. Proceed with registration
       await register(formData.name, formData.email, formData.password);
       router.push('/verify-email');
     } catch (err) {
+      // Reset security widget on error
+      setTurnstileToken('');
+      setTurnstileResetKey(prev => prev + 1);
+
       if (err.code === 'auth/email-already-in-use') {
         setError('This email is already registered. Please log in instead.');
       } else if (err.code === 'auth/weak-password') {
@@ -127,13 +177,13 @@ function LoginForm() {
           <div className={styles.tabRow}>
             <button
               className={`${styles.tab} ${activeTab === 'login' ? styles.tabActive : ''}`}
-              onClick={() => setActiveTab('login')}
+              onClick={() => handleTabChange('login')}
             >
               Login
             </button>
             <button
               className={`${styles.tab} ${activeTab === 'register' ? styles.tabActive : ''}`}
-              onClick={() => setActiveTab('register')}
+              onClick={() => handleTabChange('register')}
             >
               Register
             </button>
@@ -199,6 +249,14 @@ function LoginForm() {
                 <input type="checkbox" name="remember" checked={formData.remember} onChange={handleChange} />
                 <span>Remember me for 30 days</span>
               </label>
+
+              <Turnstile
+                key={`login-${turnstileResetKey}`}
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                onSuccess={(token) => setTurnstileToken(token)}
+                onError={() => setError('Bot detection failed to load. Please reload.')}
+                onExpire={() => setTurnstileToken('')}
+              />
 
               <button type="submit" className="btn btn-accent btn-full btn-lg" disabled={loading}>
                 {loading ? 'Signing in...' : 'Sign In'}
@@ -283,6 +341,14 @@ function LoginForm() {
                   required
                 />
               </div>
+
+              <Turnstile
+                key={`register-${turnstileResetKey}`}
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                onSuccess={(token) => setTurnstileToken(token)}
+                onError={() => setError('Bot detection failed to load. Please reload.')}
+                onExpire={() => setTurnstileToken('')}
+              />
 
               <button type="submit" className="btn btn-accent btn-full btn-lg" disabled={loading}>
                 {loading ? 'Creating Account...' : 'Create Account'}
