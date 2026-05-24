@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LogiSync - Review &amp; Confirm</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&amp;family=Manrope:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-fixed": "#40000c",
+                      "surface-container-high": "#e5e9e2",
+                      "on-tertiary": "#ffffff",
+                      "status-delayed": "#D32F2F",
+                      "success-bg": "#EBF9F1",
+                      "surface-variant": "#dfe4dd",
+                      "surface-dim": "#d7dbd4",
+                      "on-primary-container": "#92ecae",
+                      "tertiary-container": "#9a4249",
+                      "on-primary-fixed-variant": "#00522c",
+                      "tertiary-fixed": "#ffdada",
+                      "on-secondary-container": "#636262",
+                      "on-surface-variant": "#3f4941",
+                      "on-error-container": "#93000a",
+                      "inverse-surface": "#2d322d",
+                      "secondary": "#5f5e5e",
+                      "tertiary": "#7c2b33",
+                      "outline-variant": "#bec9be",
+                      "on-primary-fixed": "#00210e",
+                      "inverse-primary": "#80d99d",
+                      "secondary-fixed": "#e5e2e1",
+                      "surface-container": "#ebefe8",
+                      "surface": "#f6fbf3",
+                      "surface-container-highest": "#dfe4dd",
+                      "on-surface": "#181d19",
+                      "surface-tint": "#006d3c",
+                      "status-pending": "#F59E0B",
+                      "primary-fixed": "#9bf6b7",
+                      "on-secondary-fixed": "#1c1b1b",
+                      "outline": "#6f7a70",
+                      "inverse-on-surface": "#eef2eb",
+                      "background": "#f6fbf3",
+                      "status-transit": "#005EB8",
+                      "on-secondary-fixed-variant": "#474746",
+                      "tertiary-fixed-dim": "#ffb3b5",
+                      "error": "#ba1a1a",
+                      "primary": "#00522c",
+                      "on-secondary": "#ffffff",
+                      "primary-container": "#006d3c",
+                      "surface-bright": "#f6fbf3",
+                      "primary-fixed-dim": "#80d99d",
+                      "on-error": "#ffffff",
+                      "on-tertiary-container": "#ffcccd",
+                      "on-background": "#181d19",
+                      "surface-container-low": "#f0f5ee",
+                      "error-container": "#ffdad6",
+                      "secondary-container": "#e2dfde",
+                      "on-primary": "#ffffff",
+                      "secondary-fixed-dim": "#c8c6c5",
+                      "on-tertiary-fixed-variant": "#7c2b33",
+                      "surface-container-lowest": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "margin-mobile": "16px",
+                      "unit": "4px",
+                      "margin-desktop": "64px",
+                      "container-max": "1280px",
+                      "gutter": "24px"
+              },
+              "fontFamily": {
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "headline-xl": [
+                              "Manrope"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Manrope"
+                      ],
+                      "headline-lg": [
+                              "Manrope"
+                      ],
+                      "headline-lg-mobile": [
+                              "Manrope"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "label-bold": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-xl": [
+                              "40px",
+                              {
+                                      "lineHeight": "48px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "28px",
+                              {
+                                      "lineHeight": "36px",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-bold": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar for textareas */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background-color: #bec9be; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md text-body-md antialiased min-h-screen flex flex-col selection:bg-primary-container selection:text-on-primary-container">
+<!-- Minimal Transactional Header (Suppressed Global Nav per instructions) -->
+<header class="bg-surface-container-lowest border-b border-outline-variant py-4 px-margin-mobile md:px-margin-desktop sticky top-0 z-50">
+<div class="max-w-container-max mx-auto flex items-center justify-between">
+<div class="flex items-center gap-4">
+<button aria-label="Go back" class="text-secondary hover:text-primary transition-colors flex items-center justify-center p-2 -ml-2 rounded-lg hover:bg-surface-container-low">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="text-headline-md font-headline-md font-bold text-primary tracking-tight">LogiSync</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-label-bold font-label-bold text-secondary uppercase">Step 3 of 3</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant hidden md:block">Review &amp; Payment</span>
+</div>
+</div>
+</header>
+<main class="flex-grow py-12 px-margin-mobile md:px-margin-desktop">
+<div class="max-w-container-max mx-auto">
+<header class="mb-8">
+<h1 class="text-headline-lg-mobile md:text-headline-lg font-headline-lg-mobile md:font-headline-lg text-on-surface mb-2">Review your booking</h1>
+<p class="text-body-md font-body-md text-secondary">Please confirm the details below before finalizing your heavy-duty transport request.</p>
+</header>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Left Column: Details Canvas -->
+<div class="lg:col-span-8 flex flex-col gap-6">
+<!-- Route & Schedule Card -->
+<section class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 shadow-sm">
+<div class="flex items-center gap-3 mb-6 pb-4 border-b border-outline-variant">
+<span class="material-symbols-outlined text-primary">route</span>
+<h2 class="text-headline-md font-headline-md text-on-surface">Route &amp; Schedule</h2>
+</div>
+<div class="flex flex-col md:flex-row gap-8 relative">
+<!-- Visual Timeline Line (Desktop hidden, Mobile visible) -->
+<div class="absolute left-[15px] top-[40px] bottom-[40px] w-0.5 bg-outline-variant md:hidden"></div>
+<!-- Origin -->
+<div class="flex-1 flex gap-4">
+<div class="flex flex-col items-center z-10">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center border-2 border-primary">
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+</div>
+<!-- Visual Line Desktop -->
+<div class="hidden md:block flex-grow w-0.5 bg-outline-variant mt-2 mb-[-16px]"></div>
+</div>
+<div class="flex-1 pb-4 md:pb-0">
+<span class="text-label-bold font-label-bold text-secondary uppercase block mb-1">Origin</span>
+<h3 class="text-body-lg font-body-lg font-bold text-on-surface">Chicago Logistics Hub</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-1">4500 S Western Blvd, Chicago, IL 60609</p>
+<div class="mt-3 inline-flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-DEFAULT text-body-sm font-body-sm">
+<span class="material-symbols-outlined text-[18px] text-primary">calendar_today</span>
+<span>Oct 24, 2024 • 08:00 AM CST</span>
+</div>
+</div>
+</div>
+<!-- Destination -->
+<div class="flex-1 flex gap-4">
+<div class="flex flex-col items-center z-10">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-on-primary">location_on</span>
+</div>
+</div>
+<div class="flex-1">
+<span class="text-label-bold font-label-bold text-secondary uppercase block mb-1">Destination</span>
+<h3 class="text-body-lg font-body-lg font-bold text-on-surface">Detroit Assembly Plant 4</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-1">12000 Jefferson Ave, Detroit, MI 48214</p>
+<div class="mt-3 inline-flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-DEFAULT text-body-sm font-body-sm">
+<span class="material-symbols-outlined text-[18px] text-primary">schedule</span>
+<span>Estimated: Oct 24 • 03:30 PM EST</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Selected Asset Card -->
+<section class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 shadow-sm">
+<div class="flex items-center justify-between mb-6 pb-4 border-b border-outline-variant">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">local_shipping</span>
+<h2 class="text-headline-md font-headline-md text-on-surface">Selected Asset</h2>
+</div>
+<button class="text-body-sm font-body-sm text-primary font-bold hover:underline">Change</button>
+</div>
+<div class="flex flex-col sm:flex-row gap-6 items-start">
+<div class="w-full sm:w-48 h-32 bg-surface-container rounded-lg overflow-hidden shrink-0 border border-outline-variant">
+<img alt="Heavy duty truck" class="w-full h-full object-cover" data-alt="A professional, high-resolution photograph of a pristine, modern heavy-duty semi-truck cab, angled slightly to show the front and side profile. The truck is painted in a clean white with subtle forest green accents, reflecting the LogiSync corporate identity. It is parked against a minimal, blurred industrial background during daytime with bright, even, high-key lighting that emphasizes reliability and clean logistics. The overall aesthetic is heavy-duty professional, crisp, and trustworthy." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPXDsbpV3KbbCdYM-Dz8BRfeZiaZMa7Ty4zgCG-ugmnh6etZK17cJpZRvZ1YRv8tnwjnrYnFJTSmsh5lcFUDJzHyZEMt4oFHfiMxgtYpJWMdg4t3_O3TQZ6NLY9TotZB7rkk0BN2v3Kti4qElgd5exu4nFSzUgVKrl24z9JoYx_xupj6oqxAmoFK13KbWQTUBsB0x96sWvuMCVAddVxp0AqjTpC4Jh2lFyn-PQ01mRUsMq6ZvXuBaqu1v-ptC8jpj5mSVRScwXFH0l"/>
+</div>
+<div class="flex-1">
+<h3 class="text-body-lg font-body-lg font-bold text-on-surface mb-1">Volvo VNL 860 Sleeper</h3>
+<p class="text-body-sm font-body-sm text-secondary mb-4">Class 8 Heavy Duty • 500 HP</p>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-low p-3 rounded-DEFAULT">
+<span class="block text-label-bold font-label-bold text-secondary uppercase mb-1">Max Payload</span>
+<span class="block text-body-md font-body-md text-on-surface font-semibold">45,000 lbs</span>
+</div>
+<div class="bg-surface-container-low p-3 rounded-DEFAULT">
+<span class="block text-label-bold font-label-bold text-secondary uppercase mb-1">Trailer Type</span>
+<span class="block text-body-md font-body-md text-on-surface font-semibold">53' Dry Van</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Special Instructions -->
+<section class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 shadow-sm">
+<div class="flex items-center gap-3 mb-6 pb-4 border-b border-outline-variant">
+<span class="material-symbols-outlined text-primary">note_alt</span>
+<h2 class="text-headline-md font-headline-md text-on-surface">Special Instructions</h2>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-label-bold font-label-bold text-on-surface-variant" for="instructions">Gate codes, dock requirements, or handling notes (Optional)</label>
+<textarea class="w-full bg-surface-bright border border-outline-variant rounded-lg p-3 text-body-md font-body-md text-on-surface placeholder:text-secondary-fixed-dim focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-y" id="instructions" placeholder="e.g., Require liftgate, deliver to dock 4..." rows="3"></textarea>
+</div>
+</section>
+</div>
+<!-- Right Column: Summary & Payment (Sticky) -->
+<div class="lg:col-span-4">
+<div class="sticky top-24 flex flex-col gap-6">
+<!-- Cost Breakdown Card -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 shadow-md flex flex-col gap-6">
+<h2 class="text-headline-md font-headline-md text-on-surface">Cost Summary</h2>
+<div class="flex flex-col gap-3 text-body-md font-body-md border-b border-outline-variant pb-4">
+<div class="flex justify-between items-center text-on-surface-variant">
+<span>Linehaul Rate (285 miles)</span>
+<span>$855.00</span>
+</div>
+<div class="flex justify-between items-center text-on-surface-variant">
+<span>Fuel Surcharge (24%)</span>
+<span>$205.20</span>
+</div>
+<div class="flex justify-between items-center text-on-surface-variant">
+<span>Insurance &amp; Handling</span>
+<span>$45.00</span>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-body-lg font-body-lg font-bold text-on-surface">Estimated Total</span>
+<span class="text-headline-md font-headline-md font-bold text-primary">$1,105.20</span>
+</div>
+<!-- Payment Method Display -->
+<div class="bg-surface-container-low rounded-lg p-4 flex items-center justify-between border border-outline-variant">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary">corporate_fare</span>
+<div class="flex flex-col">
+<span class="text-body-sm font-body-sm font-bold text-on-surface">Corporate Account</span>
+<span class="text-label-bold font-label-bold text-secondary">Net 30 Terms</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary">check_circle</span>
+</div>
+<!-- Trust Signals -->
+<div class="flex flex-col gap-3 bg-success-bg p-4 rounded-lg border border-primary-fixed-dim">
+<div class="flex items-start gap-2">
+<span class="material-symbols-outlined text-primary text-[20px] fill">security</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant leading-tight">Fully Insured Cargo Coverage up to $250,000 included.</span>
+</div>
+<div class="flex items-start gap-2">
+<span class="material-symbols-outlined text-primary text-[20px] fill">verified</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant leading-tight">Carrier identity and safety records verified by LogiSync.</span>
+</div>
+</div>
+<!-- Primary Action -->
+<button class="w-full bg-primary hover:bg-primary-container text-on-primary text-body-lg font-body-lg font-bold py-4 px-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2 mt-2">
+<span>Confirm Booking</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<p class="text-label-bold font-label-bold text-secondary text-center mt-[-8px]">By confirming, you agree to our Terms of Service.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

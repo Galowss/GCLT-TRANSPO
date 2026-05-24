@@ -6,6 +6,11 @@ import Script from 'next/script';
 export default function Turnstile({ siteKey, onSuccess, onError, onExpire }) {
   const containerRef = useRef(null);
   const widgetIdRef = useRef(null);
+  const callbacksRef = useRef({ onSuccess, onError, onExpire });
+
+  useEffect(() => {
+    callbacksRef.current = { onSuccess, onError, onExpire };
+  });
 
   useEffect(() => {
     let active = true;
@@ -19,13 +24,13 @@ export default function Turnstile({ siteKey, onSuccess, onError, onExpire }) {
             sitekey: siteKey,
             theme: 'light',
             callback: (token) => {
-              if (active && onSuccess) onSuccess(token);
+              if (active && callbacksRef.current.onSuccess) callbacksRef.current.onSuccess(token);
             },
             'error-callback': (err) => {
-              if (active && onError) onError(err);
+              if (active && callbacksRef.current.onError) callbacksRef.current.onError(err);
             },
             'expired-callback': () => {
-              if (active && onExpire) onExpire();
+              if (active && callbacksRef.current.onExpire) callbacksRef.current.onExpire();
             },
           });
         } catch (error) {
@@ -61,7 +66,8 @@ export default function Turnstile({ siteKey, onSuccess, onError, onExpire }) {
         widgetIdRef.current = null;
       }
     };
-  }, [siteKey, onSuccess, onError, onExpire]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [siteKey]);
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '16px 0' }}>

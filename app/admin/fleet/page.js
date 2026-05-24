@@ -6,7 +6,7 @@ import { subscribeToFleetTypes, addFleetType, updateFleetType, deleteFleetType }
 import { compressImage } from '@/lib/compressImage';
 import { useToast } from '@/components/Toast';
 import { useState } from 'react';
-import { Truck, Plus, Pencil, Trash2, X, Upload, Image } from 'lucide-react';
+import { Truck, Plus, Pencil, Trash2, X, Upload, Image, XCircle, CheckCircle } from 'lucide-react';
 import { FLEET_CATEGORIES } from '@/lib/constants';
 
 const emptyForm = {
@@ -122,7 +122,6 @@ export default function AdminFleet() {
       setImageFiles([]);
       setImagePreviews([]);
       setEditingId(null);
-      refetch();
     } catch (err) {
       addToast('Failed to save: ' + err.message, 'error');
     }
@@ -135,11 +134,19 @@ export default function AdminFleet() {
     try {
       await deleteFleetType(id);
       addToast('Fleet truck removed.', 'success');
-      refetch();
     } catch (err) {
       addToast('Failed to delete.', 'error');
     }
     setDeleting(null);
+  };
+
+  const handleToggleAvailability = async (id, name, currentStatus) => {
+    try {
+      await updateFleetType(id, { available: !currentStatus });
+      addToast(`"${name}" marked as ${!currentStatus ? 'Available' : 'Unavailable'}.`, 'success');
+    } catch (err) {
+      addToast('Failed to update status.', 'error');
+    }
   };
 
   return (
@@ -328,6 +335,13 @@ export default function AdminFleet() {
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        className="btn btn-outline btn-sm"
+                        style={{ gap: '4px', color: item.available !== false ? 'var(--warning)' : 'var(--success)', borderColor: item.available !== false ? 'var(--warning)' : 'var(--success)' }}
+                        onClick={() => handleToggleAvailability(item.id, item.name, item.available !== false)}
+                      >
+                        {item.available !== false ? <><XCircle size={14} /> Set Unavailable</> : <><CheckCircle size={14} /> Set Available</>}
+                      </button>
                       <button className="btn btn-outline btn-sm" style={{ gap: '4px' }} onClick={() => openEditForm(item)}>
                         <Pencil size={14} /> Edit
                       </button>

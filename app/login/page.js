@@ -232,6 +232,7 @@ function LoginForm() {
                     placeholder="Enter your password"
                     value={formData.password}
                     onChange={handleChange}
+                    autoComplete="current-password"
                     required
                     style={{ paddingLeft: '40px' }}
                   />
@@ -325,6 +326,7 @@ function LoginForm() {
                   placeholder="Create a strong password"
                   value={formData.password}
                   onChange={handleChange}
+                  autoComplete="new-password"
                   required
                 />
               </div>
@@ -338,6 +340,7 @@ function LoginForm() {
                   placeholder="Confirm your password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
+                  autoComplete="new-password"
                   required
                 />
               </div>
