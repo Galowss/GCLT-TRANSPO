@@ -415,8 +415,16 @@ h6 { font-size: 0.875rem; font-weight: 600; line-height: 1.5; }
 
 /* ===== TABLES ===== */
 .table-container {
+  width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #bec9be transparent;
 }
+.table-container::-webkit-scrollbar { height: 6px; }
+.table-container::-webkit-scrollbar-track { background: transparent; }
+.table-container::-webkit-scrollbar-thumb { background: #bec9be; border-radius: 3px; }
+.table-container::-webkit-scrollbar-thumb:hover { background: #6f7a70; }
 
 .table {
   width: 100%;
@@ -804,7 +812,6 @@ h6 { font-size: 0.875rem; font-weight: 600; line-height: 1.5; }
   display: flex;
   min-height: 100vh;
   max-width: 100vw;
-  overflow-x: hidden;
 }
 
 .dashboard-topbar {
@@ -905,7 +912,6 @@ h6 { font-size: 0.875rem; font-weight: 600; line-height: 1.5; }
   padding: 84px 28px 28px;
   min-height: 100vh;
   max-width: 100%;
-  overflow-x: clip;
   box-sizing: border-box;
   background-color: #f3f8f4;
   background-image:
@@ -1658,4 +1664,71 @@ h6 { font-size: 0.875rem; font-weight: 600; line-height: 1.5; }
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: var(--border-radius);
+}
+
+/* ===== GLOBAL ANIMATION UTILITIES ===== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulseSoft {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.animate-slide-right {
+  animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.animate-pulse-soft {
+  animation: pulseSoft 2.5s infinite ease-in-out;
+}
+
+.delay-50 { animation-delay: 50ms; }
+.delay-100 { animation-delay: 100ms; }
+.delay-150 { animation-delay: 150ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+
+/* Interactive element enhancements */
+.btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.card {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+tr.hoverable {
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+tr.hoverable:hover {
+  background-color: var(--surface-muted) !important;
+  cursor: pointer;
 }

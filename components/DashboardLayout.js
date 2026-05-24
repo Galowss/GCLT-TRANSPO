@@ -62,7 +62,7 @@ export default function DashboardLayout({ children }) {
         </div>
       </div>
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="dashboard-main">
+      <main className="dashboard-main animate-slide-up">
         {children}
         <div style={{ textAlign: 'center', padding: '32px 0 16px', fontSize: '0.8rem', color: 'var(--gray-500)' }}>
           &copy; 2026 GCLT Transport & Trucking Services. All rights reserved.

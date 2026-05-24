@@ -1,7 +1,7 @@
 'use client';
 
 import AdminLayout from '@/components/AdminLayout';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToAppointments, addNotification } from '@/lib/firebaseService';
 import { useToast } from '@/components/Toast';
@@ -15,6 +15,15 @@ export default function AdminAppointments() {
   );
   const { addToast } = useToast();
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+
+  useEffect(() => {
+    if (selectedAppointment) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [selectedAppointment]);
 
   const handleStatusChange = async (aptId, newStatus) => {
     try {
@@ -45,7 +54,7 @@ export default function AdminAppointments() {
 
   return (
     <AdminLayout>
-      <div style={{ display: 'grid', gridTemplateColumns: selectedAppointment ? '1fr 380px' : '1fr', gap: '24px', minHeight: 'calc(100vh - 150px)' }}>
+      <div style={{ minHeight: 'calc(100vh - 150px)' }}>
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
             <div>
@@ -114,8 +123,13 @@ export default function AdminAppointments() {
 
         {/* Detail Sidebar */}
         {selectedAppointment && (
-          <div className="card" style={{ padding: '0', height: 'fit-content', position: 'sticky', top: '88px' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--gray-200)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <>
+            <div 
+              style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.2)', zIndex: 499, backdropFilter: 'blur(2px)' }} 
+              onClick={() => setSelectedAppointment(null)} 
+            />
+            <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '400px', background: '#ffffff', borderLeft: '1px solid var(--gray-200)', boxShadow: '-4px 0 24px rgba(0,0,0,0.15)', zIndex: 500, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--gray-200)', background: 'var(--gray-50)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
               <span className={`status ${selectedAppointment.status === 'Confirmed' ? 'status-confirmed' : selectedAppointment.status === 'Cancelled' ? 'status-declined' : 'status-pending'}`}>
                 {selectedAppointment.status}
               </span>
@@ -200,6 +214,7 @@ export default function AdminAppointments() {
               )}
             </div>
           </div>
+          </>
         )}
       </div>
     </AdminLayout>

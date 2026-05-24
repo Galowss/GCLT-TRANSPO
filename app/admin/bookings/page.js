@@ -1,7 +1,7 @@
 'use client';
 
 import AdminLayout from '@/components/AdminLayout';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToAllBookings, updateBooking, addNotification } from '@/lib/firebaseService';
 import { compressImage } from '@/lib/compressImage';
@@ -59,6 +59,15 @@ export default function BookingManagement() {
   const [receiptUploading, setReceiptUploading] = useState(false);
   const { addToast } = useToast();
 
+  useEffect(() => {
+    if (selectedBooking) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [selectedBooking]);
+
   // Send email notification helper
   const sendEmail = async (to, type, data) => {
     try {
@@ -101,19 +110,26 @@ export default function BookingManagement() {
       if (newStatus === 'Completed') updates.completedAt = new Date().toISOString();
       await updateBooking(bookingId, updates);
       addToast(`Booking ${newStatus.toLowerCase()} successfully.`, 'success');
-      refetch();
       setSelectedBooking(prev => prev ? { ...prev, status: newStatus } : null);
 
       // Send email notification for status change
       const booking = bookingsData?.find(b => b.id === bookingId);
       if (booking?.userEmail) {
-        sendEmail(booking.userEmail, 'booking_status_update', {
-          bookingId: bookingId.slice(-8),
-          status: newStatus,
-          truckRoute: booking.truckRoute,
-          pickup: booking.pickup,
-          delivery: booking.delivery,
-        });
+        fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: booking.userEmail,
+            type: 'booking_status_update',
+            data: {
+              bookingId: bookingId.slice(-8),
+              status: newStatus,
+              truckRoute: booking.truckRoute,
+              pickup: booking.pickup,
+              delivery: booking.delivery,
+            }
+          })
+        }).catch(err => console.error('Failed to send email:', err));
       }
     } catch (err) {
       addToast('Failed to update booking status.', 'error');
@@ -134,38 +150,53 @@ export default function BookingManagement() {
         quotedAt: new Date().toISOString(),
       });
 
-      const now = new Date();
-      const timeString = now.toLocaleString('en-PH', {
-        month: 'short', day: 'numeric', year: 'numeric',
-        hour: '2-digit', minute: '2-digit',
-      });
-      await addNotification({
-        title: 'Quote Ready!',
-        message: `Your transport quote for ${selectedBooking.truckRoute} (${selectedBooking.pickup} → ${selectedBooking.delivery}) is ready: PHP ${amount.toLocaleString()}. Go to My Bookings to accept and choose your payment method.`,
-        type: 'booking',
-        isNew: true,
-        time: timeString,
-        userId: selectedBooking.userId,
-      });
+      if (selectedBooking.userId && selectedBooking.userId !== 'anonymous') {
+        const now = new Date();
+        const timeString = now.toLocaleString('en-PH', {
+          month: 'short', day: 'numeric', year: 'numeric',
+          hour: '2-digit', minute: '2-digit',
+        });
+        await addNotification({
+          title: 'Quote Ready!',
+          message: `Your transport quote for ${selectedBooking.truckRoute} (${selectedBooking.pickup} → ${selectedBooking.delivery}) is ready: PHP ${amount.toLocaleString()}. Go to My Bookings to accept and choose your payment method.`,
+          type: 'booking',
+          isNew: true,
+          time: timeString,
+          userId: selectedBooking.userId,
+        });
+      }
 
       addToast(`Quote of PHP ${amount.toLocaleString()} sent to user.`, 'success');
       setSelectedBooking(prev => prev ? { ...prev, status: 'Quoted', quotedAmount: amount } : null);
       setQuoteAmount('');
-      refetch();
 
-      // Send email notification for quote
+      // Send invoice receipt email for quote
       if (selectedBooking.userEmail) {
-        sendEmail(selectedBooking.userEmail, 'quote_sent', {
-          userName: selectedBooking.userName || 'Customer',
-          truckRoute: selectedBooking.truckRoute,
-          pickup: selectedBooking.pickup,
-          delivery: selectedBooking.delivery,
-          amount: amount,
-          bookingId: selectedBooking.id.slice(-8),
-        });
+        fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: selectedBooking.userEmail,
+            type: 'booking_invoice',
+            data: {
+              userName: selectedBooking.userName || 'Customer',
+              userEmail: selectedBooking.userEmail,
+              truckRoute: selectedBooking.truckRoute,
+              pickup: selectedBooking.pickup,
+              delivery: selectedBooking.delivery,
+              date: selectedBooking.date || new Date().toLocaleDateString(),
+              amount: amount,
+              bookingId: selectedBooking.id.slice(-8),
+              invoiceNumber: selectedBooking.id.slice(-6),
+              paymentMethod: 'Pending (Quote)',
+              invoiceDate: new Date().toLocaleDateString('en-PH')
+            }
+          })
+        }).catch(err => console.error('Failed to send invoice email:', err));
       }
-    } catch {
-      addToast('Failed to set quote.', 'error');
+    } catch (err) {
+      console.error('Quote error:', err);
+      addToast('Failed to set quote: ' + (err.message || 'Unknown error'), 'error');
     }
     setSettingQuote(false);
   };
@@ -196,7 +227,7 @@ export default function BookingManagement() {
 
   return (
     <AdminLayout>
-      <div className="admin-booking-grid" style={{ display: 'grid', gridTemplateColumns: selectedBooking ? '1fr 380px' : '1fr', gap: '24px', minHeight: 'calc(100vh - 150px)' }}>
+      <div className="admin-booking-grid" style={{ minHeight: 'calc(100vh - 150px)' }}>
         {/* Main Content */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
@@ -219,7 +250,7 @@ export default function BookingManagement() {
           </div>
 
           {/* Search & Filter */}
-          <div className="card" style={{ padding: '16px 20px', marginBottom: '24px', display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <div className="card animate-slide-up delay-100" style={{ padding: '16px 20px', marginBottom: '24px', display: 'flex', gap: '12px', alignItems: 'center' }}>
             <div style={{ position: 'relative', flex: 1 }}>
               <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               <input
@@ -253,7 +284,7 @@ export default function BookingManagement() {
           </div>
 
           {/* Table */}
-          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div className="card animate-slide-up delay-200" style={{ padding: 0, overflow: 'hidden' }}>
             <div className="table-container">
               <table className="table">
                 <thead>
@@ -270,17 +301,23 @@ export default function BookingManagement() {
                 </thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan="8" style={{ textAlign: 'center', padding: '32px' }}>Loading bookings...</td></tr>
+                    [...Array(5)].map((_, i) => (
+                      <tr key={i} className="animate-fade-in" style={{ animationDelay: `${i * 50}ms` }}>
+                        <td colSpan="8" style={{ textAlign: 'center', padding: '32px' }}>Loading...</td>
+                      </tr>
+                    ))
                   ) : !filteredBookings.length ? (
                     <tr><td colSpan="8" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
                       {searchQuery || filterStatus !== 'all' ? 'No bookings match your filter.' : 'No bookings found'}
                     </td></tr>
-                  ) : filteredBookings.map((booking) => (
+                  ) : filteredBookings.map((booking, idx) => (
                     <tr
                       key={booking.id}
+                      className="animate-fade-in"
                       style={{
                         background: selectedBooking?.id === booking.id ? 'var(--primary-light)' : '',
                         cursor: 'pointer',
+                        animationDelay: `${idx * 50}ms`
                       }}
                       onClick={() => { setSelectedBooking(booking); setQuoteAmount(booking.quotedAmount?.toString() || ''); }}
                     >
@@ -324,8 +361,14 @@ export default function BookingManagement() {
 
         {/* Order Details Sidebar */}
         {selectedBooking && (
-          <div className="card" style={{ padding: '0', height: 'fit-content', position: 'sticky', top: '88px' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--gray-200)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <>
+            <div 
+              className="animate-fade-in"
+              style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.2)', zIndex: 499, backdropFilter: 'blur(2px)' }} 
+              onClick={() => setSelectedBooking(null)} 
+            />
+            <div className="animate-slide-right" style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '400px', background: '#ffffff', borderLeft: '1px solid var(--gray-200)', boxShadow: '-4px 0 24px rgba(0,0,0,0.15)', zIndex: 500, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--gray-200)', background: 'var(--gray-50)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
               <span className="badge" style={{ background: getStatusColor(selectedBooking.status) + '20', color: getStatusColor(selectedBooking.status) }}>
                 {selectedBooking.status}
               </span>
@@ -481,7 +524,6 @@ export default function BookingManagement() {
                               await updateBooking(selectedBooking.id, { receiptUrl: result.dataUrl });
                               setSelectedBooking(prev => prev ? { ...prev, receiptUrl: result.dataUrl } : null);
                               addToast('Receipt updated.', 'success');
-                              refetch();
                             } catch { addToast('Failed to upload receipt.', 'error'); }
                             setReceiptUploading(false);
                           }} />
@@ -507,7 +549,6 @@ export default function BookingManagement() {
                           await updateBooking(selectedBooking.id, { receiptUrl: result.dataUrl });
                           setSelectedBooking(prev => prev ? { ...prev, receiptUrl: result.dataUrl } : null);
                           addToast('Receipt attached successfully.', 'success');
-                          refetch();
                         } catch { addToast('Failed to upload receipt.', 'error'); }
                         setReceiptUploading(false);
                       }} />
@@ -532,6 +573,7 @@ export default function BookingManagement() {
               )}
             </div>
           </div>
+          </>
         )}
       </div>
     </AdminLayout>

@@ -259,28 +259,6 @@ textarea:focus {
   border-top-color: #006d3c;
 }
 
-/* ── Scrollbar styling ── */
-.table-container {
-  scrollbar-width: thin;
-  scrollbar-color: #bec9be transparent;
-}
-
-.table-container::-webkit-scrollbar {
-  height: 6px;
-}
-
-.table-container::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.table-container::-webkit-scrollbar-thumb {
-  background: #bec9be;
-  border-radius: 3px;
-}
-
-.table-container::-webkit-scrollbar-thumb:hover {
-  background: #6f7a70;
-}
 
 /* ── Sidebar scrollbar ── */
 .sidebar-nav {
