@@ -7,6 +7,7 @@ import { compressImage } from '@/lib/compressImage';
 import { useToast } from '@/components/Toast';
 import { useState } from 'react';
 import { Truck, Plus, Pencil, Trash2, X, Upload, Image, MapPin } from 'lucide-react';
+import { TRUCK_TYPES } from '@/lib/constants';
 
 const emptyForm = {
   name: '', price: '', mileage: '', year: '', engine: '', type: 'Heavy Duty',
@@ -320,14 +321,9 @@ export default function AdminTrucks() {
               <div className="form-group">
                 <label className="form-label">Type</label>
                 <select name="type" className="form-select" value={formData.type} onChange={handleChange}>
-                  <option>Heavy Duty</option>
-                  <option>Medium Duty</option>
-                  <option>Light Duty</option>
-                  <option>Dump Truck</option>
-                  <option>Flatbed</option>
-                  <option>Wing Van</option>
-                  <option>Refrigerated Van</option>
-                  <option>Prime Mover</option>
+                  {TRUCK_TYPES.map(t => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
                 </select>
               </div>
               <div className="form-group">

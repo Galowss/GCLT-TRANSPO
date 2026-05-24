@@ -121,8 +121,8 @@ export default function HeroCarousel() {
           className={`${styles.slide} ${i === current ? styles.slideActive : ''}`}
           aria-hidden={i !== current}
         >
-          {/* Background image — next/image with fill for known URLs, <img> for external data URLs */}
-          {slide.image?.startsWith('data:') || slide.image?.startsWith('http') ? (
+          {/* Background image — next/image with fill for known URLs, <img> for data URLs */}
+          {slide.image?.startsWith('data:') ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={slide.image}

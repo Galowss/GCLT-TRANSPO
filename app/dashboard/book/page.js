@@ -2,6 +2,7 @@
 
 import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
@@ -11,6 +12,7 @@ import { useToast } from '@/components/Toast';
 import { MapPin, Navigation, Check, ArrowRight, ArrowLeft, Star, AlertTriangle, Snowflake, Package, Wrench } from 'lucide-react';
 import LeafletMapModal from '@/components/LeafletMapModalDynamic';
 import LeafletInlineMap from '@/components/LeafletInlineMapDynamic';
+import { FLEET_CATEGORIES } from '@/lib/constants';
 import styles from './book.module.css';
 
 /* ── Auto-route logic ── */
@@ -35,12 +37,7 @@ const CARGO_TYPES = [
   { value: 'oversized', label: 'Oversized', Icon: Wrench },
 ];
 
-const FLEET_CATALOG = [
-  { key: 'Small Trucks', label: 'Small Trucks', description: 'Ideal for light cargo up to 2 tons', placeholder: { name: 'Small Truck (e.g. L300, AUV)', capacity: 'Up to 2 tons' } },
-  { key: 'Medium Trucks', label: 'Medium Trucks', description: 'For moderate loads, 2–5 tons', placeholder: { name: 'Medium Truck (e.g. Elf, Canter)', capacity: '2 – 5 tons' } },
-  { key: 'Large Trucks', label: 'Large Trucks', description: 'Heavy-duty freight, 5–15 tons', placeholder: { name: 'Large Truck (e.g. 10-Wheeler)', capacity: '5 – 15 tons' } },
-  { key: 'Specialized', label: 'Specialized Vehicles', description: 'Refrigerated, flatbed, tanker, etc.', placeholder: { name: 'Specialized Vehicle', capacity: 'Varies' } },
-];
+
 
 const STEPS = [
   { number: 1, label: 'Route' },
@@ -69,6 +66,7 @@ export default function BookTransport() {
   const [showMapsModal, setShowMapsModal] = useState(false);
   const [mapsTarget, setMapsTarget] = useState('pickup');
   const [specialInstructions, setSpecialInstructions] = useState('');
+  const [estimatedDistance, setEstimatedDistance] = useState(null);
 
   /* ── Form data ── */
   const [formData, setFormData] = useState({
@@ -97,8 +95,8 @@ export default function BookTransport() {
   const allFleets = useMemo(() => (fleetTypes || []).filter(f => f.available !== false), [fleetTypes]);
   const filteredFleets = useMemo(() => {
     if (fleetFilter === 'all') return allFleets;
-    const cat = FLEET_CATALOG.find(c => c.key.toLowerCase() === fleetFilter.toLowerCase());
-    return cat ? allFleets.filter(f => (f.category || 'Small Trucks') === cat.key) : allFleets;
+    const cat = FLEET_CATEGORIES.find(c => c.value.toLowerCase() === fleetFilter.toLowerCase());
+    return cat ? allFleets.filter(f => (f.category || 'Small Trucks') === cat.value) : allFleets;
   }, [allFleets, fleetFilter]);
 
   /* ── Geolocation ── */
@@ -168,6 +166,7 @@ export default function BookTransport() {
       date: formData.date, time: formData.time, weight: formData.weight,
       cargoSize: cargoSizeFull, cargoLength: formData.cargoLength, cargoWidth: formData.cargoWidth, cargoHeight: formData.cargoHeight,
       routeType: routeInfo.route, notes: specialInstructions, fleetType: selectedFleet,
+      estimatedDistance: estimatedDistance,
       status: 'Quote Requested', requestedAt: now.toISOString(),
       userId: user?.uid || 'anonymous', userEmail: user?.email || '', userName: user?.displayName || 'Guest',
     };
@@ -392,7 +391,7 @@ export default function BookTransport() {
                   </div>
                 )}
 
-                {/* Auto Route Alert */}
+                {/* Auto Route Alert & Distance */}
                 {!isSameDestination && (formData.weight || cargoSizeFull) && (
                   <div className={`${styles.routeAlert} ${routeInfo.route === 'Old Road' ? styles.routeAlertOldRoad : styles.routeAlertExpress}`}>
                     <div className={styles.routeAlertIcon}>
@@ -401,6 +400,19 @@ export default function BookTransport() {
                     <div>
                       <p className={styles.routeAlertTitle}>Auto-assigned Route: <strong>{routeInfo.route}</strong></p>
                       <p className={styles.routeAlertDesc}>{routeInfo.reason}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {estimatedDistance && (
+                  <div style={{
+                    marginTop: '16px', padding: '16px', background: '#f6fbf3', border: '1px solid #bec9be', 
+                    borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '12px'
+                  }}>
+                    <div style={{ fontSize: '1.5rem' }}>📏</div>
+                    <div>
+                      <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 700, color: '#6f7a70', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Estimated Travel Distance</p>
+                      <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#00522c' }}>{estimatedDistance} km</p>
                     </div>
                   </div>
                 )}
@@ -430,6 +442,8 @@ export default function BookTransport() {
                   pickupFull={pickupFull}
                   deliveryFull={deliveryFull}
                   onPinLocation={handleMapPin}
+                  onRouteCalculated={setEstimatedDistance}
+                  routeType={routeInfo.route}
                 />
                 {/* Route chip at bottom of map panel */}
                 {pickupFull && deliveryFull && (
@@ -444,6 +458,14 @@ export default function BookTransport() {
                         <span style={{ margin: '0 4px', color: '#bec9be' }}>|</span>
                         <span style={{ fontWeight: 700, color: routeInfo.route === 'Old Road' ? '#E65100' : '#00522c' }}>
                           {routeInfo.route === 'Old Road' ? '🛣️' : '🚀'} {routeInfo.route}
+                        </span>
+                      </>
+                    )}
+                    {estimatedDistance && (
+                      <>
+                        <span style={{ margin: '0 4px', color: '#bec9be' }}>|</span>
+                        <span style={{ fontWeight: 700, color: '#3f4941' }}>
+                          📏 {estimatedDistance} km
                         </span>
                       </>
                     )}
@@ -488,13 +510,13 @@ export default function BookTransport() {
 
             {/* Filter tabs */}
             <div className={styles.filterTabs}>
-              {['all', ...FLEET_CATALOG.map(c => c.key.toLowerCase())].map(tab => (
+              {['all', ...FLEET_CATEGORIES.map(c => c.value.toLowerCase())].map(tab => (
                 <button
                   key={tab}
                   className={`${styles.filterTab} ${fleetFilter === tab ? styles.filterTabActive : ''}`}
                   onClick={() => setFleetFilter(tab)}
                 >
-                  {tab === 'all' ? 'All Vehicles' : FLEET_CATALOG.find(c => c.key.toLowerCase() === tab)?.label || tab}
+                  {tab === 'all' ? 'All Vehicles' : FLEET_CATEGORIES.find(c => c.value.toLowerCase() === tab)?.label || tab}
                 </button>
               ))}
             </div>
@@ -525,7 +547,7 @@ export default function BookTransport() {
                       )}
                       <div className={styles.truckImageWrap}>
                         {fleet.imageUrl ? (
-                          <img src={fleet.imageUrl} alt={fleet.name} className={styles.truckImage} />
+                          <Image src={fleet.imageUrl} alt={fleet.name} fill sizes="(max-width: 768px) 100vw, 33vw" className={styles.truckImage} />
                         ) : (
                           <div className={styles.truckImagePlaceholder}>
                             <span className={styles.truckEmoji}>🚛</span>
@@ -687,7 +709,7 @@ export default function BookTransport() {
                   {selectedFleetData ? (
                     <div className={styles.reviewVehicle}>
                       {selectedFleetData.imageUrl ? (
-                        <img src={selectedFleetData.imageUrl} alt={selectedFleetData.name} className={styles.reviewVehicleImg} />
+                        <Image src={selectedFleetData.imageUrl} alt={selectedFleetData.name} width={72} height={56} className={styles.reviewVehicleImg} />
                       ) : (
                         <div className={styles.reviewVehicleImgPlaceholder}>🚛</div>
                       )}

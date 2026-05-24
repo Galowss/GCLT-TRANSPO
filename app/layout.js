@@ -4,8 +4,29 @@ import './admin.css';
 
 import { AuthProvider } from '@/lib/AuthContext';
 import { ToastProvider } from '@/components/Toast';
-import Chatbot from '@/components/Chatbot';
 import Head from 'next/head';
+import dynamic from 'next/dynamic';
+import { Inter, JetBrains_Mono, Manrope } from 'next/font/google';
+
+const Chatbot = dynamic(() => import('@/components/Chatbot'), { ssr: false });
+
+const inter = Inter({ 
+  subsets: ['latin'], 
+  variable: '--font-primary', 
+  weight: ['400', '500', '600', '700'] 
+});
+
+const manrope = Manrope({ 
+  subsets: ['latin'], 
+  variable: '--font-heading', 
+  weight: ['600', '700', '800'] 
+});
+
+const jetbrainsMono = JetBrains_Mono({ 
+  subsets: ['latin'], 
+  variable: '--font-mono', 
+  weight: ['400', '500', '600', '700'] 
+});
 
 export const viewport = {
   width: 'device-width',
@@ -26,11 +47,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${inter.variable} ${manrope.variable} ${jetbrainsMono.variable}`}>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
       </head>
       <body>
         <AuthProvider>

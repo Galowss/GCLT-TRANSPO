@@ -7,18 +7,12 @@ import { compressImage } from '@/lib/compressImage';
 import { useToast } from '@/components/Toast';
 import { useState } from 'react';
 import { Truck, Plus, Pencil, Trash2, X, Upload, Image } from 'lucide-react';
+import { FLEET_CATEGORIES } from '@/lib/constants';
 
 const emptyForm = {
-  name: '', capacity: '', description: '', imageUrl: '',
+  name: '', capacity: '', description: '',
   available: true, category: 'Small Trucks',
 };
-
-const FLEET_CATEGORIES = [
-  { value: 'Small Trucks',       label: '🛻 Small Trucks',       desc: 'Up to 2 tons' },
-  { value: 'Medium Trucks',      label: '🚛 Medium Trucks',      desc: '2 – 5 tons' },
-  { value: 'Large Trucks',       label: '🚚 Large Trucks',       desc: '5 – 15 tons' },
-  { value: 'Specialized',        label: '🏗️ Specialized',        desc: 'Refrigerated, flatbed, tanker…' },
-];
 
 export default function AdminFleet() {
   const { data: fleet, loading } = useRealtimeFirestore(
@@ -28,8 +22,8 @@ export default function AdminFleet() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState(emptyForm);
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [imageFiles, setImageFiles] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(null);
 
@@ -39,28 +33,47 @@ export default function AdminFleet() {
   };
 
   const handleImageChange = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    // Limit to 5 total images
+    const remaining = 5 - imagePreviews.length;
+    if (remaining <= 0) {
+      addToast('Maximum 5 images allowed.', 'error');
+      return;
+    }
+    const toProcess = files.slice(0, remaining);
+
+    for (const file of toProcess) {
       try {
         const result = await compressImage(file, 600, 0.6);
-        setImageFile(result.dataUrl);
-        setImagePreview(result.dataUrl);
+        setImageFiles(prev => [...prev, result.dataUrl]);
+        setImagePreviews(prev => [...prev, result.dataUrl]);
       } catch {
         const reader = new FileReader();
         reader.onload = (ev) => {
-          setImageFile(ev.target.result);
-          setImagePreview(ev.target.result);
+          setImageFiles(prev => [...prev, ev.target.result]);
+          setImagePreviews(prev => [...prev, ev.target.result]);
         };
         reader.readAsDataURL(file);
       }
     }
+
+    if (files.length > remaining) {
+      addToast(`Only ${remaining} more image(s) allowed. Extra files were skipped.`, 'info');
+    }
+  };
+
+  const removeImage = (index) => {
+    setImageFiles(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   const openAddForm = () => {
     setEditingId(null);
     setFormData(emptyForm);
-    setImageFile(null);
-    setImagePreview(null);
+    setImageFiles([]);
+    setImagePreviews([]);
     setShowForm(true);
   };
 
@@ -70,12 +83,12 @@ export default function AdminFleet() {
       name: item.name || '',
       capacity: item.capacity || '',
       description: item.description || '',
-      imageUrl: item.imageUrl || '',
       available: item.available !== false,
       category: item.category || 'Small Trucks',
     });
-    setImageFile(null);
-    setImagePreview(item.imageUrl || null);
+    setImageFiles([]);
+    const existingImages = item.imageUrls?.length ? [...item.imageUrls] : (item.imageUrl ? [item.imageUrl] : []);
+    setImagePreviews(existingImages);
     setShowForm(true);
   };
 
@@ -84,16 +97,14 @@ export default function AdminFleet() {
     setSubmitting(true);
 
     try {
-      let imageUrl = formData.imageUrl;
-      if (imageFile) {
-        imageUrl = imageFile;
-      }
+      const finalImageUrls = [...imagePreviews];
 
       const data = {
         name: formData.name,
         capacity: formData.capacity,
         description: formData.description,
-        imageUrl: imageUrl,
+        imageUrl: finalImageUrls[0] || '',
+        imageUrls: finalImageUrls,
         available: formData.available,
         category: formData.category,
       };
@@ -108,8 +119,8 @@ export default function AdminFleet() {
 
       setShowForm(false);
       setFormData(emptyForm);
-      setImageFile(null);
-      setImagePreview(null);
+      setImageFiles([]);
+      setImagePreviews([]);
       setEditingId(null);
       refetch();
     } catch (err) {
@@ -176,35 +187,45 @@ export default function AdminFleet() {
           </div>
 
           <form onSubmit={handleSubmit}>
-            {/* Image */}
+            {/* Multiple Image Upload */}
             <div style={{ marginBottom: '24px' }}>
-              <label className="form-label">Fleet Truck Image</label>
-              <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-                <div style={{
-                  width: '180px', height: '120px', borderRadius: 'var(--border-radius)',
-                  border: '2px dashed var(--gray-300)', display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', overflow: 'hidden', flexShrink: 0,
-                  background: imagePreview ? 'transparent' : 'var(--gray-50)',
-                }}>
-                  {imagePreview ? (
-                    <img src={imagePreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-                      <Image size={28} />
-                      <div style={{ fontSize: '0.75rem', marginTop: '4px' }}>No image</div>
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <label className="btn btn-outline btn-sm" style={{ gap: '6px', cursor: 'pointer' }}>
-                    <Upload size={14} /> Upload Image
-                    <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
+              <label className="form-label">Fleet Truck Images (up to 5)</label>
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                {imagePreviews.map((preview, idx) => (
+                  <div key={idx} style={{
+                    width: '120px', height: '90px', borderRadius: 'var(--border-radius)',
+                    overflow: 'hidden', position: 'relative', flexShrink: 0, border: '1px solid var(--gray-200)',
+                  }}>
+                    <img src={preview} alt={`Preview ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(idx)}
+                      style={{
+                        position: 'absolute', top: '4px', right: '4px',
+                        width: '20px', height: '20px', borderRadius: '50%',
+                        background: 'rgba(0,0,0,0.6)', color: '#fff',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '0.7rem', cursor: 'pointer', border: 'none',
+                      }}
+                    >✕</button>
+                  </div>
+                ))}
+                {imagePreviews.length < 5 && (
+                  <label style={{
+                    width: '120px', height: '90px', borderRadius: 'var(--border-radius)',
+                    border: '2px dashed var(--gray-300)', display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', cursor: 'pointer', flexShrink: 0,
+                    background: 'var(--gray-50)', flexDirection: 'column', gap: '4px',
+                  }}>
+                    <Upload size={18} color="var(--text-muted)" />
+                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Add Image</span>
+                    <input type="file" accept="image/*" multiple onChange={handleImageChange} style={{ display: 'none' }} />
                   </label>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '8px' }}>
-                    Image auto-compressed before upload.
-                  </p>
-                </div>
+                )}
               </div>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+                Upload up to 5 images. Images are auto-compressed before saving.
+              </p>
             </div>
 
             {/* Fields */}
@@ -282,8 +303,8 @@ export default function AdminFleet() {
                         overflow: 'hidden', background: 'var(--gray-100)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                       }}>
-                        {item.imageUrl ? (
-                          <img src={item.imageUrl} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        {(item.imageUrls?.[0] || item.imageUrl) ? (
+                          <img src={item.imageUrls?.[0] || item.imageUrl} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (
                           <Truck size={20} color="var(--text-muted)" />
                         )}

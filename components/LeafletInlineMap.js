@@ -12,6 +12,8 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 export default function LeafletInlineMap({
   pickupCity, deliveryCity, pickupFull, deliveryFull,
   onPinLocation,   // (target, addressParts) => void
+  onRouteCalculated, // (distanceKm) => void
+  routeType,         // 'Expressway' or 'Old Road'
 }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
@@ -196,17 +198,77 @@ export default function LeafletInlineMap({
           deliveryMarkerRef.current = null;
         }
 
-        // Route polyline
+        // Route polyline and fit bounds
         if (routeLineRef.current) { map.removeLayer(routeLineRef.current); routeLineRef.current = null; }
+        
         if (bounds.length === 2) {
-          routeLineRef.current = L.polyline(bounds, {
-            color: '#00522c', weight: 3, dashArray: '8 6', opacity: 0.7,
-          }).addTo(map);
-        }
+          try {
+            const [lat1, lng1] = bounds[0];
+            const [lat2, lng2] = bounds[1];
+            
+            let routeGeometry;
+            let distanceKm;
+            
+            if (routeType === 'Old Road') {
+              // Use BRouter with moped profile to force avoiding expressways (simulates old road)
+              const brouterRes = await fetch(`https://brouter.de/brouter?lonlats=${lng1},${lat1}|${lng2},${lat2}&profile=moped&format=geojson`);
+              const brouterData = await brouterRes.json();
+              
+              if (brouterData.features && brouterData.features.length > 0) {
+                const feature = brouterData.features[0];
+                distanceKm = feature.properties['track-length'] / 1000;
+                routeGeometry = feature.geometry;
+              } else {
+                throw new Error("No route found from BRouter");
+              }
+            } else {
+              // OSRM expects longitude,latitude (Fastest car route, usually uses expressways)
+              const osrmRes = await fetch(`https://router.project-osrm.org/route/v1/driving/${lng1},${lat1};${lng2},${lat2}?overview=full&geometries=geojson`);
+              const osrmData = await osrmRes.json();
+              
+              if (osrmData.code === 'Ok' && osrmData.routes.length > 0) {
+                const route = osrmData.routes[0];
+                distanceKm = route.distance / 1000;
+                routeGeometry = route.geometry;
+              } else {
+                throw new Error("No route found from OSRM");
+              }
+            }
+            
+            let lineColor = '#00522c'; // Expressway green
+            let lineWeight = 4;
+            let dashArray = null;
 
-        // Fit bounds
-        if (bounds.length === 2) map.fitBounds(bounds, { padding: [60, 60], maxZoom: 14 });
-        else if (bounds.length === 1) map.setView(bounds[0], 14);
+            if (routeType === 'Old Road') {
+              lineColor = '#E65100'; // Orange to match Old Road alert
+              dashArray = '8 6'; // Dashed line to signify alternate/old road
+            }
+
+            const distanceStr = distanceKm.toFixed(1);
+            
+            if (onRouteCalculated) {
+              onRouteCalculated(distanceStr);
+            }
+            
+            // Draw the actual road route
+            routeLineRef.current = L.geoJSON(routeGeometry, {
+              style: { color: lineColor, weight: lineWeight, opacity: 0.8, dashArray: dashArray }
+            }).addTo(map);
+            
+            // Fit bounds to the route line
+            map.fitBounds(routeLineRef.current.getBounds(), { padding: [60, 60], maxZoom: 14 });
+          } catch (err) {
+            console.error('Routing error, falling back to straight line:', err);
+            routeLineRef.current = L.polyline(bounds, {
+              color: routeType === 'Old Road' ? '#E65100' : '#00522c', weight: 3, dashArray: '8 6', opacity: 0.7,
+            }).addTo(map);
+            if (onRouteCalculated) onRouteCalculated(null);
+            map.fitBounds(bounds, { padding: [60, 60], maxZoom: 14 });
+          }
+        } else {
+          if (onRouteCalculated) onRouteCalculated(null);
+          if (bounds.length === 1) map.setView(bounds[0], 14);
+        }
       } catch (err) {
         console.error('Marker update error:', err);
       }
@@ -214,7 +276,7 @@ export default function LeafletInlineMap({
 
     const timer = setTimeout(updateMarkers, 800);
     return () => clearTimeout(timer);
-  }, [pickupFull, deliveryFull, pickupCity, deliveryCity]);
+  }, [pickupFull, deliveryFull, pickupCity, deliveryCity, routeType]);
 
   return (
     <>

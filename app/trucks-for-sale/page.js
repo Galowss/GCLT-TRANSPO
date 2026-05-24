@@ -2,6 +2,7 @@
 
 import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToTrucksForSale } from '@/lib/firebaseService';
@@ -139,7 +140,7 @@ export default function TrucksForSale() {
                       const idx = getImgIdx(truck.id);
                       return imgs.length > 0 ? (
                         <>
-                          <img src={imgs[idx]} alt={truck.name} />
+                          <Image src={imgs[idx]} alt={truck.name} fill sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" />
                           {imgs.length > 1 && (
                             <>
                               <button

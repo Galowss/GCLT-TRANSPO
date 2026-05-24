@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ChevronLeft, ChevronRight, ArrowRight, Calendar, Gauge, Fuel, Truck } from 'lucide-react';
 import { getTrucksForSale } from '@/lib/firebaseService';
 import styles from './TruckInventoryCarousel.module.css';
@@ -193,12 +194,12 @@ export default function TruckInventoryCarousel() {
                   {/* Image */}
                   <div className={styles.cardImageWrap}>
                     {heroImage ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src={heroImage}
                         alt={truck.name || 'Truck'}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         className={styles.cardImage}
-                        loading="lazy"
                       />
                     ) : (
                       <div style={{
