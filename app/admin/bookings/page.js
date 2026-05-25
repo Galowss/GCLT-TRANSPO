@@ -1,12 +1,12 @@
 'use client';
 
 import AdminLayout from '@/components/AdminLayout';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToAllBookings, updateBooking, addNotification } from '@/lib/firebaseService';
 import { compressImage } from '@/lib/compressImage';
 import { useToast } from '@/components/Toast';
-import { Download, Search, CheckCircle, XCircle, Clock, MoreHorizontal, Mail, DollarSign, Truck, Package, MapPin, Upload, FileImage } from 'lucide-react';
+import { Download, Search, CheckCircle, XCircle, Clock, MoreHorizontal, Mail, DollarSign, Truck, Package, MapPin, Upload, FileImage, ChevronLeft, ChevronRight } from 'lucide-react';
 
 function exportToCsv(bookings) {
   const headers = ['ID', 'User', 'Vehicle Type', 'Pickup', 'Delivery', 'Date', 'Time', 'Weight', 'Size', 'Payment', 'Status', 'Quoted Amount'];
@@ -57,6 +57,11 @@ export default function BookingManagement() {
   const [quoteAmount, setQuoteAmount] = useState('');
   const [settingQuote, setSettingQuote] = useState(false);
   const [receiptUploading, setReceiptUploading] = useState(false);
+  const [sendingInvoice, setSendingInvoice] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+
   const { addToast } = useToast();
 
   useEffect(() => {
@@ -81,22 +86,29 @@ export default function BookingManagement() {
     }
   };
 
-  const filteredBookings = (bookingsData || []).filter(b => {
-    const q = searchQuery.toLowerCase();
-    const matchesSearch = !q ||
-      b.id.toLowerCase().includes(q) ||
-      (b.truckRoute || '').toLowerCase().includes(q) ||
-      (b.pickup || '').toLowerCase().includes(q) ||
-      (b.delivery || '').toLowerCase().includes(q) ||
-      (b.userName || '').toLowerCase().includes(q) ||
-      (b.userId || '').toLowerCase().includes(q) ||
-      (b.date || '').toLowerCase().includes(q) ||
-      (b.quotedAmount ? String(b.quotedAmount) : '').includes(q);
-    const matchesStatus = filterStatus === 'all' || (b.status || '').toLowerCase() === filterStatus;
-    return matchesSearch && matchesStatus;
-  });
+  const filteredBookings = useMemo(() => {
+    return (bookingsData || []).filter(b => {
+      const q = searchQuery.toLowerCase();
+      const matchesSearch = !q ||
+        b.id.toLowerCase().includes(q) ||
+        (b.truckRoute || '').toLowerCase().includes(q) ||
+        (b.pickup || '').toLowerCase().includes(q) ||
+        (b.delivery || '').toLowerCase().includes(q) ||
+        (b.userName || '').toLowerCase().includes(q) ||
+        (b.userId || '').toLowerCase().includes(q) ||
+        (b.date || '').toLowerCase().includes(q) ||
+        (b.quotedAmount ? String(b.quotedAmount) : '').includes(q);
+      const matchesStatus = filterStatus === 'all' || (b.status || '').toLowerCase() === filterStatus;
+      return matchesSearch && matchesStatus;
+    });
+  }, [bookingsData, searchQuery, filterStatus]);
 
+  const totalPages = Math.ceil(filteredBookings.length / ITEMS_PER_PAGE) || 1;
+  const paginatedBookings = filteredBookings.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterStatus]);
   const getStatusColor = (status) => STATUS_COLORS[status] || '#6B7280';
   const getStatusClass = (status) => {
     if (['Quote Requested', 'Quoted', 'Pending', 'Pending Payment'].includes(status)) return 'status-pending';
@@ -134,6 +146,14 @@ export default function BookingManagement() {
     } catch (err) {
       addToast('Failed to update booking status.', 'error');
     }
+  };
+
+  const closeSidebar = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setSelectedBooking(null);
+      setIsClosing(false);
+    }, 280);
   };
 
   const handleSetQuote = async () => {
@@ -225,6 +245,45 @@ export default function BookingManagement() {
     setSendingNotif(false);
   };
 
+  const handleSendInvoiceEmail = async () => {
+    if (!selectedBooking || !selectedBooking.userEmail) {
+      addToast('Customer email is missing.', 'error');
+      return;
+    }
+    setSendingInvoice(true);
+    try {
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: selectedBooking.userEmail,
+          type: 'booking_invoice',
+          data: {
+            userName: selectedBooking.userName || 'Customer',
+            userEmail: selectedBooking.userEmail,
+            truckRoute: selectedBooking.truckRoute,
+            pickup: selectedBooking.pickup,
+            delivery: selectedBooking.delivery,
+            date: selectedBooking.date || new Date().toLocaleDateString(),
+            amount: selectedBooking.quotedAmount || 0,
+            bookingId: selectedBooking.id.slice(-8),
+            invoiceNumber: selectedBooking.id.slice(-6),
+            paymentMethod: selectedBooking.paymentMethod === 'stripe' ? 'stripe' : (selectedBooking.paymentMethod === 'cod' ? 'cod' : 'Pending (Quote)'),
+            invoiceDate: selectedBooking.quotedAt ? new Date(selectedBooking.quotedAt).toLocaleDateString('en-PH') : new Date().toLocaleDateString('en-PH')
+          }
+        })
+      });
+      if (res.ok) {
+        addToast('Invoice email sent to customer successfully.', 'success');
+      } else {
+        addToast('Failed to send invoice email.', 'error');
+      }
+    } catch (err) {
+      addToast('Error sending invoice email.', 'error');
+    }
+    setSendingInvoice(false);
+  };
+
   return (
     <AdminLayout>
       <div className="admin-booking-grid" style={{ minHeight: 'calc(100vh - 150px)' }}>
@@ -310,7 +369,7 @@ export default function BookingManagement() {
                     <tr><td colSpan="8" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
                       {searchQuery || filterStatus !== 'all' ? 'No bookings match your filter.' : 'No bookings found'}
                     </td></tr>
-                  ) : filteredBookings.map((booking, idx) => (
+                  ) : paginatedBookings.map((booking, idx) => (
                     <tr
                       key={booking.id}
                       className="animate-fade-in"
@@ -356,6 +415,34 @@ export default function BookingManagement() {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderTop: '1px solid var(--gray-200)', background: 'var(--gray-50)' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredBookings.length)} of {filteredBookings.length}
+                </span>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    className="btn btn-outline btn-sm"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  >
+                    <ChevronLeft size={16} /> Prev
+                  </button>
+                  <span style={{ display: 'flex', alignItems: 'center', padding: '0 8px', fontSize: '0.85rem', fontWeight: 600 }}>
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    className="btn btn-outline btn-sm"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  >
+                    Next <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -363,16 +450,16 @@ export default function BookingManagement() {
         {selectedBooking && (
           <>
             <div 
-              className="animate-fade-in"
+              className={`animate-fade-in ${isClosing ? 'animate-fade-out' : ''}`}
               style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.2)', zIndex: 499, backdropFilter: 'blur(2px)' }} 
-              onClick={() => setSelectedBooking(null)} 
+              onClick={closeSidebar} 
             />
-            <div className="animate-slide-right" style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '400px', background: '#ffffff', borderLeft: '1px solid var(--gray-200)', boxShadow: '-4px 0 24px rgba(0,0,0,0.15)', zIndex: 500, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+            <div className={`animate-slide-right ${isClosing ? 'animate-slide-out-right' : ''}`} style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '400px', background: '#ffffff', borderLeft: '1px solid var(--gray-200)', boxShadow: '-4px 0 24px rgba(0,0,0,0.15)', zIndex: 500, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
             <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--gray-200)', background: 'var(--gray-50)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
               <span className="badge" style={{ background: getStatusColor(selectedBooking.status) + '20', color: getStatusColor(selectedBooking.status) }}>
                 {selectedBooking.status}
               </span>
-              <button style={{ background: 'none', fontSize: '1rem', color: 'var(--text-muted)' }} onClick={() => setSelectedBooking(null)}>
+              <button style={{ background: 'none', fontSize: '1rem', color: 'var(--text-muted)' }} onClick={closeSidebar}>
                 <XCircle size={18} />
               </button>
             </div>
@@ -431,6 +518,17 @@ export default function BookingManagement() {
                 <div style={{ marginBottom: '20px', padding: '12px', background: 'var(--primary-light)', borderRadius: 'var(--border-radius)', textAlign: 'center' }}>
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>QUOTED AMOUNT</p>
                   <p style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary)' }}>PHP {selectedBooking.quotedAmount?.toLocaleString()}</p>
+                  {selectedBooking.userEmail && (
+                    <button
+                      className="btn btn-outline btn-sm"
+                      style={{ marginTop: '12px' }}
+                      onClick={handleSendInvoiceEmail}
+                      disabled={sendingInvoice}
+                    >
+                      <Mail size={14} style={{ marginRight: '6px' }} />
+                      {sendingInvoice ? 'Sending...' : 'Email Invoice to Customer'}
+                    </button>
+                  )}
                 </div>
               )}
 

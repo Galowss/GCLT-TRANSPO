@@ -2,6 +2,7 @@
 
 import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
 import { useFirestore } from '@/lib/useFirestore';
@@ -162,7 +163,7 @@ export default function TruckDetail() {
             <div className={styles.gallery}>
               <div className={styles.mainImage} style={{ position: 'relative' }}>
                 {allImages.length > 0 ? (
-                  <img src={allImages[selectedImage] || allImages[0]} alt={truck.name} />
+                  <Image src={allImages[selectedImage] || allImages[0]} alt={truck.name} fill sizes="(max-width: 768px) 100vw, 800px" style={{ objectFit: 'cover' }} priority />
                 ) : (
                   <div className={styles.imagePlaceholder}>
                     <Truck size={48} />
@@ -227,7 +228,9 @@ export default function TruckDetail() {
                         transition: 'all 0.2s ease', background: 'none', padding: 0,
                       }}
                     >
-                      <img src={img} alt={`View ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px' }} />
+                      <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                        <Image src={img} alt={`View ${idx + 1}`} fill sizes="72px" style={{ objectFit: 'cover', borderRadius: '6px' }} />
+                      </div>
                     </button>
                   ))}
                 </div>

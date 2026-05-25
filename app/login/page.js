@@ -5,7 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/AuthContext';
 import Navbar from '@/components/Navbar';
 import Turnstile from '@/components/Turnstile';
+import Image from 'next/image';
 import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { highlightAndFocusMissingFields } from '@/lib/validation';
 import styles from './login.module.css';
 
 function LoginForm() {
@@ -25,6 +27,7 @@ function LoginForm() {
     confirmPassword: '',
     remember: false,
   });
+  const [privacyConsent, setPrivacyConsent] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -41,6 +44,7 @@ function LoginForm() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    if (highlightAndFocusMissingFields()) return;
     if (!turnstileToken) {
       setError('Please complete the security challenge.');
       return;
@@ -61,12 +65,13 @@ function LoginForm() {
 
       // 2. Proceed with login
       const user = await login(formData.email, formData.password);
+      const redirectPath = searchParams.get('redirect');
       if (!user.emailVerified) {
         router.push('/verify-email');
       } else if (user.role === 'admin') {
-        router.push('/admin');
+        router.push(redirectPath || '/admin');
       } else {
-        router.push('/dashboard');
+        router.push(redirectPath || '/dashboard');
       }
     } catch (err) {
       // Reset security widget on error
@@ -86,12 +91,17 @@ function LoginForm() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    if (highlightAndFocusMissingFields()) return;
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match.');
       return;
     }
     if (formData.password.length < 6) {
       setError('Password must be at least 6 characters.');
+      return;
+    }
+    if (!privacyConsent) {
+      setError('You must agree to the Data Privacy Policy to register.');
       return;
     }
     if (!turnstileToken) {
@@ -114,6 +124,7 @@ function LoginForm() {
 
       // 2. Proceed with registration
       await register(formData.name, formData.email, formData.password);
+      // Wait to redirect until email is verified, or they can log in. Registration goes to verify-email.
       router.push('/verify-email');
     } catch (err) {
       // Reset security widget on error
@@ -136,10 +147,11 @@ function LoginForm() {
     setError('');
     try {
       const user = await loginWithGoogle();
+      const redirectPath = searchParams.get('redirect');
       if (user.role === 'admin') {
-        router.push('/admin');
+        router.push(redirectPath || '/admin');
       } else {
-        router.push('/dashboard');
+        router.push(redirectPath || '/dashboard');
       }
     } catch (err) {
       if (err.code === 'auth/popup-closed-by-user') {
@@ -154,8 +166,8 @@ function LoginForm() {
   return (
     <div className={styles.container}>
       <div className={styles.bgImage}>
-        <div className={styles.logoContainer}>
-          <img src="/gclt-logo-new.png" alt="GCLT Logo" className={styles.heroLogo} />
+        <div className={styles.logoContainer} style={{ position: 'relative', width: '100%', height: '300px' }}>
+          <Image src="/gclt-logo-new.png" alt="GCLT Logo" fill style={{ objectFit: 'contain' }} className={styles.heroLogo} priority />
         </div>
         <div className={styles.bgOverlay}>
           <div className={styles.hqInfo}>
@@ -200,7 +212,7 @@ function LoginForm() {
           )}
 
           {activeTab === 'login' ? (
-            <form onSubmit={handleLogin} className={styles.form}>
+            <form onSubmit={handleLogin} className={styles.form} noValidate>
               <div className="form-group">
                 <label className="form-label">Email Address</label>
                 <div className={styles.inputWithIcon}>
@@ -290,7 +302,7 @@ function LoginForm() {
               </p>
             </form>
           ) : (
-            <form onSubmit={handleRegister} className={styles.form}>
+            <form onSubmit={handleRegister} className={styles.form} noValidate>
               <div className="form-group">
                 <label className="form-label">Full Name</label>
                 <input
@@ -344,6 +356,13 @@ function LoginForm() {
                   required
                 />
               </div>
+
+              <label className={styles.checkbox} style={{ marginBottom: '16px', alignItems: 'flex-start' }}>
+                <input type="checkbox" checked={privacyConsent} onChange={(e) => { setPrivacyConsent(e.target.checked); setError(''); }} required />
+                <span style={{ fontSize: '0.85rem', lineHeight: '1.4' }}>
+                  I consent to the collection and processing of my personal data in accordance with the <a href="/privacy" style={{ color: 'var(--primary)', textDecoration: 'underline' }} target="_blank">Data Privacy Policy</a>.
+                </span>
+              </label>
 
               <Turnstile
                 key={`register-${turnstileResetKey}`}

@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { useToast } from '@/components/Toast';
 import { useState, useEffect } from 'react';
 import { getUserProfile, updateUserProfile } from '@/lib/firebaseService';
+import { highlightAndFocusMissingFields } from '@/lib/validation';
 import { User, MapPin } from 'lucide-react';
 import styles from './profile.module.css';
 
@@ -47,6 +48,7 @@ export default function Profile() {
 
   const handleSave = async () => {
     if (!user?.uid) return;
+    if (highlightAndFocusMissingFields()) return;
     setSaving(true);
     try {
       const locationFull = [formData.locationStreet, formData.locationBarangay, formData.locationCity].filter(Boolean).join(', ');
@@ -97,16 +99,16 @@ export default function Profile() {
           <h4 style={{ fontSize: '1.1rem', marginBottom: '20px', color: 'var(--text-primary)' }}>Personal Information</h4>
           <div className={styles.profileGrid}>
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Display Name</label>
-              <input type="text" name="displayName" className="form-input" value={formData.displayName} onChange={handleChange} />
+              <label className="form-label">Display Name *</label>
+              <input type="text" name="displayName" className="form-input" value={formData.displayName} onChange={handleChange} required />
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Email Address</label>
               <input type="email" name="email" className="form-input" value={formData.email} onChange={handleChange} readOnly style={{ background: 'var(--gray-50)', color: 'var(--text-muted)' }} />
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Phone Number</label>
-              <input type="tel" name="phone" className="form-input" value={formData.phone} onChange={handleChange} placeholder="+63 917 123 4567" />
+              <label className="form-label">Phone Number *</label>
+              <input type="tel" name="phone" className="form-input" value={formData.phone} onChange={handleChange} placeholder="+63 917 123 4567" required />
             </div>
 
             {/* Individual / Company toggle */}
@@ -128,8 +130,8 @@ export default function Profile() {
 
             {!formData.isIndividual && (
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">Company</label>
-                <input type="text" name="company" className="form-input" value={formData.company} onChange={handleChange} placeholder="Company name" />
+                <label className="form-label">Company *</label>
+                <input type="text" name="company" className="form-input" value={formData.company} onChange={handleChange} placeholder="Company name" required />
               </div>
             )}
             

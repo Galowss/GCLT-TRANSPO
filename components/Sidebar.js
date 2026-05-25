@@ -18,7 +18,6 @@ const marketplaceLinks = [
 
 const accountLinks = [
   { href: '/dashboard/notifications', label: 'Notifications', icon: Bell },
-  { href: '/dashboard/ai-assistant', label: 'AI Assistant', icon: MessageCircle },
   { href: '/dashboard/profile', label: 'Profile', icon: User },
 ];
 

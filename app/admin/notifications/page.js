@@ -5,7 +5,7 @@ import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToAdminNotifications, markNotificationRead } from '@/lib/firebaseService';
 import { useToast } from '@/components/Toast';
 import { Bell, Check, Clock, Truck, Calendar, Search } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 
 const typeIcon = {
@@ -20,6 +20,13 @@ export default function AdminNotifications() {
   );
   const { addToast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // Reset to page 1 on search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   const handleMarkRead = async (notifId) => {
     try {
@@ -54,6 +61,9 @@ export default function AdminNotifications() {
       (n.time || '').toLowerCase().includes(q)
     );
   });
+
+  const totalPages = Math.ceil((filteredNotifications?.length || 0) / itemsPerPage);
+  const paginatedNotifications = (filteredNotifications || []).slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <AdminLayout>
@@ -96,13 +106,13 @@ export default function AdminNotifications() {
           <div className="card" style={{ textAlign: 'center', padding: '40px' }}>
             <div className="spinner" style={{ margin: '0 auto' }}></div>
           </div>
-        ) : !filteredNotifications.length ? (
+        ) : !paginatedNotifications.length ? (
           <div className="card" style={{ textAlign: 'center', padding: '60px' }}>
             <Bell size={36} color="var(--text-muted)" style={{ display: 'block', margin: '0 auto' }} />
             <h3 style={{ marginTop: '16px' }}>{searchQuery ? 'No notifications match your search.' : 'No new notifications'}</h3>
             <p style={{ color: 'var(--text-muted)' }}>{searchQuery ? 'Try a different keyword.' : 'All caught up! Booking submissions will appear here.'}</p>
           </div>
-        ) : filteredNotifications.map((notif) => {
+        ) : paginatedNotifications.map((notif) => {
           const Icon = typeIcon[notif.type] || Bell;
           return (
             <div
@@ -158,6 +168,29 @@ export default function AdminNotifications() {
           );
         })}
       </div>
+
+      {/* Pagination Controls */}
+      {!loading && totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginTop: '24px' }}>
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </button>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
+        </div>
+      )}
     </AdminLayout>
   );
 }

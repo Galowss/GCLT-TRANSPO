@@ -58,8 +58,12 @@ export default function Footer() {
           </div>
         </div>
       </div>
-      <div className="footer-bottom">
-        &copy; 2026 GCLT Transport & Trucking Services, Inc. All rights reserved.
+      <div className="footer-bottom" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+        <span>&copy; 2026 GCLT Transport & Trucking Services, Inc. All rights reserved.</span>
+        <div style={{ display: 'flex', gap: '16px' }}>
+          <Link href="/privacy" className="footer-link" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Data Privacy Policy</Link>
+          <Link href="/terms" className="footer-link" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Terms of Service</Link>
+        </div>
       </div>
     </footer>
   );

@@ -1,17 +1,19 @@
 'use client';
 
 import AdminLayout from '@/components/AdminLayout';
+import Image from 'next/image';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToFleetTypes, addFleetType, updateFleetType, deleteFleetType } from '@/lib/firebaseService';
 import { compressImage } from '@/lib/compressImage';
 import { useToast } from '@/components/Toast';
+import { highlightAndFocusMissingFields } from '@/lib/validation';
 import { useState } from 'react';
 import { Truck, Plus, Pencil, Trash2, X, Upload, Image, XCircle, CheckCircle } from 'lucide-react';
 import { FLEET_CATEGORIES } from '@/lib/constants';
 
 const emptyForm = {
   name: '', capacity: '', description: '',
-  available: true, category: 'Small Trucks',
+  available: true, category: 'Trailer',
 };
 
 export default function AdminFleet() {
@@ -84,7 +86,7 @@ export default function AdminFleet() {
       capacity: item.capacity || '',
       description: item.description || '',
       available: item.available !== false,
-      category: item.category || 'Small Trucks',
+      category: item.category || 'Trailer',
     });
     setImageFiles([]);
     const existingImages = item.imageUrls?.length ? [...item.imageUrls] : (item.imageUrl ? [item.imageUrl] : []);
@@ -94,6 +96,7 @@ export default function AdminFleet() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (highlightAndFocusMissingFields()) return;
     setSubmitting(true);
 
     try {
@@ -193,7 +196,7 @@ export default function AdminFleet() {
             <button style={{ background: 'none', color: 'var(--text-muted)' }} onClick={() => setShowForm(false)}><X size={20} /></button>
           </div>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             {/* Multiple Image Upload */}
             <div style={{ marginBottom: '24px' }}>
               <label className="form-label">Fleet Truck Images (up to 5)</label>
@@ -203,7 +206,9 @@ export default function AdminFleet() {
                     width: '120px', height: '90px', borderRadius: 'var(--border-radius)',
                     overflow: 'hidden', position: 'relative', flexShrink: 0, border: '1px solid var(--gray-200)',
                   }}>
-                    <img src={preview} alt={`Preview ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                      <Image src={preview} alt={`Preview ${idx + 1}`} fill sizes="120px" style={{ objectFit: 'cover' }} />
+                    </div>
                     <button
                       type="button"
                       onClick={() => removeImage(idx)}
@@ -311,7 +316,9 @@ export default function AdminFleet() {
                         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                       }}>
                         {(item.imageUrls?.[0] || item.imageUrl) ? (
-                          <img src={item.imageUrls?.[0] || item.imageUrl} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                            <Image src={item.imageUrls?.[0] || item.imageUrl} alt={item.name} fill sizes="48px" style={{ objectFit: 'cover' }} />
+                          </div>
                         ) : (
                           <Truck size={20} color="var(--text-muted)" />
                         )}

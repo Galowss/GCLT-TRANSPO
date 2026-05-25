@@ -73,6 +73,23 @@ export default function MyBookings() {
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [receiptUploading, setReceiptUploading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isClosingBooking, setIsClosingBooking] = useState(false);
+  const [isClosingPayment, setIsClosingPayment] = useState(false);
+  const [isClosingEdit, setIsClosingEdit] = useState(false);
+
+  const closeBookingDrawer = () => {
+    setIsClosingBooking(true);
+    setTimeout(() => { setSelectedBooking(null); setIsClosingBooking(false); }, 280);
+  };
+  const closePaymentModal = () => {
+    setIsClosingPayment(true);
+    setTimeout(() => { setShowPaymentModal(null); setIsClosingPayment(false); }, 280);
+  };
+  const closeEditModal = () => {
+    setIsClosingEdit(true);
+    setTimeout(() => { setShowEditModal(false); setIsClosingEdit(false); }, 280);
+  };
+
   const ITEMS_PER_PAGE = 10;
 
   const sendEmail = async (type, data) => {
@@ -136,10 +153,12 @@ export default function MyBookings() {
       const timeString = now.toLocaleString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
       await updateBooking(selectedBooking.id, { editRequest: { message: editMessage, requestedAt: now.toISOString(), status: 'Pending' } });
       await addNotification({ title: 'Edit Request Received', message: `${user?.displayName || 'User'} requested an edit for booking ${selectedBooking.id.slice(-8)}: "${editMessage}"`, type: 'booking', isNew: true, time: timeString, forAdmin: true, userId: 'admin', userEmail: user?.email || '' });
-      addToast('Edit request submitted! Our team will review and contact you.', 'success');
-      setShowEditModal(false);
       setEditMessage('');
-    } catch { addToast('Failed to submit edit request.', 'error'); }
+      closeEditModal();
+      addToast('Edit request submitted successfully. We will review it shortly.', 'success');
+    } catch (err) {
+      addToast('Failed to submit edit request.', 'error');
+    }
     setEditSubmitting(false);
   };
 
@@ -167,49 +186,51 @@ export default function MyBookings() {
         await updateBooking(booking.id, { status: 'Confirmed', paymentMethod: 'cod', acceptedAt: now.toISOString(), paidAt: now.toISOString() });
         await addNotification({ title: 'Booking Confirmed', message: `Your booking for ${booking.truckRoute} has been confirmed. Amount: PHP ${booking.quotedAmount?.toLocaleString()}. Payment: Cash on Delivery.`, type: 'booking', isNew: true, time: timeString, userId: user?.uid });
         await addNotification({ title: 'Quote Accepted — Cash on Delivery', message: `${user?.displayName || 'User'} accepted the quote for ${booking.truckRoute}. Amount: PHP ${booking.quotedAmount?.toLocaleString()}. Payment method: COD.`, type: 'booking', isNew: true, time: timeString, forAdmin: true, userId: 'admin' });
-        addToast('Booking confirmed! Payment will be collected on delivery.', 'success');
+        addToast('Payment confirmed successfully. We will review your booking soon.', 'success');
         sendEmail('quote_accepted', { bookingId: booking.id.slice(-8), truckRoute: booking.truckRoute, pickup: booking.pickup, delivery: booking.delivery, date: booking.date, amount: booking.quotedAmount, paymentMethod: 'cod' });
         sendEmail('booking_invoice', { bookingId: booking.id.slice(-8), userName: user?.displayName || 'Customer', userEmail: user?.email || '', truckRoute: booking.truckRoute, pickup: booking.pickup, delivery: booking.delivery, date: booking.date, amount: booking.quotedAmount, paymentMethod: 'cod' });
-        setSelectedBooking(null);
-      } catch { addToast('Failed to confirm booking.', 'error'); }
+        closePaymentModal();
+      } catch (err) {
+        addToast('Failed to confirm booking.', 'error');
+      }
     }
     setProcessing(false);
-    setShowPaymentModal(null);
   };
 
   const canRequestEdit = (status) => !['Completed', 'Cancelled', 'Declined'].includes(status);
 
   return (
     <DashboardLayout>
-      {/* ── Request Edit Modal ── */}
+      
+      {/* ── Edit Modal ── */}
       {showEditModal && selectedBooking && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000 }} onClick={() => setShowEditModal(false)}>
-          <div className="card card-lg" style={{ maxWidth: '480px', width: '100%', animation: 'fadeIn 0.2s ease' }} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Edit3 size={18} color="var(--primary)" /> Request a Booking Edit</h3>
-              <button style={{ background: 'none', color: 'var(--text-muted)' }} onClick={() => setShowEditModal(false)}><X size={20} /></button>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+          <div className={`animate-fade-in ${isClosingEdit ? 'animate-fade-out' : ''}`} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }} onClick={closeEditModal} />
+          <div className={`card animate-slide-up ${isClosingEdit ? 'animate-slide-out-down' : ''}`} style={{ width: '100%', maxWidth: '440px', position: 'relative', zIndex: 1001, padding: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ fontFamily: 'Manrope, sans-serif', fontSize: '1.25rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Edit3 size={20} color="#00522c" /> Request Edit
+              </h3>
+              <button style={{ background: 'none', color: '#6f7a70' }} onClick={closeEditModal}><X size={20} /></button>
             </div>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Booking ID: <strong>{selectedBooking.id.slice(-8)}</strong> — {selectedBooking.truckRoute}</p>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>{selectedBooking.pickup} → {selectedBooking.delivery}</p>
+            <p style={{ fontSize: '0.85rem', color: '#6f7a70', marginBottom: '16px' }}>Booking ID: {selectedBooking.id.slice(-8)}</p>
             <div className="form-group">
-              <label className="form-label">Describe the changes you need *</label>
-              <textarea className="form-input form-textarea" placeholder="e.g. Change pickup date to May 15, update delivery address to Rizal Ave. Olongapo..." value={editMessage} onChange={e => setEditMessage(e.target.value)} rows={4} />
+              <label className="form-label">Describe changes needed *</label>
+              <textarea className="form-input form-textarea" placeholder="e.g. Change pickup date to May 15..." value={editMessage} onChange={e => setEditMessage(e.target.value)} rows={4} />
             </div>
-            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-              <button className="btn btn-outline btn-full" onClick={() => setShowEditModal(false)}>Cancel</button>
-              <button className="btn btn-accent btn-full" onClick={handleRequestEdit} disabled={editSubmitting}>{editSubmitting ? 'Submitting...' : 'Submit Edit Request'}</button>
-            </div>
+            <button className="btn btn-accent btn-full" onClick={handleRequestEdit} disabled={editSubmitting}>{editSubmitting ? 'Submitting...' : 'Submit Request'}</button>
           </div>
         </div>
       )}
 
       {/* ── Payment Modal ── */}
       {showPaymentModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000 }} onClick={() => setShowPaymentModal(null)}>
-          <div className="card card-lg" style={{ maxWidth: '480px', width: '100%', animation: 'fadeIn 0.2s ease' }} onClick={e => e.stopPropagation()}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+          <div className={`animate-fade-in ${isClosingPayment ? 'animate-fade-out' : ''}`} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }} onClick={closePaymentModal} />
+          <div className={`card animate-slide-up ${isClosingPayment ? 'animate-slide-out-down' : ''}`} style={{ width: '100%', maxWidth: '440px', position: 'relative', zIndex: 1001, padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3>Choose Payment Method</h3>
-              <button style={{ background: 'none', color: 'var(--text-muted)' }} onClick={() => setShowPaymentModal(null)}><X size={20} /></button>
+              <button style={{ background: 'none', color: 'var(--text-muted)' }} onClick={closePaymentModal}><X size={20} /></button>
             </div>
             <div style={{ padding: '16px', background: 'var(--primary-light)', borderRadius: 'var(--border-radius)', textAlign: 'center', marginBottom: '20px' }}>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Amount to Pay</p>
@@ -544,18 +565,18 @@ export default function MyBookings() {
       {selectedBooking && (
         <>
           <div 
-            className="animate-fade-in"
+            className={`animate-fade-in ${isClosingBooking ? 'animate-fade-out' : ''}`}
             style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.2)', zIndex: 499, backdropFilter: 'blur(2px)' }} 
-            onClick={() => setSelectedBooking(null)} 
+            onClick={closeBookingDrawer} 
           />
-          <div className="animate-slide-right" style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '380px', background: '#ffffff', borderLeft: '1px solid #bec9be', boxShadow: '-4px 0 20px rgba(0,0,0,0.1)', zIndex: 500, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+          <div className={`animate-slide-right ${isClosingBooking ? 'animate-slide-out-right' : ''}`} style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '380px', background: '#ffffff', borderLeft: '1px solid #bec9be', boxShadow: '-4px 0 20px rgba(0,0,0,0.1)', zIndex: 500, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
           {/* Drawer header */}
           <div style={{ padding: '16px 20px', borderBottom: '1px solid #ebefe8', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f6fbf3', position: 'sticky', top: 0, zIndex: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <StatusPill status={selectedBooking.status} />
               <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: '#6f7a70' }}>#{selectedBooking.id.slice(-8)}</span>
             </div>
-            <button style={{ background: 'none', color: '#6f7a70', display: 'flex', alignItems: 'center' }} onClick={() => setSelectedBooking(null)}>
+            <button style={{ background: 'none', color: '#6f7a70', display: 'flex', alignItems: 'center' }} onClick={closeBookingDrawer}>
               <X size={18} />
             </button>
           </div>

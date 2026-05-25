@@ -26,6 +26,9 @@ export default function Navbar() {
     router.push('/');
   };
 
+  const loginHref = pathname.startsWith('/trucks-for-sale') ? `/login?redirect=${pathname}` : '/login';
+  const registerHref = pathname.startsWith('/trucks-for-sale') ? `/login?tab=register&redirect=${pathname}` : '/login?tab=register';
+
   return (
     <nav className="navbar">
       <div className="navbar-inner">
@@ -80,10 +83,10 @@ export default function Navbar() {
           ) : (
             <>
               {/* Not authenticated: Login + Register */}
-              <Link href="/login" className="navbar-link">
+              <Link href={loginHref} className="navbar-link">
                 Login
               </Link>
-              <Link href="/login?tab=register" className="btn-pill">
+              <Link href={registerHref} className="btn-pill">
                 Register
               </Link>
             </>
@@ -134,11 +137,11 @@ export default function Navbar() {
           </>
         ) : (
           <>
-            <Link href="/login" className="navbar-mobile-link" onClick={() => setMobileOpen(false)}>
+            <Link href={loginHref} className="navbar-mobile-link" onClick={() => setMobileOpen(false)}>
               Login
             </Link>
             <Link
-              href="/login?tab=register"
+              href={registerHref}
               className="btn-pill"
               style={{ marginTop: '12px', textAlign: 'center' }}
               onClick={() => setMobileOpen(false)}

@@ -1,12 +1,14 @@
 'use client';
 
 import AdminLayout from '@/components/AdminLayout';
+import Image from 'next/image';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToTrucksForSale, addTruck, updateTruck, deleteTruck } from '@/lib/firebaseService';
 import { compressImage } from '@/lib/compressImage';
 import { useToast } from '@/components/Toast';
-import { useState } from 'react';
-import { Truck, Plus, Pencil, Trash2, X, Upload, Image, MapPin } from 'lucide-react';
+import { highlightAndFocusMissingFields } from '@/lib/validation';
+import { useState, useMemo, useEffect } from 'react';
+import { Truck, Plus, Pencil, Trash2, X, Upload, Image, MapPin, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { TRUCK_TYPES } from '@/lib/constants';
 
 const emptyForm = {
@@ -32,6 +34,30 @@ export default function AdminTrucks() {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+
+  const filteredTrucks = useMemo(() => {
+    return (trucks || []).filter(t => {
+      const q = searchQuery.toLowerCase();
+      if (!q) return true;
+      return (
+        t.name.toLowerCase().includes(q) ||
+        (t.type || '').toLowerCase().includes(q) ||
+        (t.engine || '').toLowerCase().includes(q) ||
+        (t.transmission || '').toLowerCase().includes(q) ||
+        (t.location || t.locationCity || '').toLowerCase().includes(q)
+      );
+    });
+  }, [trucks, searchQuery]);
+
+  const totalPages = Math.ceil(filteredTrucks.length / ITEMS_PER_PAGE) || 1;
+  const paginatedTrucks = filteredTrucks.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -111,6 +137,7 @@ export default function AdminTrucks() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (highlightAndFocusMissingFields()) return;
     setSubmitting(true);
 
     try {
@@ -222,7 +249,7 @@ export default function AdminTrucks() {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             {/* Multiple Image Upload */}
             <div style={{ marginBottom: '24px' }}>
               <label className="form-label">Truck Images (up to 5)</label>
@@ -232,7 +259,9 @@ export default function AdminTrucks() {
                     width: '120px', height: '90px', borderRadius: 'var(--border-radius)',
                     overflow: 'hidden', position: 'relative', flexShrink: 0, border: '1px solid var(--gray-200)',
                   }}>
-                    <img src={preview} alt={`Preview ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                      <Image src={preview} alt={`Preview ${idx + 1}`} fill sizes="120px" style={{ objectFit: 'cover' }} />
+                    </div>
                     <button
                       type="button"
                       onClick={() => removeImage(idx)}
@@ -401,6 +430,24 @@ export default function AdminTrucks() {
         </div>
       )}
 
+      {/* Search Bar */}
+      <div className="card" style={{ padding: '16px 20px', marginBottom: '24px', display: 'flex', gap: '12px', alignItems: 'center' }}>
+        <div style={{ position: 'relative', flex: 1 }}>
+          <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+          <input
+            type="text"
+            className="form-input"
+            placeholder="Search trucks by name, type, engine, or location..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            style={{ paddingLeft: '36px', width: '100%' }}
+          />
+        </div>
+        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+          {filteredTrucks.length} listing{filteredTrucks.length !== 1 ? 's' : ''} found
+        </span>
+      </div>
+
       {/* Truck Listings Table */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <div className="table-container">
@@ -420,12 +467,12 @@ export default function AdminTrucks() {
             <tbody>
               {loading ? (
                 <tr><td colSpan="8" style={{ textAlign: 'center', padding: '32px' }}>Loading trucks...</td></tr>
-              ) : !(trucks || []).length ? (
+              ) : !filteredTrucks.length ? (
                 <tr><td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
                   <Truck size={28} style={{ display: 'block', margin: '0 auto 8px' }} />
-                  No trucks listed yet. Click "Add New Truck" to get started.
+                  {searchQuery ? 'No trucks match your search.' : 'No trucks listed yet. Click "Add New Truck" to get started.'}
                 </td></tr>
-              ) : trucks.map(truck => (
+              ) : paginatedTrucks.map(truck => (
                 <tr key={truck.id}>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -436,7 +483,9 @@ export default function AdminTrucks() {
                         flexShrink: 0,
                       }}>
                         {(truck.imageUrls?.[0] || truck.imageUrl) ? (
-                          <img src={truck.imageUrls?.[0] || truck.imageUrl} alt={truck.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                            <Image src={truck.imageUrls?.[0] || truck.imageUrl} alt={truck.name} fill sizes="48px" style={{ objectFit: 'cover' }} />
+                          </div>
                         ) : (
                           <Truck size={20} color="var(--text-muted)" />
                         )}
@@ -485,6 +534,34 @@ export default function AdminTrucks() {
               ))}
             </tbody>
           </table>
+          
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderTop: '1px solid var(--gray-200)', background: 'var(--gray-50)' }}>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredTrucks.length)} of {filteredTrucks.length}
+              </span>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  className="btn btn-outline btn-sm"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                >
+                  <ChevronLeft size={16} /> Prev
+                </button>
+                <span style={{ display: 'flex', alignItems: 'center', padding: '0 8px', fontSize: '0.85rem', fontWeight: 600 }}>
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  className="btn btn-outline btn-sm"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                >
+                  Next <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </AdminLayout>

@@ -5,7 +5,8 @@ import { useAuth } from '@/lib/AuthContext';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToAppointments } from '@/lib/firebaseService';
 import { useToast } from '@/components/Toast';
-import { Calendar, MapPin, Clock, Phone } from 'lucide-react';
+import { Calendar, MapPin, Clock, Phone, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
 
 export default function Appointments() {
   const { user } = useAuth();
@@ -14,6 +15,12 @@ export default function Appointments() {
     (cb) => subscribeToAppointments(user?.uid, cb),
     [user?.uid]
   );
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 5;
+
+  const totalPages = Math.ceil((appointments || []).length / ITEMS_PER_PAGE) || 1;
+  const paginatedAppointments = (appointments || []).slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const handleReschedule = (apt) => {
     addToast(
@@ -45,7 +52,7 @@ export default function Appointments() {
               Browse our <a href="/trucks-for-sale" style={{ color: 'var(--primary)', fontWeight: 600 }}>Trucks for Sale</a> to schedule a viewing.
             </p>
           </div>
-        ) : appointments.map((apt) => (
+        ) : paginatedAppointments.map((apt) => (
           <div key={apt.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{
@@ -85,6 +92,33 @@ export default function Appointments() {
           </div>
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', padding: '16px 20px', background: 'var(--white)', borderRadius: 'var(--border-radius)', boxShadow: 'var(--shadow-sm)' }}>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, (appointments || []).length)} of {(appointments || []).length}
+          </span>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              className="btn btn-outline btn-sm"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            >
+              <ChevronLeft size={16} /> Prev
+            </button>
+            <span style={{ display: 'flex', alignItems: 'center', padding: '0 8px', fontSize: '0.85rem', fontWeight: 600 }}>
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              className="btn btn-outline btn-sm"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            >
+              Next <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {appointments?.length > 0 && (
         <div className="card" style={{ marginTop: '24px', padding: '16px 20px', background: 'var(--primary-light)', border: '1px solid var(--primary)', borderRadius: 'var(--border-radius)' }}>
