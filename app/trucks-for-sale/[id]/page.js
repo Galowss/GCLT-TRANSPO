@@ -3,10 +3,10 @@
 import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useFirestore } from '@/lib/useFirestore';
-import { getTruckById, addPurchaseRequest, addNotification } from '@/lib/firebaseService';
+import { getTruckById, addPurchaseRequest, addNotification, updateTruck } from '@/lib/firebaseService';
 import { useAuth } from '@/lib/AuthContext';
 import { useToast } from '@/components/Toast';
 import { Truck, MapPin, Calendar, Weight, Ruler, Phone, Mail, ChevronLeft, ChevronRight, ArrowLeft, CreditCard, Banknote, ShieldCheck } from 'lucide-react';
@@ -14,6 +14,7 @@ import styles from './detail.module.css';
 
 export default function TruckDetail() {
   const params = useParams();
+  const router = useRouter();
   const { user } = useAuth();
   const { addToast } = useToast();
   const { data: truck, loading: truckLoading } = useFirestore(
@@ -142,7 +143,13 @@ export default function TruckDetail() {
           userEmail: user.email,
         });
 
+        // Update truck status to Sold
+        await updateTruck(truck.id, { status: 'Sold' });
+
         addToast(`Purchase request submitted for ${truck.name}! A sales representative will contact you shortly.`, 'success');
+        
+        // Redirect back to trucks for sale
+        router.push('/trucks-for-sale');
       } catch (err) {
         addToast('Failed to submit purchase request.', 'error');
       }
