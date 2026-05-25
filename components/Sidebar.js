@@ -77,6 +77,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         <button className="sidebar-logout-btn" onClick={() => {
           if(setIsOpen) setIsOpen(false);
           logout();
+          window.location.href = '/login';
         }}>
           <LogOut size={18} /> Logout
         </button>

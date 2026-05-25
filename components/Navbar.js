@@ -23,7 +23,7 @@ export default function Navbar() {
   const handleLogout = async () => {
     setMobileOpen(false);
     await logout();
-    router.push('/');
+    window.location.href = '/login';
   };
 
   const loginHref = pathname.startsWith('/trucks-for-sale') ? `/login?redirect=${pathname}` : '/login';

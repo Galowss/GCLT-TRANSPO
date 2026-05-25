@@ -67,11 +67,11 @@ function LoginForm() {
       const user = await login(formData.email, formData.password);
       const redirectPath = searchParams.get('redirect');
       if (!user.emailVerified) {
-        router.push('/verify-email');
+        window.location.href = '/verify-email';
       } else if (user.role === 'admin') {
-        router.push(redirectPath || '/admin');
+        window.location.href = redirectPath || '/admin';
       } else {
-        router.push(redirectPath || '/dashboard');
+        window.location.href = redirectPath || '/dashboard';
       }
     } catch (err) {
       // Reset security widget on error
@@ -125,7 +125,7 @@ function LoginForm() {
       // 2. Proceed with registration
       await register(formData.name, formData.email, formData.password);
       // Wait to redirect until email is verified, or they can log in. Registration goes to verify-email.
-      router.push('/verify-email');
+      window.location.href = '/verify-email';
     } catch (err) {
       // Reset security widget on error
       setTurnstileToken('');
@@ -149,9 +149,9 @@ function LoginForm() {
       const user = await loginWithGoogle();
       const redirectPath = searchParams.get('redirect');
       if (user.role === 'admin') {
-        router.push(redirectPath || '/admin');
+        window.location.href = redirectPath || '/admin';
       } else {
-        router.push(redirectPath || '/dashboard');
+        window.location.href = redirectPath || '/dashboard';
       }
     } catch (err) {
       if (err.code === 'auth/popup-closed-by-user') {
