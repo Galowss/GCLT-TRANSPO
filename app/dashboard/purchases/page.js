@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToUserPurchaseRequests } from '@/lib/firebaseService';
 import { Package, Truck } from 'lucide-react';
+import { useState } from 'react';
 
 export default function UserPurchases() {
   const { user } = useAuth();
