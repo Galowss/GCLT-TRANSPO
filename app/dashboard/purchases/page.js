@@ -12,6 +12,16 @@ export default function UserPurchases() {
     (cb) => subscribeToUserPurchaseRequests(user?.uid, cb),
     [user?.uid]
   );
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
+  const purchasesList = purchases || [];
+  const totalPages = Math.ceil(purchasesList.length / itemsPerPage);
+  const currentPurchases = purchasesList.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <DashboardLayout>
@@ -44,7 +54,7 @@ export default function UserPurchases() {
                 <tr>
                   <td colSpan="6" style={{ textAlign: 'center', padding: '32px' }}>Loading your purchases...</td>
                 </tr>
-              ) : !purchases || purchases.length === 0 ? (
+              ) : !currentPurchases.length ? (
                 <tr>
                   <td colSpan="6" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
                     <Truck size={32} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
@@ -52,7 +62,7 @@ export default function UserPurchases() {
                   </td>
                 </tr>
               ) : (
-                purchases.map((purchase) => (
+                currentPurchases.map((purchase) => (
                   <tr key={purchase.id}>
                     <td><strong style={{ color: 'var(--primary)' }}>{purchase.id.slice(-8)}</strong></td>
                     <td>
@@ -90,6 +100,31 @@ export default function UserPurchases() {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, purchasesList.length)} of {purchasesList.length}
+            </span>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                className="btn btn-sm btn-outline"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(p => p - 1)}
+              >
+                Previous
+              </button>
+              <button
+                className="btn btn-sm btn-outline"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(p => p + 1)}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

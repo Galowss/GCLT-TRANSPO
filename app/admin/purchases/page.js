@@ -14,6 +14,8 @@ export default function AdminPurchasesPage() {
   const { addToast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [updatingId, setUpdatingId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const filteredPurchases = (purchases || []).filter(p => {
     const q = searchQuery.toLowerCase();
@@ -22,6 +24,12 @@ export default function AdminPurchasesPage() {
       (p.truckName || '').toLowerCase().includes(q) ||
       (p.userEmail || '').toLowerCase().includes(q);
   });
+
+  const totalPages = Math.ceil(filteredPurchases.length / itemsPerPage);
+  const currentPurchases = filteredPurchases.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const handleUpdateStatus = async (id, newStatus) => {
     setUpdatingId(id);
@@ -55,7 +63,10 @@ export default function AdminPurchasesPage() {
             className="form-input"
             placeholder="Search by ID, truck name, or user email..."
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
+            onChange={e => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
             style={{ paddingLeft: '36px', width: '100%' }}
           />
         </div>
@@ -80,11 +91,11 @@ export default function AdminPurchasesPage() {
             <tbody>
               {loading ? (
                 <tr><td colSpan="6" style={{ textAlign: 'center', padding: '32px' }}>Loading purchase history...</td></tr>
-              ) : !filteredPurchases.length ? (
+              ) : !currentPurchases.length ? (
                 <tr><td colSpan="6" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
                   {searchQuery ? 'No purchases match your search.' : 'No purchases found'}
                 </td></tr>
-              ) : filteredPurchases.map((p) => (
+              ) : currentPurchases.map((p) => (
                 <tr key={p.id}>
                   <td><strong style={{ color: 'var(--primary)' }}>{p.id.slice(-8)}</strong></td>
                   <td>
@@ -137,6 +148,31 @@ export default function AdminPurchasesPage() {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredPurchases.length)} of {filteredPurchases.length}
+            </span>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                className="btn btn-sm btn-outline"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(p => p - 1)}
+              >
+                Previous
+              </button>
+              <button
+                className="btn btn-sm btn-outline"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(p => p + 1)}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </AdminLayout>
   );
