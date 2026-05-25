@@ -8,7 +8,7 @@ import { compressImage } from '@/lib/compressImage';
 import { useToast } from '@/components/Toast';
 import { highlightAndFocusMissingFields } from '@/lib/validation';
 import { useState } from 'react';
-import { Truck, Plus, Pencil, Trash2, X, Upload, Image, XCircle, CheckCircle } from 'lucide-react';
+import { Truck, Plus, Pencil, Trash2, X, Upload, XCircle, CheckCircle } from 'lucide-react';
 import { FLEET_CATEGORIES } from '@/lib/constants';
 
 const emptyForm = {
