@@ -49,13 +49,23 @@ export default function Navbar() {
         {/* Desktop Nav Links */}
         <div className="navbar-links">
           {navLinks.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              className={`navbar-link${link.isActive ? ' active' : ''}`}
-            >
-              {link.label}
-            </Link>
+            link.href.startsWith('/#') ? (
+              <a
+                key={link.label}
+                href={link.href}
+                className={`navbar-link${link.isActive ? ' active' : ''}`}
+              >
+                {link.label}
+              </a>
+            ) : (
+              <Link
+                key={link.label}
+                href={link.href}
+                className={`navbar-link${link.isActive ? ' active' : ''}`}
+              >
+                {link.label}
+              </Link>
+            )
           ))}
         </div>
 
@@ -106,14 +116,25 @@ export default function Navbar() {
       {/* Mobile Menu Dropdown */}
       <div className={`navbar-mobile-menu${mobileOpen ? ' open' : ''}`}>
         {navLinks.map((link) => (
-          <Link
-            key={link.label}
-            href={link.href}
-            className={`navbar-mobile-link${link.isActive ? ' active' : ''}`}
-            onClick={() => setMobileOpen(false)}
-          >
-            {link.label}
-          </Link>
+          link.href.startsWith('/#') ? (
+            <a
+              key={link.label}
+              href={link.href}
+              className={`navbar-mobile-link${link.isActive ? ' active' : ''}`}
+              onClick={() => setMobileOpen(false)}
+            >
+              {link.label}
+            </a>
+          ) : (
+            <Link
+              key={link.label}
+              href={link.href}
+              className={`navbar-mobile-link${link.isActive ? ' active' : ''}`}
+              onClick={() => setMobileOpen(false)}
+            >
+              {link.label}
+            </Link>
+          )
         ))}
         <div className="navbar-mobile-divider" />
         {user ? (
