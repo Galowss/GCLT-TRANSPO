@@ -13,6 +13,7 @@ const bookingLinks = [
 
 const marketplaceLinks = [
   { href: '/trucks-for-sale', label: 'Browse Trucks', icon: ShoppingBag },
+  { href: '/dashboard/purchases', label: 'My Purchases', icon: ShoppingBag },
   { href: '/dashboard/appointments', label: 'My Viewings', icon: Calendar },
 ];
 

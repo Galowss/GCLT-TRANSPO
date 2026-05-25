@@ -10,6 +10,7 @@ const adminLinks = [
   { href: '/admin/bookings', label: 'Bookings', icon: Truck },
   { href: '/admin/fleet', label: 'Available Fleet', icon: Truck },
   { href: '/admin/trucks', label: 'Truck Listings', icon: ShoppingBag },
+  { href: '/admin/purchases', label: 'Truck Purchases', icon: ShoppingBag },
   { href: '/admin/appointments', label: 'Appointments', icon: Calendar },
   { href: '/admin/transactions', label: 'Transactions', icon: Receipt },
   { href: '/admin/customers', label: 'User Management', icon: Users },
