@@ -105,7 +105,24 @@ export default function TruckInventoryCarousel() {
   // ── Render ──
 
   if (loading) {
-    return null;
+    return (
+      <section className={styles.section} id="fleet-inventory" style={{ minHeight: '600px' }}>
+        <div className={styles.inner}>
+          <div className={styles.header}>
+            <div className={styles.headerText}>
+              <span className={styles.label}>
+                <span className={styles.labelDot} />
+                Fleet Inventory
+              </span>
+              <h2 className={styles.title}>Trucks for Sale</h2>
+            </div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px', color: 'var(--text-muted)' }}>
+            <p>Loading inventory...</p>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   if (trucks.length === 0) {
