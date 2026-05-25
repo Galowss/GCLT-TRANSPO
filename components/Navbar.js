@@ -34,7 +34,7 @@ export default function Navbar() {
       <div className="navbar-inner">
 
         {/* Brand */}
-        <Link href="/" className="navbar-brand">
+        <a href="/" className="navbar-brand">
           <Image
             src="/gclt-logo-new.png"
             alt="GCLT Transport & Trucking Services"
@@ -44,7 +44,7 @@ export default function Navbar() {
             priority
           />
           <span>GCLT Transport</span>
-        </Link>
+        </a>
 
         {/* Desktop Nav Links */}
         <div className="navbar-links">
