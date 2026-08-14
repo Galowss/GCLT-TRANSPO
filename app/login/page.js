@@ -5,9 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/AuthContext';
 import Navbar from '@/components/Navbar';
 import Turnstile from '@/components/Turnstile';
-import Image from 'next/image';
-import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
-import { highlightAndFocusMissingFields } from '@/lib/validation';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, Calendar } from 'lucide-react';
 import styles from './login.module.css';
 
 function LoginForm() {
@@ -26,8 +24,9 @@ function LoginForm() {
     password: '',
     confirmPassword: '',
     remember: false,
+    dateOfBirth: '',
+    agreedToTerms: false,
   });
-  const [privacyConsent, setPrivacyConsent] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -44,7 +43,6 @@ function LoginForm() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (highlightAndFocusMissingFields()) return;
     if (!turnstileToken) {
       setError('Please complete the security challenge.');
       return;
@@ -65,13 +63,12 @@ function LoginForm() {
 
       // 2. Proceed with login
       const user = await login(formData.email, formData.password);
-      const redirectPath = searchParams.get('redirect');
       if (!user.emailVerified) {
-        window.location.href = '/verify-email';
+        router.push('/verify-email');
       } else if (user.role === 'admin') {
-        window.location.href = redirectPath || '/admin';
+        router.push('/admin');
       } else {
-        window.location.href = redirectPath || '/dashboard';
+        router.push('/dashboard');
       }
     } catch (err) {
       // Reset security widget on error
@@ -91,7 +88,6 @@ function LoginForm() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    if (highlightAndFocusMissingFields()) return;
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match.');
       return;
@@ -100,12 +96,26 @@ function LoginForm() {
       setError('Password must be at least 6 characters.');
       return;
     }
-    if (!privacyConsent) {
-      setError('You must agree to the Data Privacy Policy to register.');
-      return;
-    }
     if (!turnstileToken) {
       setError('Please complete the security challenge.');
+      return;
+    }
+    // Validate date of birth (must be 18+)
+    if (!formData.dateOfBirth) {
+      setError('Please enter your date of birth.');
+      return;
+    }
+    const dob = new Date(formData.dateOfBirth);
+    const today = new Date();
+    const age = today.getFullYear() - dob.getFullYear() -
+      (today < new Date(today.getFullYear(), dob.getMonth(), dob.getDate()) ? 1 : 0);
+    if (age < 18) {
+      setError('You must be at least 18 years old to register.');
+      return;
+    }
+    // Validate Terms & Conditions
+    if (!formData.agreedToTerms) {
+      setError('Please agree to the Terms & Conditions and Privacy Policy to continue.');
       return;
     }
     setLoading(true);
@@ -123,9 +133,8 @@ function LoginForm() {
       }
 
       // 2. Proceed with registration
-      await register(formData.name, formData.email, formData.password);
-      // Wait to redirect until email is verified, or they can log in. Registration goes to verify-email.
-      window.location.href = '/verify-email';
+      await register(formData.name, formData.email, formData.password, formData.dateOfBirth);
+      router.push('/verify-email');
     } catch (err) {
       // Reset security widget on error
       setTurnstileToken('');
@@ -147,11 +156,10 @@ function LoginForm() {
     setError('');
     try {
       const user = await loginWithGoogle();
-      const redirectPath = searchParams.get('redirect');
       if (user.role === 'admin') {
-        window.location.href = redirectPath || '/admin';
+        router.push('/admin');
       } else {
-        window.location.href = redirectPath || '/dashboard';
+        router.push('/dashboard');
       }
     } catch (err) {
       if (err.code === 'auth/popup-closed-by-user') {
@@ -166,8 +174,8 @@ function LoginForm() {
   return (
     <div className={styles.container}>
       <div className={styles.bgImage}>
-        <div className={styles.logoContainer} style={{ position: 'relative', width: '100%', height: '300px' }}>
-          <Image src="/gclt-logo-new.png" alt="GCLT Logo" fill style={{ objectFit: 'contain' }} className={styles.heroLogo} priority />
+        <div className={styles.logoContainer}>
+          <img src="/gclt-logo-new.png" alt="GCLT Logo" className={styles.heroLogo} />
         </div>
         <div className={styles.bgOverlay}>
           <div className={styles.hqInfo}>
@@ -212,7 +220,7 @@ function LoginForm() {
           )}
 
           {activeTab === 'login' ? (
-            <form onSubmit={handleLogin} className={styles.form} noValidate>
+            <form onSubmit={handleLogin} className={styles.form}>
               <div className="form-group">
                 <label className="form-label">Email Address</label>
                 <div className={styles.inputWithIcon}>
@@ -302,7 +310,7 @@ function LoginForm() {
               </p>
             </form>
           ) : (
-            <form onSubmit={handleRegister} className={styles.form} noValidate>
+            <form onSubmit={handleRegister} className={styles.form}>
               <div className="form-group">
                 <label className="form-label">Full Name</label>
                 <input
@@ -327,6 +335,24 @@ function LoginForm() {
                   onChange={handleChange}
                   required
                 />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Date of Birth *</label>
+                <div className={styles.inputWithIcon}>
+                  <span className={styles.inputIcon}><Calendar size={16} color="#9E9E9E" /></span>
+                  <input
+                    type="date"
+                    name="dateOfBirth"
+                    className="form-input"
+                    value={formData.dateOfBirth}
+                    onChange={handleChange}
+                    max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+                    required
+                    style={{ paddingLeft: '40px' }}
+                  />
+                </div>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>You must be at least 18 years old to register.</span>
               </div>
 
               <div className="form-group">
@@ -357,12 +383,22 @@ function LoginForm() {
                 />
               </div>
 
-              <label className={styles.checkbox} style={{ marginBottom: '16px', alignItems: 'flex-start' }}>
-                <input type="checkbox" checked={privacyConsent} onChange={(e) => { setPrivacyConsent(e.target.checked); setError(''); }} required />
-                <span style={{ fontSize: '0.85rem', lineHeight: '1.4' }}>
-                  I consent to the collection and processing of my personal data in accordance with the <a href="/privacy" style={{ color: 'var(--primary)', textDecoration: 'underline' }} target="_blank">Data Privacy Policy</a>.
-                </span>
-              </label>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                  <input
+                    type="checkbox"
+                    name="agreedToTerms"
+                    checked={formData.agreedToTerms}
+                    onChange={handleChange}
+                    style={{ marginTop: '2px', width: '16px', height: '16px', flexShrink: 0, accentColor: 'var(--primary)' }}
+                  />
+                  <span>
+                    I have read and agree to the{' '}
+                    <a href="/legal/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', fontWeight: 600 }}>Terms &amp; Conditions</a>{' '}and{' '}
+                    <a href="/legal/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', fontWeight: 600 }}>Privacy Policy</a>.
+                  </span>
+                </label>
+              </div>
 
               <Turnstile
                 key={`register-${turnstileResetKey}`}

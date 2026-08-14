@@ -1,14 +1,12 @@
 'use client';
 
 import AdminLayout from '@/components/AdminLayout';
-import Image from 'next/image';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToTrucksForSale, addTruck, updateTruck, deleteTruck } from '@/lib/firebaseService';
 import { compressImage } from '@/lib/compressImage';
 import { useToast } from '@/components/Toast';
-import { highlightAndFocusMissingFields } from '@/lib/validation';
-import { useState, useMemo, useEffect } from 'react';
-import { Truck, Plus, Pencil, Trash2, X, Upload, MapPin, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
+import { Truck, Plus, Pencil, Trash2, X, Upload, Image, MapPin, Search } from 'lucide-react';
 import { TRUCK_TYPES } from '@/lib/constants';
 
 const emptyForm = {
@@ -34,30 +32,42 @@ export default function AdminTrucks() {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(null);
+  // ── Filters ──
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 10;
+  const [filterType, setFilterType] = useState('all');
+  const [filterCondition, setFilterCondition] = useState('all');
+  const [filterTransmission, setFilterTransmission] = useState('all');
+  const [filterPriceMin, setFilterPriceMin] = useState('');
+  const [filterPriceMax, setFilterPriceMax] = useState('');
 
-  const filteredTrucks = useMemo(() => {
-    return (trucks || []).filter(t => {
-      const q = searchQuery.toLowerCase();
-      if (!q) return true;
-      return (
-        t.name.toLowerCase().includes(q) ||
-        (t.type || '').toLowerCase().includes(q) ||
-        (t.engine || '').toLowerCase().includes(q) ||
-        (t.transmission || '').toLowerCase().includes(q) ||
-        (t.location || t.locationCity || '').toLowerCase().includes(q)
-      );
-    });
-  }, [trucks, searchQuery]);
+  const hasActiveFilters = searchQuery || filterType !== 'all' || filterCondition !== 'all' || filterTransmission !== 'all' || filterPriceMin || filterPriceMax;
 
-  const totalPages = Math.ceil(filteredTrucks.length / ITEMS_PER_PAGE) || 1;
-  const paginatedTrucks = filteredTrucks.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  const clearFilters = () => {
+    setSearchQuery('');
+    setFilterType('all');
+    setFilterCondition('all');
+    setFilterTransmission('all');
+    setFilterPriceMin('');
+    setFilterPriceMax('');
+  };
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
+  // Price is stored as Number in Firestore (see handleSubmit: Number(formData.price))
+  const filteredTrucks = (trucks || []).filter(truck => {
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = !q ||
+      (truck.name || '').toLowerCase().includes(q) ||
+      (truck.engine || '').toLowerCase().includes(q) ||
+      (truck.location || '').toLowerCase().includes(q) ||
+      (String(truck.year || '')).includes(q);
+    const matchesType = filterType === 'all' || (truck.type || '') === filterType;
+    const matchesCondition = filterCondition === 'all' || (truck.condition || '') === filterCondition;
+    const matchesTransmission = filterTransmission === 'all' || (truck.transmission || '') === filterTransmission;
+    // Safe number coercion — trucks with no price (null/undefined) are treated as 0
+    const price = typeof truck.price === 'number' ? truck.price : Number(truck.price) || 0;
+    const minOk = !filterPriceMin || price >= Number(filterPriceMin);
+    const maxOk = !filterPriceMax || price <= Number(filterPriceMax);
+    return matchesSearch && matchesType && matchesCondition && matchesTransmission && minOk && maxOk;
+  });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -137,7 +147,6 @@ export default function AdminTrucks() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (highlightAndFocusMissingFields()) return;
     setSubmitting(true);
 
     try {
@@ -222,20 +231,91 @@ export default function AdminTrucks() {
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
         <div className="card" style={{ padding: '20px', textAlign: 'center' }}>
-          <span style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--primary)' }}>{(trucks || []).length}</span>
+          <span style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--primary)' }}>
+            {loading ? <span style={{ opacity: 0.3 }}>–</span> : (trucks || []).length}
+          </span>
           <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>Total Listings</span>
         </div>
         <div className="card" style={{ padding: '20px', textAlign: 'center' }}>
           <span style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--success)' }}>
-            {(trucks || []).filter(t => t.condition === 'Excellent' || t.condition === 'Good').length}
+            {loading ? <span style={{ opacity: 0.3 }}>–</span> : (trucks || []).filter(t => t.condition === 'Excellent' || t.condition === 'Good').length}
           </span>
-          <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>Good Condition</span>
+          <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>Good/Excellent Condition</span>
         </div>
         <div className="card" style={{ padding: '20px', textAlign: 'center' }}>
           <span style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--accent)' }}>
-            {(trucks || []).filter(t => t.imageUrl || t.imageUrls?.length).length}
+            {loading ? <span style={{ opacity: 0.3 }}>–</span> : (trucks || []).filter(t => t.imageUrl || t.imageUrls?.length).length}
           </span>
-          <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>With Images</span>
+          <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>With Photos</span>
+        </div>
+      </div>
+
+      {/* Filter Bar */}
+      <div className="card" style={{ padding: '14px 18px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '10px' }}>
+          <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
+            <Search size={15} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Search by name, engine, location, or year…"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              style={{ paddingLeft: '34px', width: '100%' }}
+            />
+          </div>
+          <select className="form-select" style={{ width: '165px' }} value={filterType} onChange={e => setFilterType(e.target.value)}>
+            <option value="all">Type: All</option>
+            {TRUCK_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <select className="form-select" style={{ width: '160px' }} value={filterCondition} onChange={e => setFilterCondition(e.target.value)}>
+            <option value="all">Condition: All</option>
+            <option value="Excellent">Excellent</option>
+            <option value="Good">Good</option>
+            <option value="Fair">Fair</option>
+            <option value="Needs Repair">Needs Repair</option>
+          </select>
+        </div>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <select className="form-select" style={{ width: '155px' }} value={filterTransmission} onChange={e => setFilterTransmission(e.target.value)}>
+            <option value="all">Transmission: All</option>
+            <option value="Manual">Manual</option>
+            <option value="Automatic">Automatic</option>
+          </select>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Price (PHP):</span>
+            <input
+              type="number"
+              className="form-input"
+              placeholder="Min"
+              value={filterPriceMin}
+              onChange={e => setFilterPriceMin(e.target.value)}
+              style={{ width: '110px' }}
+              min="0"
+            />
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>–</span>
+            <input
+              type="number"
+              className="form-input"
+              placeholder="Max"
+              value={filterPriceMax}
+              onChange={e => setFilterPriceMax(e.target.value)}
+              style={{ width: '110px' }}
+              min="0"
+            />
+          </div>
+          {hasActiveFilters && (
+            <button
+              className="btn btn-outline btn-sm"
+              onClick={clearFilters}
+              style={{ color: 'var(--danger)', borderColor: 'var(--danger)', whiteSpace: 'nowrap' }}
+            >
+              Clear Filters
+            </button>
+          )}
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', marginLeft: 'auto' }}>
+            {loading ? 'Loading…' : `${filteredTrucks.length} of ${(trucks || []).length}`}
+          </span>
         </div>
       </div>
 
@@ -249,7 +329,7 @@ export default function AdminTrucks() {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} noValidate>
+          <form onSubmit={handleSubmit}>
             {/* Multiple Image Upload */}
             <div style={{ marginBottom: '24px' }}>
               <label className="form-label">Truck Images (up to 5)</label>
@@ -259,9 +339,7 @@ export default function AdminTrucks() {
                     width: '120px', height: '90px', borderRadius: 'var(--border-radius)',
                     overflow: 'hidden', position: 'relative', flexShrink: 0, border: '1px solid var(--gray-200)',
                   }}>
-                    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                      <Image src={preview} alt={`Preview ${idx + 1}`} fill sizes="120px" style={{ objectFit: 'cover' }} />
-                    </div>
+                    <img src={preview} alt={`Preview ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     <button
                       type="button"
                       onClick={() => removeImage(idx)}
@@ -430,24 +508,6 @@ export default function AdminTrucks() {
         </div>
       )}
 
-      {/* Search Bar */}
-      <div className="card" style={{ padding: '16px 20px', marginBottom: '24px', display: 'flex', gap: '12px', alignItems: 'center' }}>
-        <div style={{ position: 'relative', flex: 1 }}>
-          <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-          <input
-            type="text"
-            className="form-input"
-            placeholder="Search trucks by name, type, engine, or location..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            style={{ paddingLeft: '36px', width: '100%' }}
-          />
-        </div>
-        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-          {filteredTrucks.length} listing{filteredTrucks.length !== 1 ? 's' : ''} found
-        </span>
-      </div>
-
       {/* Truck Listings Table */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <div className="table-container">
@@ -466,13 +526,21 @@ export default function AdminTrucks() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="8" style={{ textAlign: 'center', padding: '32px' }}>Loading trucks...</td></tr>
+                <tr><td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: '32px', height: '32px', border: '3px solid var(--primary)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                    <span style={{ fontSize: '0.85rem' }}>Loading trucks…</span>
+                  </div>
+                </td></tr>
               ) : !filteredTrucks.length ? (
                 <tr><td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
                   <Truck size={28} style={{ display: 'block', margin: '0 auto 8px' }} />
-                  {searchQuery ? 'No trucks match your search.' : 'No trucks listed yet. Click "Add New Truck" to get started.'}
+                  {hasActiveFilters
+                    ? <><p>No trucks match your filters.</p><button onClick={clearFilters} style={{ marginTop: '8px', fontSize: '0.82rem', color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Clear all filters</button></>
+                    : 'No trucks listed yet. Click \'Add New Truck\' to get started.'
+                  }
                 </td></tr>
-              ) : paginatedTrucks.map(truck => (
+              ) : filteredTrucks.map(truck => (
                 <tr key={truck.id}>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -483,9 +551,7 @@ export default function AdminTrucks() {
                         flexShrink: 0,
                       }}>
                         {(truck.imageUrls?.[0] || truck.imageUrl) ? (
-                          <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                            <Image src={truck.imageUrls?.[0] || truck.imageUrl} alt={truck.name} fill sizes="48px" style={{ objectFit: 'cover' }} />
-                          </div>
+                          <img src={truck.imageUrls?.[0] || truck.imageUrl} alt={truck.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (
                           <Truck size={20} color="var(--text-muted)" />
                         )}
@@ -534,34 +600,6 @@ export default function AdminTrucks() {
               ))}
             </tbody>
           </table>
-          
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderTop: '1px solid var(--gray-200)', background: 'var(--gray-50)' }}>
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredTrucks.length)} of {filteredTrucks.length}
-              </span>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  className="btn btn-outline btn-sm"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                >
-                  <ChevronLeft size={16} /> Prev
-                </button>
-                <span style={{ display: 'flex', alignItems: 'center', padding: '0 8px', fontSize: '0.85rem', fontWeight: 600 }}>
-                  Page {currentPage} of {totalPages}
-                </span>
-                <button
-                  className="btn btn-outline btn-sm"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                >
-                  Next <ChevronRight size={16} />
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </AdminLayout>
