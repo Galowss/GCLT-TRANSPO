@@ -13,11 +13,20 @@ export default function UserManagement() {
   );
   const { addToast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterRole, setFilterRole] = useState('all');
   const [promoting, setPromoting] = useState(null);
 
+  const hasActiveFilters = searchQuery || filterRole !== 'all';
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setFilterRole('all');
+  };
+
   const filteredUsers = (users || []).filter(u =>
-    u.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    u.email?.toLowerCase().includes(searchQuery.toLowerCase())
+    (u.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    u.email?.toLowerCase().includes(searchQuery.toLowerCase())) &&
+    (filterRole === 'all' || (filterRole === 'admin' ? u.role === 'admin' : u.role !== 'admin'))
   );
 
   const handlePromote = async (uid, currentRole) => {
@@ -65,7 +74,7 @@ export default function UserManagement() {
         </div>
       </div>
 
-      {/* Search */}
+      {/* Search + Role filter */}
       <div className="card" style={{ padding: '16px 20px', marginBottom: '24px', display: 'flex', gap: '12px', alignItems: 'center' }}>
         <div style={{ position: 'relative', flex: 1 }}>
           <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
@@ -78,6 +87,25 @@ export default function UserManagement() {
             style={{ paddingLeft: '36px', width: '100%' }}
           />
         </div>
+        <select
+          className="form-select"
+          style={{ width: '150px' }}
+          value={filterRole}
+          onChange={e => setFilterRole(e.target.value)}
+        >
+          <option value="all">Role: All</option>
+          <option value="admin">Admin</option>
+          <option value="user">User</option>
+        </select>
+        {hasActiveFilters && (
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={clearFilters}
+            style={{ color: 'var(--danger)', borderColor: 'var(--danger)', whiteSpace: 'nowrap' }}
+          >
+            Clear Filters
+          </button>
+        )}
         <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
           {filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''}
         </span>

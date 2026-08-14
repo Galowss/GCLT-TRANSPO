@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToAppointments, addNotification } from '@/lib/firebaseService';
 import { useToast } from '@/components/Toast';
-import { Calendar, CheckCircle, XCircle, X, MapPin, Clock, User, Phone, Truck } from 'lucide-react';
+import { Calendar, CheckCircle, XCircle, X, MapPin, Clock, User, Phone, Truck, Search } from 'lucide-react';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
@@ -15,6 +15,31 @@ export default function AdminAppointments() {
   );
   const { addToast } = useToast();
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterDateFrom, setFilterDateFrom] = useState('');
+  const [filterDateTo, setFilterDateTo] = useState('');
+
+  const hasActiveFilters = searchQuery || filterStatus !== 'all' || filterDateFrom || filterDateTo;
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setFilterStatus('all');
+    setFilterDateFrom('');
+    setFilterDateTo('');
+  };
+
+  const filteredAppointments = (appointments || []).filter(a => {
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = !q ||
+      (a.customerName || a.customer || '').toLowerCase().includes(q) ||
+      (a.truck || '').toLowerCase().includes(q) ||
+      (a.location || '').toLowerCase().includes(q);
+    const matchesStatus = filterStatus === 'all' || (a.status || '').toLowerCase() === filterStatus.toLowerCase();
+    const matchesDateFrom = !filterDateFrom || (a.date && a.date >= filterDateFrom);
+    const matchesDateTo = !filterDateTo || (a.date && a.date <= filterDateTo);
+    return matchesSearch && matchesStatus && matchesDateFrom && matchesDateTo;
+  });
 
   useEffect(() => {
     if (selectedAppointment) {
@@ -64,8 +89,53 @@ export default function AdminAppointments() {
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Manage fleet viewing appointments from customers.</p>
             </div>
             <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              {(appointments || []).length} total appointment{(appointments || []).length !== 1 ? 's' : ''}
+              {filteredAppointments.length} of {(appointments || []).length} appointment{(appointments || []).length !== 1 ? 's' : ''}
             </span>
+          </div>
+
+          {/* Filter Bar */}
+          <div className="card" style={{ padding: '14px 18px', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '10px' }}>
+              <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
+                <Search size={15} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="Search by customer or truck name…"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  style={{ paddingLeft: '34px', width: '100%' }}
+                />
+              </div>
+              <select
+                className="form-select"
+                style={{ width: '170px' }}
+                value={filterStatus}
+                onChange={e => setFilterStatus(e.target.value)}
+              >
+                <option value="all">Status: All</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Date:</span>
+                <input type="date" className="form-input" style={{ width: '145px' }} value={filterDateFrom} onChange={e => setFilterDateFrom(e.target.value)} title="From" />
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>–</span>
+                <input type="date" className="form-input" style={{ width: '145px' }} value={filterDateTo} onChange={e => setFilterDateTo(e.target.value)} title="To" />
+              </div>
+              {hasActiveFilters && (
+                <button
+                  className="btn btn-outline btn-sm"
+                  onClick={clearFilters}
+                  style={{ color: 'var(--danger)', borderColor: 'var(--danger)', whiteSpace: 'nowrap' }}
+                >
+                  Clear Filters
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
@@ -85,12 +155,12 @@ export default function AdminAppointments() {
               <tbody>
                 {loading ? (
                   <tr><td colSpan="8" style={{ textAlign: 'center', padding: '32px' }}>Loading appointments...</td></tr>
-                ) : !appointments?.length ? (
+                ) : !filteredAppointments.length ? (
                   <tr><td colSpan="8" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
                     <Calendar size={28} style={{ display: 'block', margin: '0 auto 8px' }} />
-                    No appointments found. They will appear here when users schedule viewings.
+                    {hasActiveFilters ? 'No appointments match your filters.' : 'No appointments found. They will appear here when users schedule viewings.'}
                   </td></tr>
-                ) : appointments.map(a => (
+                ) : filteredAppointments.map(a => (
                   <tr
                     key={a.id}
                     style={{

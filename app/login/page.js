@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/AuthContext';
 import Navbar from '@/components/Navbar';
 import Turnstile from '@/components/Turnstile';
-import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, Calendar } from 'lucide-react';
 import styles from './login.module.css';
 
 function LoginForm() {
@@ -24,6 +24,8 @@ function LoginForm() {
     password: '',
     confirmPassword: '',
     remember: false,
+    dateOfBirth: '',
+    agreedToTerms: false,
   });
 
   const handleChange = (e) => {
@@ -98,6 +100,24 @@ function LoginForm() {
       setError('Please complete the security challenge.');
       return;
     }
+    // Validate date of birth (must be 18+)
+    if (!formData.dateOfBirth) {
+      setError('Please enter your date of birth.');
+      return;
+    }
+    const dob = new Date(formData.dateOfBirth);
+    const today = new Date();
+    const age = today.getFullYear() - dob.getFullYear() -
+      (today < new Date(today.getFullYear(), dob.getMonth(), dob.getDate()) ? 1 : 0);
+    if (age < 18) {
+      setError('You must be at least 18 years old to register.');
+      return;
+    }
+    // Validate Terms & Conditions
+    if (!formData.agreedToTerms) {
+      setError('Please agree to the Terms & Conditions and Privacy Policy to continue.');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -113,7 +133,7 @@ function LoginForm() {
       }
 
       // 2. Proceed with registration
-      await register(formData.name, formData.email, formData.password);
+      await register(formData.name, formData.email, formData.password, formData.dateOfBirth);
       router.push('/verify-email');
     } catch (err) {
       // Reset security widget on error
@@ -318,6 +338,24 @@ function LoginForm() {
               </div>
 
               <div className="form-group">
+                <label className="form-label">Date of Birth *</label>
+                <div className={styles.inputWithIcon}>
+                  <span className={styles.inputIcon}><Calendar size={16} color="#9E9E9E" /></span>
+                  <input
+                    type="date"
+                    name="dateOfBirth"
+                    className="form-input"
+                    value={formData.dateOfBirth}
+                    onChange={handleChange}
+                    max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+                    required
+                    style={{ paddingLeft: '40px' }}
+                  />
+                </div>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>You must be at least 18 years old to register.</span>
+              </div>
+
+              <div className="form-group">
                 <label className="form-label">Password</label>
                 <input
                   type="password"
@@ -343,6 +381,23 @@ function LoginForm() {
                   autoComplete="new-password"
                   required
                 />
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                  <input
+                    type="checkbox"
+                    name="agreedToTerms"
+                    checked={formData.agreedToTerms}
+                    onChange={handleChange}
+                    style={{ marginTop: '2px', width: '16px', height: '16px', flexShrink: 0, accentColor: 'var(--primary)' }}
+                  />
+                  <span>
+                    I have read and agree to the{' '}
+                    <a href="/legal/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', fontWeight: 600 }}>Terms &amp; Conditions</a>{' '}and{' '}
+                    <a href="/legal/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', fontWeight: 600 }}>Privacy Policy</a>.
+                  </span>
+                </label>
               </div>
 
               <Turnstile

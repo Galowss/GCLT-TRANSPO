@@ -55,6 +55,8 @@ export default function MyBookings() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterDate, setFilterDate] = useState('');
+  const [filterPayment, setFilterPayment] = useState('all');
+  const [filterTruckType, setFilterTruckType] = useState('all');
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('cod');
@@ -81,10 +83,26 @@ export default function MyBookings() {
     } catch (err) { console.error('Email notification failed:', err); }
   };
 
+  const hasActiveFilters = searchQuery || filterStatus !== 'all' || filterDate || filterPayment !== 'all' || filterTruckType !== 'all';
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setFilterStatus('all');
+    setFilterDate('');
+    setFilterPayment('all');
+    setFilterTruckType('all');
+    setCurrentPage(1);
+  };
+
+  // Truck type options derived from live booking data — always matches real Firestore values
+  const truckTypeOptions = useMemo(() =>
+    Array.from(new Set((bookings || []).map(b => b.truckRoute).filter(Boolean))).sort(),
+    [bookings]
+  );
+
   const filtered = useMemo(() => (bookings || []).filter(b => {
     const q = searchQuery.toLowerCase();
     const matchesSearch = !q ||
-      b.id.toLowerCase().includes(q) ||
       (b.truckRoute || '').toLowerCase().includes(q) ||
       (b.pickup || '').toLowerCase().includes(q) ||
       (b.delivery || '').toLowerCase().includes(q) ||
@@ -92,8 +110,11 @@ export default function MyBookings() {
       (b.date || '').includes(q);
     const matchesStatus = filterStatus === 'all' || (b.status || '').toLowerCase() === filterStatus;
     const matchesDate = !filterDate || b.date === filterDate;
-    return matchesSearch && matchesStatus && matchesDate;
-  }), [bookings, searchQuery, filterStatus, filterDate]);
+    const matchesPayment = filterPayment === 'all' ||
+      (filterPayment === 'stripe' ? b.paymentMethod === 'stripe' : b.paymentMethod !== 'stripe');
+    const matchesTruckType = filterTruckType === 'all' || (b.truckRoute || '') === filterTruckType;
+    return matchesSearch && matchesStatus && matchesDate && matchesPayment && matchesTruckType;
+  }), [bookings, searchQuery, filterStatus, filterDate, filterPayment, filterTruckType]);
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE) || 1;
   const paginated = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
@@ -300,17 +321,17 @@ export default function MyBookings() {
                       <Truck size={20} color={iconColor} />
                     </div>
                     <div>
-                      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', fontWeight: 700, color: '#5f5e5e', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '0 0 2px' }}>
-                        {booking.id.slice(-8)}
+                      {/* Main heading: route summary */}
+                      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 700, color: '#181d19', margin: '0 0 3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <MapPin size={11} color="#6f7a70" />
+                        <span>{(booking.pickupCity || booking.pickup || '—').slice(0, 18)}</span>
+                        <ArrowRight size={11} color="#6f7a70" />
+                        <span>{(booking.deliveryCity || booking.delivery || '—').slice(0, 18)}</span>
                       </p>
-                      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 700, color: '#181d19', margin: '0 0 4px' }}>{booking.truckRoute}</p>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', color: '#5f5e5e' }}>
-                        <MapPin size={11} />
-                        <span>{(booking.pickupCity || booking.pickup || '—').slice(0, 16)}</span>
-                        <ArrowRight size={11} />
-                        <MapPin size={11} />
-                        <span>{(booking.deliveryCity || booking.delivery || '—').slice(0, 16)}</span>
-                      </div>
+                      {/* Sub-label: truck type */}
+                      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', color: '#5f5e5e', margin: 0 }}>
+                        {booking.truckRoute || '—'}
+                      </p>
                     </div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
@@ -351,14 +372,55 @@ export default function MyBookings() {
           {/* Recent Documents placeholder */}
           <div style={{ background: '#ffffff', border: '1px solid #bec9be', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 6px rgba(0,0,0,0.05)', flex: 1 }}>
             <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: '1rem', fontWeight: 700, color: '#181d19', margin: '0 0 16px' }}>Recent Documents</h3>
-            {(bookings || []).filter(b => b.status === 'Completed').slice(0, 2).length > 0 ? (
-              (bookings || []).filter(b => b.status === 'Completed').slice(0, 2).map(b => (
-                <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', borderRadius: '6px', cursor: 'pointer', transition: 'background 0.15s' }}>
-                  <Receipt size={18} color="#6f7a70" />
-                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.825rem', color: '#181d19', flex: 1 }}>Invoice #{b.id.slice(-6)}</span>
-                  <Download size={16} color="#00522c" />
-                </div>
-              ))
+            {(bookings || []).filter(b => b.status === 'Completed').slice(0, 3).length > 0 ? (
+              (bookings || []).filter(b => b.status === 'Completed').slice(0, 3).map(b => {
+                // Format date as "MMM DD, YYYY" from YYYY-MM-DD string
+                const formattedDate = b.date
+                  ? (() => { try { return new Date(b.date + 'T00:00:00').toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }); } catch { return b.date; } })()
+                  : null;
+                const docLabel = formattedDate ? `Invoice – ${formattedDate}` : `Invoice – ${b.truckRoute || 'Completed Booking'}`;
+                const handleDownloadInvoice = async () => {
+                  if (!user?.email) { addToast('No email address found on your account.', 'error'); return; }
+                  try {
+                    addToast('Sending invoice to your email…', 'info', 3000);
+                    const res = await fetch('/api/send-invoice', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        to: user.email,
+                        userName: user.displayName || 'Customer',
+                        invoiceNumber: b.id.slice(-8).toUpperCase(),
+                        invoiceDate: b.date || 'N/A',
+                        items: [{ description: b.truckRoute || 'Logistics Service', detail: `${b.pickup} → ${b.delivery}`, amount: b.quotedAmount || 0 }],
+                        total: b.quotedAmount || 0,
+                        truckRoute: b.truckRoute, pickup: b.pickup, delivery: b.delivery,
+                        paymentMethod: b.paymentMethod, bookingId: b.id,
+                      }),
+                    });
+                    const data = await res.json();
+                    if (data.success) addToast('Invoice sent to your email! ✓', 'success');
+                    else addToast('Could not send invoice: ' + (data.error || 'Unknown error'), 'error');
+                  } catch { addToast('Failed to send invoice. Please try again.', 'error'); }
+                };
+                return (
+                  <div
+                    key={b.id}
+                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', borderRadius: '6px', cursor: 'pointer', transition: 'background 0.15s' }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#f6fbf3'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <Receipt size={18} color="#6f7a70" />
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.825rem', color: '#181d19', flex: 1 }}>{docLabel}</span>
+                    <button
+                      onClick={handleDownloadInvoice}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#00522c', display: 'flex', alignItems: 'center', padding: '2px 4px', borderRadius: '4px', transition: 'background 0.15s' }}
+                      title="Send invoice to email"
+                    >
+                      <Download size={16} />
+                    </button>
+                  </div>
+                );
+              })
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {[
@@ -381,83 +443,102 @@ export default function MyBookings() {
       {/* ── Booking History Table ── */}
       <div className="animate-slide-up delay-200" style={{ background: '#ffffff', border: '1px solid #bec9be', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 6px rgba(0,0,0,0.05)' }}>
         {/* Table header with filters */}
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid #bec9be', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-          <h2 style={{ fontFamily: 'Manrope, sans-serif', fontSize: '1.25rem', fontWeight: 700, color: '#181d19', margin: 0 }}>Booking History</h2>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-            {/* Search */}
-            <input
-              type="text"
-              placeholder="Search bookings…"
-              value={searchQuery}
-              onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-              style={{
-                height: '36px', padding: '0 12px', border: '1.5px solid #bec9be', borderRadius: '8px',
-                fontFamily: 'Inter, sans-serif', fontSize: '0.825rem', color: '#181d19', background: '#f6fbf3',
-                width: '200px', outline: 'none',
-              }}
-            />
-            {/* Status filter */}
+        <div style={{ padding: '20px 24px', borderBottom: '1px solid #ebefe8' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <h2 style={{ fontFamily: 'Manrope, sans-serif', fontSize: '1.25rem', fontWeight: 700, color: '#181d19', margin: 0 }}>Booking History</h2>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: '#6f7a70' }}>
+              {filtered.length} record{filtered.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+          {/* Filter row 1: Search + Status + Payment */}
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '8px' }}>
+            <div style={{ position: 'relative', flex: 1, minWidth: '180px' }}>
+              <Filter size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#6f7a70', pointerEvents: 'none' }} />
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Search bookings…"
+                value={searchQuery}
+                onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                style={{ paddingLeft: '32px', width: '100%' }}
+              />
+            </div>
             <select
+              className="form-select"
               value={filterStatus}
               onChange={e => { setFilterStatus(e.target.value); setCurrentPage(1); }}
-              style={{
-                height: '36px', padding: '0 12px', border: '1.5px solid #bec9be', borderRadius: '8px',
-                fontFamily: 'Inter, sans-serif', fontSize: '0.825rem', color: '#181d19', background: '#f6fbf3',
-                cursor: 'pointer', outline: 'none',
-              }}
+              style={{ width: '160px' }}
             >
               <option value="all">All Statuses</option>
               {['quote requested', 'quoted', 'confirmed', 'pending payment', 'in transit', 'completed', 'cancelled', 'declined'].map(s => (
                 <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
               ))}
             </select>
-            {/* Date filter */}
+            <select
+              className="form-select"
+              value={filterPayment}
+              onChange={e => { setFilterPayment(e.target.value); setCurrentPage(1); }}
+              style={{ width: '155px' }}
+            >
+              <option value="all">All Payments</option>
+              <option value="stripe">Stripe (Online)</option>
+              <option value="cod">Cash on Delivery</option>
+            </select>
+          </div>
+          {/* Filter row 2: Truck Type + Date + Clear */}
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+            {truckTypeOptions.length > 0 && (
+              <select
+                className="form-select"
+                value={filterTruckType}
+                onChange={e => { setFilterTruckType(e.target.value); setCurrentPage(1); }}
+                style={{ width: '165px' }}
+              >
+                <option value="all">All Truck Types</option>
+                {truckTypeOptions.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            )}
             <input
               type="date"
+              className="form-input"
               value={filterDate}
               onChange={e => { setFilterDate(e.target.value); setCurrentPage(1); }}
-              style={{
-                height: '36px', padding: '0 12px', border: '1.5px solid #bec9be', borderRadius: '8px',
-                fontFamily: 'Inter, sans-serif', fontSize: '0.825rem', color: '#181d19', background: '#f6fbf3',
-                outline: 'none',
-              }}
+              style={{ width: '155px' }}
             />
             {filterDate && (
-              <button style={{ background: 'none', color: '#6f7a70', cursor: 'pointer', display: 'flex', alignItems: 'center' }} onClick={() => { setFilterDate(''); setCurrentPage(1); }}>
+              <button style={{ background: 'none', color: '#6f7a70', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px', border: 'none' }} onClick={() => { setFilterDate(''); setCurrentPage(1); }}>
                 <X size={14} />
               </button>
             )}
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: '#6f7a70', whiteSpace: 'nowrap' }}>
-              {filtered.length} record{filtered.length !== 1 ? 's' : ''}
-            </span>
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="btn btn-outline btn-sm"
+                style={{ color: 'var(--danger, #e53935)', borderColor: 'var(--danger, #e53935)', whiteSpace: 'nowrap' }}
+              >
+                Clear Filters
+              </button>
+            )}
           </div>
         </div>
 
         {/* Table */}
         <div className="table-container">
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table className="table" style={{ width: '100%' }}>
             <thead>
-              <tr style={{ background: '#f0f5ee' }}>
-                {['BOOKING ID', 'DATE', 'ROUTE', 'TRUCK TYPE', 'STATUS', 'AMOUNT', 'ACTION'].map(col => (
-                  <th key={col} style={{
-                    textAlign: 'left', padding: '12px 20px',
-                    fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700,
-                    textTransform: 'uppercase', letterSpacing: '0.05em', color: '#5f5e5e',
-                    borderBottom: '1px solid #bec9be',
-                    whiteSpace: 'nowrap',
-                  }}>{col}</th>
+              <tr>
+                {['Date', 'Route', 'Truck Type', 'Status', 'Amount', 'Action'].map(col => (
+                  <th key={col}>{col}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="7" style={{ textAlign: 'center', padding: '40px', fontFamily: 'Inter, sans-serif', color: '#6f7a70' }}>Loading bookings…</td></tr>
+                <tr><td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: '#6f7a70', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem' }}>Loading bookings…</td></tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan="7" style={{ textAlign: 'center', padding: '48px', fontFamily: 'Inter, sans-serif', color: '#6f7a70' }}>
-                    {searchQuery || filterStatus !== 'all' || filterDate
-                      ? 'No bookings match your filters.'
-                      : <>No bookings yet. <Link href="/dashboard/book" style={{ color: '#00522c', fontWeight: 700 }}>Start by requesting a quote →</Link></>}
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '48px', fontFamily: 'Inter, sans-serif', color: '#6f7a70' }}>
+                    {hasActiveFilters ? 'No bookings match your filters.' : <>No bookings yet. <Link href="/dashboard/book" style={{ color: '#00522c', fontWeight: 700 }}>Start by requesting a quote →</Link></>}
                   </td>
                 </tr>
               ) : paginated.map((booking, idx) => (
@@ -471,12 +552,7 @@ export default function MyBookings() {
                   }}
                   onClick={() => setSelectedBooking(selectedBooking?.id === booking.id ? null : booking)}
                 >
-                  <td style={{ padding: '16px 20px' }}>
-                    <strong style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.85rem', color: '#00522c', letterSpacing: '0.02em' }}>
-                      #{booking.id.slice(-8)}
-                    </strong>
-                  </td>
-                  <td style={{ padding: '16px 20px', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: '#5f5e5e' }}>
+                  <td style={{ padding: '14px 16px', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: '#5f5e5e' }}>
                     {booking.date || '—'}
                   </td>
                   <td style={{ padding: '16px 20px', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem' }}>

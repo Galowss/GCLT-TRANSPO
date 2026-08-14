@@ -7,14 +7,16 @@ import { Receipt, Download, Search } from 'lucide-react';
 import { useState } from 'react';
 
 function exportToCsv(transactions) {
-  const headers = ['Transaction ID', 'Service', 'Pickup', 'Delivery', 'Payment Method', 'Date', 'Status'];
+  const headers = ['Ref #', 'Customer', 'Service', 'Pickup', 'Delivery', 'Payment Method', 'Date', 'Amount (PHP)', 'Status'];
   const rows = transactions.map(b => [
-    b.id,
+    b.refNumber || 'Legacy',
+    b.userName || 'Guest',
     b.truckRoute || 'Transport Service',
     b.pickup || '',
     b.delivery || '',
     b.paymentMethod === 'stripe' ? 'Stripe' : 'Cash on Delivery',
     b.date || '',
+    b.quotedAmount || '',
     b.status || '',
   ]);
   const csv = [headers, ...rows].map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
@@ -34,6 +36,16 @@ export default function TransactionsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDate, setFilterDate] = useState('all');
   const [filterPayment, setFilterPayment] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
+
+  const hasActiveFilters = searchQuery || filterDate !== 'all' || filterPayment !== 'all' || filterStatus !== 'all';
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setFilterDate('all');
+    setFilterPayment('all');
+    setFilterStatus('all');
+  };
 
   const completedBookings = (bookings || []).filter(b =>
     b.status === 'Completed' || b.paymentMethod === 'stripe'
@@ -50,13 +62,14 @@ export default function TransactionsPage() {
   const filtered = completedBookings.filter(b => {
     const q = searchQuery.toLowerCase();
     const matchesSearch = !q ||
-      b.id.toLowerCase().includes(q) ||
       (b.truckRoute || '').toLowerCase().includes(q) ||
-      (b.pickup || '').toLowerCase().includes(q);
+      (b.pickup || '').toLowerCase().includes(q) ||
+      (b.userName || '').toLowerCase().includes(q);
     const matchesPayment = filterPayment === 'all' || b.paymentMethod === filterPayment;
     const cutoff = getDateCutoff();
     const matchesDate = !cutoff || !b.date || new Date(b.date) >= cutoff;
-    return matchesSearch && matchesPayment && matchesDate;
+    const matchesStatus = filterStatus === 'all' || (b.status || '').toLowerCase() === filterStatus.toLowerCase();
+    return matchesSearch && matchesPayment && matchesDate && matchesStatus;
   });
 
   return (
@@ -104,6 +117,21 @@ export default function TransactionsPage() {
           <option value="stripe">Stripe</option>
           <option value="cod">Cash on Delivery</option>
         </select>
+        <select className="form-select" style={{ width: '165px' }} value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+          <option value="all">Status: All</option>
+          <option value="Completed">Completed</option>
+          <option value="Pending Payment">Pending Payment</option>
+          <option value="In Transit">In Transit</option>
+        </select>
+        {hasActiveFilters && (
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={clearFilters}
+            style={{ color: 'var(--danger)', borderColor: 'var(--danger)', whiteSpace: 'nowrap' }}
+          >
+            Clear Filters
+          </button>
+        )}
         <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
           {filtered.length} result{filtered.length !== 1 ? 's' : ''}
         </span>
@@ -115,11 +143,12 @@ export default function TransactionsPage() {
           <table className="table">
             <thead>
               <tr>
-                <th>Transaction ID</th>
+                <th>Ref #</th>
                 <th>Service</th>
                 <th>Route</th>
                 <th>Payment Method</th>
                 <th>Date</th>
+                <th>Amount</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -128,11 +157,15 @@ export default function TransactionsPage() {
                 <tr><td colSpan="6" style={{ textAlign: 'center', padding: '32px' }}>Loading transactions...</td></tr>
               ) : !filtered.length ? (
                 <tr><td colSpan="6" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
-                  {searchQuery || filterDate !== 'all' || filterPayment !== 'all' ? 'No transactions match your filters.' : 'No transactions found'}
+                  {hasActiveFilters ? 'No transactions match your filters.' : 'No transactions found'}
                 </td></tr>
               ) : filtered.map((b) => (
                 <tr key={b.id}>
-                  <td><strong style={{ color: 'var(--primary)' }}>{b.id.slice(-8)}</strong></td>
+                  <td>
+                    <span style={{ fontFamily: 'monospace', background: '#f0f5ee', color: '#00522c', padding: '2px 8px', borderRadius: '4px', fontWeight: 700, fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
+                      {b.refNumber || <span style={{ color: '#9E9E9E' }}>Legacy</span>}
+                    </span>
+                  </td>
                   <td>{b.truckRoute || 'Transport Service'}</td>
                   <td>
                     <div style={{ fontSize: '0.85rem' }}>{b.pickup}</div>
@@ -147,6 +180,11 @@ export default function TransactionsPage() {
                     </span>
                   </td>
                   <td style={{ fontSize: '0.85rem' }}>{b.date}</td>
+                  <td>
+                    {b.quotedAmount ? (
+                      <strong style={{ color: 'var(--primary)', fontSize: '0.85rem' }}>₱{Number(b.quotedAmount).toLocaleString()}</strong>
+                    ) : <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>—</span>}
+                  </td>
                   <td>
                     <span className={`status ${b.status === 'Completed' ? 'status-confirmed' : 'status-pending'}`}>
                       {b.status}

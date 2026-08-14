@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/AuthContext';
-import { LayoutDashboard, Truck, Calendar, Users, Bell, Settings, Receipt, LogOut, ShoppingBag, X } from 'lucide-react';
+import { LayoutDashboard, Truck, Calendar, Users, Bell, Settings, Receipt, LogOut, ShoppingBag, X, BarChart2 } from 'lucide-react';
 
 const adminLinks = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -12,6 +12,7 @@ const adminLinks = [
   { href: '/admin/trucks', label: 'Truck Listings', icon: ShoppingBag },
   { href: '/admin/appointments', label: 'Appointments', icon: Calendar },
   { href: '/admin/transactions', label: 'Transactions', icon: Receipt },
+  { href: '/admin/reports', label: 'Reports', icon: BarChart2 },
   { href: '/admin/customers', label: 'User Management', icon: Users },
   { href: '/admin/notifications', label: 'Notifications', icon: Bell },
   { href: '/admin/settings', label: 'Settings', icon: Settings },

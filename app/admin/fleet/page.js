@@ -6,12 +6,12 @@ import { subscribeToFleetTypes, addFleetType, updateFleetType, deleteFleetType }
 import { compressImage } from '@/lib/compressImage';
 import { useToast } from '@/components/Toast';
 import { useState } from 'react';
-import { Truck, Plus, Pencil, Trash2, X, Upload, Image, XCircle, CheckCircle } from 'lucide-react';
+import { Truck, Plus, Pencil, Trash2, X, Upload, Image, XCircle, CheckCircle, Search } from 'lucide-react';
 import { FLEET_CATEGORIES } from '@/lib/constants';
 
 const emptyForm = {
-  name: '', capacity: '', description: '',
-  available: true, category: 'Small Trucks',
+  name: '', capacity: '', passengerCapacity: '', loadCapacity: '',
+  description: '', available: true, category: 'Small Trucks',
 };
 
 export default function AdminFleet() {
@@ -26,6 +26,29 @@ export default function AdminFleet() {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterCategory, setFilterCategory] = useState('all');
+  const [filterAvailability, setFilterAvailability] = useState('all');
+
+  const hasActiveFilters = searchQuery || filterCategory !== 'all' || filterAvailability !== 'all';
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setFilterCategory('all');
+    setFilterAvailability('all');
+  };
+
+  const filteredFleet = (fleet || []).filter(item => {
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = !q ||
+      (item.name || '').toLowerCase().includes(q) ||
+      (item.description || '').toLowerCase().includes(q) ||
+      (item.capacity || '').toLowerCase().includes(q);
+    const matchesCategory = filterCategory === 'all' || (item.category || '') === filterCategory;
+    const matchesAvailability = filterAvailability === 'all' ||
+      (filterAvailability === 'available' ? item.available !== false : item.available === false);
+    return matchesSearch && matchesCategory && matchesAvailability;
+  });
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -82,6 +105,8 @@ export default function AdminFleet() {
     setFormData({
       name: item.name || '',
       capacity: item.capacity || '',
+      passengerCapacity: item.passengerCapacity || '',
+      loadCapacity: item.loadCapacity || '',
       description: item.description || '',
       available: item.available !== false,
       category: item.category || 'Small Trucks',
@@ -102,6 +127,8 @@ export default function AdminFleet() {
       const data = {
         name: formData.name,
         capacity: formData.capacity,
+        passengerCapacity: formData.passengerCapacity,
+        loadCapacity: formData.loadCapacity ? Number(formData.loadCapacity) : '',
         description: formData.description,
         imageUrl: finalImageUrls[0] || '',
         imageUrls: finalImageUrls,
@@ -185,6 +212,56 @@ export default function AdminFleet() {
         </div>
       </div>
 
+      {/* Filter Bar */}
+      <div className="card" style={{ padding: '14px 18px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
+            <Search size={15} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Search fleet by name or capacity…"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              style={{ paddingLeft: '34px', width: '100%' }}
+            />
+          </div>
+          <select
+            className="form-select"
+            style={{ width: '190px' }}
+            value={filterCategory}
+            onChange={e => setFilterCategory(e.target.value)}
+          >
+            <option value="all">Category: All</option>
+            {FLEET_CATEGORIES.map(cat => (
+              <option key={cat.value} value={cat.value}>{cat.label}</option>
+            ))}
+          </select>
+          <select
+            className="form-select"
+            style={{ width: '160px' }}
+            value={filterAvailability}
+            onChange={e => setFilterAvailability(e.target.value)}
+          >
+            <option value="all">Availability: All</option>
+            <option value="available">Available</option>
+            <option value="unavailable">Unavailable</option>
+          </select>
+          {hasActiveFilters && (
+            <button
+              className="btn btn-outline btn-sm"
+              onClick={clearFilters}
+              style={{ color: 'var(--danger)', borderColor: 'var(--danger)', whiteSpace: 'nowrap' }}
+            >
+              Clear Filters
+            </button>
+          )}
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', marginLeft: 'auto' }}>
+            {filteredFleet.length} of {(fleet || []).length}
+          </span>
+        </div>
+      </div>
+
       {/* Form */}
       {showForm && (
         <div className="card card-lg" style={{ marginBottom: '24px', border: '2px solid var(--primary)' }}>
@@ -242,8 +319,21 @@ export default function AdminFleet() {
                 <input type="text" name="name" className="form-input" placeholder="e.g. Closed Van (4-6 Tons)" value={formData.name} onChange={handleChange} required />
               </div>
               <div className="form-group">
-                <label className="form-label">Capacity</label>
-                <input type="text" name="capacity" className="form-input" placeholder="e.g. 4-6 Tons" value={formData.capacity} onChange={handleChange} />
+                <label className="form-label">Legacy Capacity (text)</label>
+                <input type="text" name="capacity" className="form-input" placeholder="e.g. 4-6 Tons (legacy display)" value={formData.capacity} onChange={handleChange} />
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>Used for older fleet entries. Prefer the fields below.</span>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Load Capacity (KG) *</label>
+                <input type="number" name="loadCapacity" className="form-input" placeholder="e.g. 10000" value={formData.loadCapacity} onChange={handleChange} min="0" />
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>Maximum cargo weight this truck can carry in kilograms.</span>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Passenger / Crew Capacity</label>
+                <input type="number" name="passengerCapacity" className="form-input" placeholder="e.g. 3" value={formData.passengerCapacity} onChange={handleChange} min="0" />
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>Number of crew/riders the cab accommodates.</span>
               </div>
 
               {/* Category dropdown — drives user-facing booking dropdown */}
@@ -296,12 +386,12 @@ export default function AdminFleet() {
             <tbody>
               {loading ? (
                 <tr><td colSpan="5" style={{ textAlign: 'center', padding: '32px' }}>Loading fleet...</td></tr>
-              ) : !(fleet || []).length ? (
+              ) : !filteredFleet.length ? (
                 <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
                   <Truck size={28} style={{ display: 'block', margin: '0 auto 8px' }} />
-                  No fleet trucks added. Users won't see any options when booking.
+                  {hasActiveFilters ? 'No fleet trucks match your filters.' : 'No fleet trucks added. Users won\'t see any options when booking.'}
                 </td></tr>
-              ) : fleet.map(item => (
+              ) : filteredFleet.map(item => (
                 <tr key={item.id}>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -327,7 +417,16 @@ export default function AdminFleet() {
                       {FLEET_CATEGORIES.find(c => c.value === item.category)?.label || item.category || '—'}
                     </span>
                   </td>
-                  <td>{item.capacity || '--'}</td>
+                  <td>
+                    {item.loadCapacity ? (
+                      <span>
+                        <strong>{Number(item.loadCapacity).toLocaleString()} kg</strong>
+                        {item.passengerCapacity && <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}> / {item.passengerCapacity} crew</span>}
+                      </span>
+                    ) : (
+                      item.capacity || '--'
+                    )}
+                  </td>
                   <td>
                     <span className={`badge ${item.available !== false ? 'badge-success' : 'badge-warning'}`}>
                       {item.available !== false ? 'Available' : 'Unavailable'}

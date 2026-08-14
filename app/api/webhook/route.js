@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { db } from '@/lib/firebase';
 import { doc, updateDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { sendEmail } from '@/lib/mailjet';
+import templates from '@/lib/emailTemplates';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_fallback');
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -74,6 +76,37 @@ export async function POST(request) {
             userId: 'admin',
             createdAt: serverTimestamp(),
           });
+
+          // Send automated email receipt
+          const customerEmail = session.customer_email || session.metadata?.userEmail;
+          if (customerEmail) {
+            try {
+              const invoiceData = {
+                to: customerEmail,
+                userName: session.metadata?.userName || session.customer_details?.name || 'Customer',
+                invoiceNumber: bookingId.slice(-8).toUpperCase(),
+                invoiceDate: date || new Date().toISOString().split('T')[0],
+                items: [{ description: fleet || 'Logistics Service', detail: `${pickup || 'N/A'} → ${delivery || 'N/A'}`, amount: (session.amount_total / 100) || 0 }],
+                total: (session.amount_total / 100) || 0,
+                truckRoute: fleet || 'Transport', 
+                pickup, 
+                delivery,
+                paymentMethod: 'stripe', 
+                bookingId: bookingId,
+              };
+              
+              const { subject, html } = templates.booking_invoice(invoiceData);
+              await sendEmail({
+                to: customerEmail,
+                toName: invoiceData.userName,
+                subject,
+                html,
+              });
+              console.log(`[Webhook] Sent automated invoice email to ${customerEmail}`);
+            } catch (emailErr) {
+              console.error('[Webhook] Failed to send automated invoice email:', emailErr.message);
+            }
+          }
 
           console.log(`[Webhook] Booking ${bookingId} confirmed after Stripe payment.`);
         } catch (err) {

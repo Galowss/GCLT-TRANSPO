@@ -76,6 +76,7 @@ export default function BookTransport() {
     date: '', time: '',
     weight: '', cargoLength: '', cargoWidth: '', cargoHeight: '',
     notes: '',
+    truckQuantity: 1,
   });
 
   const handleChange = (e) => {
@@ -167,6 +168,7 @@ export default function BookTransport() {
       cargoSize: cargoSizeFull, cargoLength: formData.cargoLength, cargoWidth: formData.cargoWidth, cargoHeight: formData.cargoHeight,
       routeType: routeInfo.route, notes: specialInstructions, fleetType: selectedFleet,
       estimatedDistance: estimatedDistance,
+      truckQuantity: Number(formData.truckQuantity) || 1,
       status: 'Quote Requested', requestedAt: now.toISOString(),
       userId: user?.uid || 'anonymous', userEmail: user?.email || '', userName: user?.displayName || 'Guest',
     };
@@ -331,7 +333,19 @@ export default function BookTransport() {
                     </div>
                     <div className={styles.fieldGroup}>
                       <label className={styles.fieldLabel}>TIME</label>
-                      <input className={styles.fieldInput} type="time" name="time" value={formData.time} onChange={handleChange} required />
+                      <input
+                        className={styles.fieldInput}
+                        type="time"
+                        name="time"
+                        value={formData.time}
+                        onChange={handleChange}
+                        min="08:00"
+                        max="18:00"
+                        required
+                      />
+                      <span style={{ fontSize: '0.72rem', color: '#6f7a70', marginTop: '4px', display: 'block' }}>
+                        📅 Bookings available 8:00 AM–6:00 PM
+                      </span>
                     </div>
                   </div>
 
@@ -533,8 +547,10 @@ export default function BookTransport() {
                   const isRecommended = idx === 0;
                   /* Check if truck can handle the user's cargo weight */
                   const userWeight = Number(formData.weight) || 0;
-                  const fleetCapNum = parseFloat((fleet.capacity || '').replace(/[^0-9.]/g, '')) || 0;
-                  const fleetCapKg = fleetCapNum * 1000; /* assuming capacity stored as tons */
+                  // Prefer the numeric loadCapacity field; fall back to parsing the legacy capacity string
+                  const fleetCapKg = fleet.loadCapacity
+                    ? Number(fleet.loadCapacity)
+                    : (parseFloat((fleet.capacity || '').replace(/[^0-9.]/g, '')) || 0) * 1000;
                   const isInsufficient = userWeight > 0 && fleetCapKg > 0 && userWeight > fleetCapKg;
                   return (
                     <div
@@ -562,10 +578,21 @@ export default function BookTransport() {
                       <div className={styles.truckSpecs}>
                         <div className={styles.specGrid}>
                           {/* PAYLOAD */}
-                          {fleet.capacity && (
+                          {(fleet.loadCapacity || fleet.capacity) && (
                             <div className={styles.specItem}>
                               <span className={styles.specLabel}>⚖ Payload</span>
-                              <span className={`${styles.specValue} ${isInsufficient ? styles.specValueDanger : ''}`}>{fleet.capacity}</span>
+                              <span className={`${styles.specValue} ${isInsufficient ? styles.specValueDanger : ''}`}>
+                                {fleet.loadCapacity
+                                  ? `${Number(fleet.loadCapacity).toLocaleString()} kg`
+                                  : fleet.capacity}
+                              </span>
+                            </div>
+                          )}
+                          {/* CREW CAPACITY */}
+                          {fleet.passengerCapacity && (
+                            <div className={styles.specItem}>
+                              <span className={styles.specLabel}>👥 Crew</span>
+                              <span className={styles.specValue}>{fleet.passengerCapacity} persons</span>
                             </div>
                           )}
                           {/* DIMENSIONS */}
@@ -617,6 +644,32 @@ export default function BookTransport() {
                 })
               )}
             </div>
+
+            {/* Truck Quantity Stepper */}
+            {selectedFleet && (
+              <div style={{ margin: '24px 0', padding: '20px', background: '#f6fbf3', borderRadius: '10px', border: '1px solid #bec9be' }}>
+                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#3f4941', display: 'block', marginBottom: '12px' }}>
+                  NUMBER OF TRUCKS
+                </label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, truckQuantity: Math.max(1, (Number(prev.truckQuantity) || 1) - 1) }))}
+                    style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1.5px solid #bec9be', background: '#fff', fontSize: '1.25rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3f4941' }}
+                  >−</button>
+                  <div style={{ textAlign: 'center' }}>
+                    <span style={{ fontSize: '1.75rem', fontWeight: 800, color: '#00522c', display: 'block', lineHeight: 1 }}>{formData.truckQuantity || 1}</span>
+                    <span style={{ fontSize: '0.72rem', color: '#6f7a70' }}>{formData.truckQuantity === 1 ? 'truck' : 'trucks'}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, truckQuantity: Math.min(10, (Number(prev.truckQuantity) || 1) + 1) }))}
+                    style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1.5px solid #bec9be', background: '#fff', fontSize: '1.25rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3f4941' }}
+                  >+</button>
+                  <span style={{ fontSize: '0.8rem', color: '#6f7a70', marginLeft: '8px' }}>Max 10 trucks per booking. The final price will be quoted by our team.</span>
+                </div>
+              </div>
+            )}
 
             <div className={styles.stepActions}>
               <button className={styles.btnGhost} onClick={() => setCurrentStep(1)}>
@@ -716,6 +769,9 @@ export default function BookTransport() {
                       <div>
                         <p className={styles.reviewVehicleName}>{selectedFleetData.name}</p>
                         <p className={styles.reviewVehicleMeta}>{selectedFleetData.category || 'General'}{selectedFleetData.capacity ? ` • ${selectedFleetData.capacity}` : ''}</p>
+                        <p className={styles.reviewVehicleMeta} style={{ marginTop: '4px', fontWeight: 700, color: '#00522c' }}>
+                          🚛 × {formData.truckQuantity || 1} {formData.truckQuantity === 1 ? 'truck' : 'trucks'} requested
+                        </p>
                       </div>
                     </div>
                   ) : <p style={{ color: '#6f7a70' }}>No vehicle selected.</p>}
