@@ -9,14 +9,22 @@ import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToFleetTypes, addBooking, addNotification } from '@/lib/firebaseService';
 import { useAuth } from '@/lib/AuthContext';
 import { useToast } from '@/components/Toast';
-import { MapPin, Navigation, Check, ArrowRight, ArrowLeft, Star, AlertTriangle, Snowflake, Package, Wrench } from 'lucide-react';
+import { MapPin, Navigation, Check, ArrowRight, ArrowLeft, Star, AlertTriangle, Snowflake, Package, Wrench, Truck } from 'lucide-react';
 import LeafletMapModal from '@/components/LeafletMapModalDynamic';
 import LeafletInlineMap from '@/components/LeafletInlineMapDynamic';
 import { FLEET_CATEGORIES } from '@/lib/constants';
+import { highlightAndFocusMissingFields } from '@/lib/validation';
 import styles from './book.module.css';
 
 /* ── Auto-route logic ── */
-function determineRouteType(weight, cargoSize) {
+function determineRouteType(weight, cargoSize, pickupCity, deliveryCity) {
+  const pCity = (pickupCity || '').trim().toLowerCase();
+  const dCity = (deliveryCity || '').trim().toLowerCase();
+  
+  if (pCity && dCity && pCity === dCity) {
+    return { route: 'Local Route', reason: 'Pickup and delivery are in the same area. Routed via local city roads.' };
+  }
+
   const w = Number(weight) || 0;
   const sizeStr = (cargoSize || '').toLowerCase();
   const isHeavy = w >= 3000;
@@ -31,10 +39,11 @@ function determineRouteType(weight, cargoSize) {
 
 /* ── Constants ── */
 const CARGO_TYPES = [
-  { value: 'general', label: 'General', Icon: Package },
-  { value: 'refrigerated', label: 'Refrigerated', Icon: Snowflake },
-  { value: 'hazardous', label: 'Hazardous', Icon: AlertTriangle },
-  { value: 'oversized', label: 'Oversized', Icon: Wrench },
+  { value: 'Trailer', label: 'Trailer', Icon: Truck },
+  { value: 'Flatbed', label: 'Flatbed', Icon: Truck },
+  { value: 'Skeletal', label: 'Skeletal', Icon: Truck },
+  { value: '20 footer', label: '20 footer', Icon: Truck },
+  { value: '40 footer', label: '40 footer', Icon: Truck },
 ];
 
 
@@ -67,10 +76,11 @@ export default function BookTransport() {
   const [mapsTarget, setMapsTarget] = useState('pickup');
   const [specialInstructions, setSpecialInstructions] = useState('');
   const [estimatedDistance, setEstimatedDistance] = useState(null);
+  const [privacyConsent, setPrivacyConsent] = useState(false);
 
   /* ── Form data ── */
   const [formData, setFormData] = useState({
-    cargoType: 'general',
+    cargoType: 'Trailer',
     pickupStreet: '', pickupBarangay: '', pickupCity: '',
     deliveryStreet: '', deliveryBarangay: '', deliveryCity: '',
     date: '', time: '',
@@ -90,14 +100,14 @@ export default function BookTransport() {
   const cargoSizeFull = (formData.cargoLength || formData.cargoWidth || formData.cargoHeight)
     ? `${formData.cargoLength || 0}m × ${formData.cargoWidth || 0}m × ${formData.cargoHeight || 0}m`
     : '';
-  const routeInfo = useMemo(() => determineRouteType(formData.weight, cargoSizeFull), [formData.weight, cargoSizeFull]);
+  const routeInfo = useMemo(() => determineRouteType(formData.weight, cargoSizeFull, formData.pickupCity, formData.deliveryCity), [formData.weight, cargoSizeFull, formData.pickupCity, formData.deliveryCity]);
 
   /* ── Fleet data ── */
   const allFleets = useMemo(() => (fleetTypes || []).filter(f => f.available !== false), [fleetTypes]);
   const filteredFleets = useMemo(() => {
     if (fleetFilter === 'all') return allFleets;
     const cat = FLEET_CATEGORIES.find(c => c.value.toLowerCase() === fleetFilter.toLowerCase());
-    return cat ? allFleets.filter(f => (f.category || 'Small Trucks') === cat.value) : allFleets;
+    return cat ? allFleets.filter(f => (f.category || 'Trailer') === cat.value) : allFleets;
   }, [allFleets, fleetFilter]);
 
   /* ── Geolocation ── */
@@ -149,9 +159,14 @@ export default function BookTransport() {
     } catch (err) { console.error('Email notification failed:', err); }
   };
 
-  /* ── Submit booking ── */
+  /* ── Submission ── */
   const handleSubmit = async () => {
-    setLoading(true);
+    if (highlightAndFocusMissingFields()) return;
+    if (!privacyConsent) {
+      addToast('You must agree to the Data Privacy Policy to submit a quote request.', 'error');
+      return;
+    }
+    setLoading(true); 
     const fleet = fleetTypes?.find(f => f.id === selectedFleet);
     if (!fleet) { addToast('Please select a fleet type.', 'error'); setLoading(false); return; }
     if (!formData.time) { addToast('Please select a specific time.', 'error'); setLoading(false); return; }
@@ -175,13 +190,13 @@ export default function BookTransport() {
 
     const userNotif = {
       title: 'Quote Request Submitted',
-      message: `Your ${formData.cargoType} cargo quote request for ${fleet.name} (${pickupFull} to ${deliveryFull}) has been received. Route: ${routeInfo.route}. Our team will calculate the cost and get back to you shortly.`,
+      message: `Your ${formData.cargoType} truck quote request for ${fleet.name} (${pickupFull} to ${deliveryFull}) has been received. Route: ${routeInfo.route}. Our team will calculate the cost and get back to you shortly.`,
       type: 'booking', isNew: true, time: timeString, userId: user?.uid || 'anonymous',
     };
 
     const adminNotif = {
       title: 'New Quote Request',
-      message: `${user?.displayName || 'A user'} submitted a ${formData.cargoType} cargo quote request for ${fleet.name} -- ${pickupFull} to ${deliveryFull}. Weight: ${formData.weight || 'N/A'} KG, Size: ${cargoSizeFull || 'N/A'}. Auto-route: ${routeInfo.route}.`,
+      message: `${user?.displayName || 'A user'} submitted a ${formData.cargoType} truck quote request for ${fleet.name} -- ${pickupFull} to ${deliveryFull}. Weight: ${formData.weight || 'N/A'} KG, Size: ${cargoSizeFull || 'N/A'}. Auto-route: ${routeInfo.route}.`,
       type: 'booking', isNew: true, time: timeString, forAdmin: true, userId: 'admin', userEmail: user?.email || '',
     };
 
@@ -202,8 +217,9 @@ export default function BookTransport() {
   const isSameDestination = !!(formData.pickupCity && formData.deliveryCity &&
     formData.pickupStreet && formData.deliveryStreet &&
     formData.pickupStreet.trim().toLowerCase() === formData.deliveryStreet.trim().toLowerCase() &&
-    formData.pickupCity.trim().toLowerCase() === formData.deliveryCity.trim().toLowerCase());
-  const canProceedStep1 = formData.pickupStreet && formData.pickupCity && formData.deliveryStreet && formData.deliveryCity && formData.date && formData.time && !isSameDestination;
+    formData.pickupCity.trim().toLowerCase() === formData.deliveryCity.trim().toLowerCase() &&
+    (formData.pickupBarangay || '').trim().toLowerCase() === (formData.deliveryBarangay || '').trim().toLowerCase());
+  const canProceedStep1 = formData.pickupStreet && formData.deliveryStreet && formData.date && formData.time && formData.weight && formData.cargoLength && formData.cargoWidth && formData.cargoHeight && !isSameDestination;
   const canProceedStep2 = !!selectedFleet;
   const today = new Date().toISOString().split('T')[0];
   const selectedFleetData = fleetTypes?.find(f => f.id === selectedFleet);
@@ -286,7 +302,7 @@ export default function BookTransport() {
                         <input className={styles.fieldInput} type="text" name="pickupStreet" placeholder="Street / Building / Landmark *" value={formData.pickupStreet} onChange={handleChange} required />
                         <div className={styles.locationSubFields}>
                           <input className={styles.fieldInput} type="text" name="pickupBarangay" placeholder="Barangay (optional)" value={formData.pickupBarangay} onChange={handleChange} />
-                          <input className={styles.fieldInput} type="text" name="pickupCity" placeholder="City / Municipality *" value={formData.pickupCity} onChange={handleChange} required />
+                          <input className={styles.fieldInput} type="text" name="pickupCity" placeholder="City / Municipality (optional)" value={formData.pickupCity} onChange={handleChange} />
                         </div>
                         <div className={styles.locationActions}>
                           <button type="button" className={styles.locBtn} onClick={() => handleUseLocation('pickup')} disabled={locating && locatingTarget === 'pickup'}>
@@ -309,7 +325,7 @@ export default function BookTransport() {
                         <input className={styles.fieldInput} type="text" name="deliveryStreet" placeholder="Street / Building / Landmark *" value={formData.deliveryStreet} onChange={handleChange} required />
                         <div className={styles.locationSubFields}>
                           <input className={styles.fieldInput} type="text" name="deliveryBarangay" placeholder="Barangay (optional)" value={formData.deliveryBarangay} onChange={handleChange} />
-                          <input className={styles.fieldInput} type="text" name="deliveryCity" placeholder="City / Municipality *" value={formData.deliveryCity} onChange={handleChange} required />
+                          <input className={styles.fieldInput} type="text" name="deliveryCity" placeholder="City / Municipality (optional)" value={formData.deliveryCity} onChange={handleChange} />
                         </div>
                         <div className={styles.locationActions}>
                           <button type="button" className={styles.locBtn} onClick={() => handleUseLocation('delivery')} disabled={locating && locatingTarget === 'delivery'}>
@@ -351,9 +367,9 @@ export default function BookTransport() {
 
                   <div className={styles.divider} />
 
-                  {/* Cargo Type */}
+                  {/* Type of Truck */}
                   <div>
-                    <label className={styles.fieldLabel}>CARGO TYPE</label>
+                    <label className={styles.fieldLabel}>TYPE OF TRUCK</label>
                     <div className={styles.cargoTypeGrid}>
                       {CARGO_TYPES.map(({ value, label, Icon }) => (
                         <label key={value} className={`${styles.cargoTypeBtn} ${formData.cargoType === value ? styles.cargoTypeBtnActive : ''}`}>
@@ -376,19 +392,19 @@ export default function BookTransport() {
                     <div className={styles.scheduleGrid} style={{ marginTop: '10px' }}>
                       <div className={styles.fieldGroup}>
                         <label className={styles.fieldLabel}>Weight (KG)</label>
-                        <input className={styles.fieldInput} type="number" name="weight" placeholder="e.g. 5000" value={formData.weight} onChange={handleChange} min="0" />
+                        <input className={styles.fieldInput} type="number" name="weight" placeholder="e.g. 5000" value={formData.weight} onChange={handleChange} min="0" required />
                       </div>
                       <div className={styles.fieldGroup}>
                         <label className={styles.fieldLabel}>Length (m)</label>
-                        <input className={styles.fieldInput} type="number" name="cargoLength" placeholder="e.g. 6" value={formData.cargoLength} onChange={handleChange} min="0" step="0.1" />
+                        <input className={styles.fieldInput} type="number" name="cargoLength" placeholder="e.g. 6" value={formData.cargoLength} onChange={handleChange} min="0" step="0.1" required />
                       </div>
                       <div className={styles.fieldGroup}>
                         <label className={styles.fieldLabel}>Width (m)</label>
-                        <input className={styles.fieldInput} type="number" name="cargoWidth" placeholder="e.g. 2.5" value={formData.cargoWidth} onChange={handleChange} min="0" step="0.1" />
+                        <input className={styles.fieldInput} type="number" name="cargoWidth" placeholder="e.g. 2.5" value={formData.cargoWidth} onChange={handleChange} min="0" step="0.1" required />
                       </div>
                       <div className={styles.fieldGroup}>
                         <label className={styles.fieldLabel}>Height (m)</label>
-                        <input className={styles.fieldInput} type="number" name="cargoHeight" placeholder="e.g. 2" value={formData.cargoHeight} onChange={handleChange} min="0" step="0.1" />
+                        <input className={styles.fieldInput} type="number" name="cargoHeight" placeholder="e.g. 2" value={formData.cargoHeight} onChange={handleChange} min="0" step="0.1" required />
                       </div>
                     </div>
                   </div>
@@ -439,7 +455,7 @@ export default function BookTransport() {
                     disabled={isSameDestination}
                     onClick={() => {
                       if (isSameDestination) { addToast('Pickup and drop-off cannot be the same location.', 'error'); return; }
-                      if (!canProceedStep1) { addToast('Please fill in all required fields.', 'error'); return; }
+                      if (highlightAndFocusMissingFields()) { addToast('Please fill in all required fields.', 'error'); return; }
                       setCurrentStep(2);
                     }}
                   >
@@ -519,7 +535,7 @@ export default function BookTransport() {
 
             <div className={styles.stepHeader}>
               <h1 className={styles.stepTitle}>Select Your Vehicle</h1>
-              <p className={styles.stepSubtitle}>Showing fleet options based on your {formData.cargoType || 'general'} cargo requirements.</p>
+              <p className={styles.stepSubtitle}>Showing fleet options based on your {formData.cargoType || 'Trailer'} truck requirements.</p>
             </div>
 
             {/* Filter tabs */}
@@ -746,7 +762,7 @@ export default function BookTransport() {
                   <div className={styles.reviewMeta}>
                     <div><span className={styles.reviewMetaLabel}>Date</span><span className={styles.reviewMetaValue}>{formData.date || '—'}</span></div>
                     <div><span className={styles.reviewMetaLabel}>Time</span><span className={styles.reviewMetaValue}>{formData.time || '—'}</span></div>
-                    <div><span className={styles.reviewMetaLabel}>Cargo Type</span><span className={styles.reviewMetaValue} style={{ textTransform: 'capitalize' }}>{formData.cargoType}</span></div>
+                    <div><span className={styles.reviewMetaLabel}>Type of Truck</span><span className={styles.reviewMetaValue} style={{ textTransform: 'capitalize' }}>{formData.cargoType}</span></div>
                     <div><span className={styles.reviewMetaLabel}>Route</span><span className={styles.reviewMetaValue} style={{ color: routeInfo.route === 'Old Road' ? '#E65100' : '#00522c', fontWeight: 700 }}>{routeInfo.route}</span></div>
                     {formData.weight && <div><span className={styles.reviewMetaLabel}>Weight</span><span className={styles.reviewMetaValue}>{formData.weight} KG</span></div>}
                     {cargoSizeFull && <div><span className={styles.reviewMetaLabel}>Dimensions</span><span className={styles.reviewMetaValue}>{cargoSizeFull}</span></div>}
@@ -798,6 +814,14 @@ export default function BookTransport() {
                     <p className={styles.reviewSidebarLabel}>Estimated Total</p>
                     <p className={styles.reviewSidebarPrice}>Awaiting Quote</p>
                     <p className={styles.reviewSidebarNote}>Our team will review your details and send a quotation. You'll be notified via the dashboard and email.</p>
+                  </div>
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={privacyConsent} onChange={(e) => setPrivacyConsent(e.target.checked)} required style={{ marginTop: '4px' }} />
+                      <span style={{ fontSize: '0.85rem', lineHeight: '1.4', color: 'var(--text-muted)' }}>
+                        I consent to the collection and processing of my personal data in accordance with the <a href="/privacy" style={{ color: 'var(--primary)', textDecoration: 'underline' }} target="_blank">Data Privacy Policy</a>.
+                      </span>
+                    </label>
                   </div>
                   <button
                     className={styles.btnPrimary}

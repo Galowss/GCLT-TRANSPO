@@ -7,7 +7,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/lib/AuthContext';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToTrucksForSale } from '@/lib/firebaseService';
 import { Truck, MapPin, DollarSign, Search, ArrowRight, Filter, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -32,24 +32,21 @@ export default function TrucksForSale() {
   const allTypes = [...new Set((trucksForSale || []).map(t => t.type).filter(Boolean))];
   const allLocations = [...new Set((trucksForSale || []).map(t => t.location).filter(Boolean))];
 
-  const filteredTrucks = useMemo(() => {
-    let filtered = (trucksForSale || []).filter(truck => {
-      const matchesSearch = !searchQuery ||
-        truck.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        truck.type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        truck.engine?.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesType = filterType === 'all' || truck.type === filterType;
-      const matchesLocation = filterLocation === 'all' || truck.location === filterLocation;
-      return matchesSearch && matchesType && matchesLocation;
-    });
+  let filteredTrucks = (trucksForSale || []).filter(truck => {
+    const matchesSearch = !searchQuery ||
+      truck.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      truck.type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      truck.engine?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = filterType === 'all' || truck.type === filterType;
+    const matchesLocation = filterLocation === 'all' || truck.location === filterLocation;
+    return matchesSearch && matchesType && matchesLocation;
+  });
 
-    if (sortPrice === 'low') {
-      filtered = [...filtered].sort((a, b) => (a.price || 0) - (b.price || 0));
-    } else if (sortPrice === 'high') {
-      filtered = [...filtered].sort((a, b) => (b.price || 0) - (a.price || 0));
-    }
-    return filtered;
-  }, [trucksForSale, searchQuery, filterType, filterLocation, sortPrice]);
+  if (sortPrice === 'low') {
+    filteredTrucks = [...filteredTrucks].sort((a, b) => (a.price || 0) - (b.price || 0));
+  } else if (sortPrice === 'high') {
+    filteredTrucks = [...filteredTrucks].sort((a, b) => (b.price || 0) - (a.price || 0));
+  }
 
   const clearFilters = () => {
     setSearchQuery('');

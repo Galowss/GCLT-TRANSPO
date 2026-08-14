@@ -93,6 +93,10 @@ export default function LeafletInlineMap({
 
             onPinLocation(target, { street, barangay, city });
             setPinFeedback(`${target === 'pickup' ? 'Pickup' : 'Drop-off'} pinned to ${street}`);
+            
+            if (target === 'pickup') {
+              setPinTarget('delivery');
+            }
           } else {
             setPinFeedback('Could not detect address. Try another spot.');
           }

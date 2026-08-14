@@ -1,7 +1,7 @@
 'use client';
 
 import DashboardLayout from '@/components/DashboardLayout';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToNotifications, markNotificationRead, markAllNotificationsRead, deleteNotification, deleteAllUserNotifications } from '@/lib/firebaseService';
@@ -20,6 +20,13 @@ export default function NotificationsPage() {
   const [activeTab, setActiveTab] = useState('All');
   const [deleting, setDeleting] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // Reset to page 1 on filter/search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, searchQuery]);
 
   const tabFiltered = activeTab === 'All'
     ? notifications
@@ -29,6 +36,9 @@ export default function NotificationsPage() {
     const q = searchQuery.toLowerCase();
     return !q || (n.title || '').toLowerCase().includes(q) || (n.message || '').toLowerCase().includes(q);
   });
+
+  const totalPages = Math.ceil((filtered?.length || 0) / itemsPerPage);
+  const paginated = (filtered || []).slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleMarkRead = async (notifId) => {
     await markNotificationRead(notifId);
@@ -145,12 +155,12 @@ export default function NotificationsPage() {
           <div className="card" style={{ textAlign: 'center', padding: '40px' }}>
             <div className="spinner" style={{ margin: '0 auto' }}></div>
           </div>
-        ) : !filtered?.length ? (
+        ) : !paginated?.length ? (
           <div className="card" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
             <Bell size={28} style={{ display: 'block', margin: '0 auto 12px' }} />
             No notifications found
           </div>
-        ) : filtered.map((notif) => (
+        ) : paginated.map((notif) => (
           <div
             key={notif.id}
             className="card"
@@ -212,6 +222,29 @@ export default function NotificationsPage() {
           </div>
         ))}
       </div>
+
+      {/* Pagination Controls */}
+      {!loading && totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginTop: '24px' }}>
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </button>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

@@ -119,6 +119,12 @@ export async function POST(request) {
           // For now, log the completion
           console.log(`[Webhook] Truck purchase deposit received: ${truckId} (${truckName})`);
 
+          // Mark the truck as Sold
+          await updateDoc(doc(db, 'trucksForSale', truckId), {
+            status: 'Sold',
+            updatedAt: serverTimestamp(),
+          });
+
           // Notify admin
           await addDoc(collection(db, 'notifications'), {
             title: 'Truck Purchase Payment Received',

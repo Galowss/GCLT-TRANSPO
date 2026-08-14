@@ -13,12 +13,12 @@ const bookingLinks = [
 
 const marketplaceLinks = [
   { href: '/trucks-for-sale', label: 'Browse Trucks', icon: ShoppingBag },
+  { href: '/dashboard/purchases', label: 'My Purchases', icon: ShoppingBag },
   { href: '/dashboard/appointments', label: 'My Viewings', icon: Calendar },
 ];
 
 const accountLinks = [
   { href: '/dashboard/notifications', label: 'Notifications', icon: Bell },
-  { href: '/dashboard/ai-assistant', label: 'AI Assistant', icon: MessageCircle },
   { href: '/dashboard/profile', label: 'Profile', icon: User },
 ];
 
@@ -78,6 +78,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         <button className="sidebar-logout-btn" onClick={() => {
           if(setIsOpen) setIsOpen(false);
           logout();
+          window.location.href = '/login';
         }}>
           <LogOut size={18} /> Logout
         </button>

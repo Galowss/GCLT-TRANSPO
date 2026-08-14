@@ -161,9 +161,9 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            <Link href="/#contact" className={styles.featureLink}>
+            <a href="/#contact" className={styles.featureLink}>
               Contact Us <ArrowRight size={14} />
-            </Link>
+            </a>
           </div>
         </div>
       </section>

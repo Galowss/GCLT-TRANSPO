@@ -10,6 +10,7 @@ const adminLinks = [
   { href: '/admin/bookings', label: 'Bookings', icon: Truck },
   { href: '/admin/fleet', label: 'Available Fleet', icon: Truck },
   { href: '/admin/trucks', label: 'Truck Listings', icon: ShoppingBag },
+  { href: '/admin/purchases', label: 'Truck Purchases', icon: ShoppingBag },
   { href: '/admin/appointments', label: 'Appointments', icon: Calendar },
   { href: '/admin/transactions', label: 'Transactions', icon: Receipt },
   { href: '/admin/reports', label: 'Reports', icon: BarChart2 },
@@ -59,6 +60,7 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
         <button className="sidebar-logout-btn" onClick={() => {
           if(setIsOpen) setIsOpen(false);
           logout();
+          window.location.href = '/login';
         }}>
           <LogOut size={18} /> Logout
         </button>

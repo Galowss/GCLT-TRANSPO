@@ -2,10 +2,11 @@
 
 import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import Image from 'next/image';
+import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useFirestore } from '@/lib/useFirestore';
-import { getTruckById, addPurchaseRequest, addNotification } from '@/lib/firebaseService';
+import { getTruckById, addPurchaseRequest, addNotification, updateTruck } from '@/lib/firebaseService';
 import { useAuth } from '@/lib/AuthContext';
 import { useToast } from '@/components/Toast';
 import { Truck, MapPin, Calendar, Weight, Ruler, Phone, Mail, ChevronLeft, ChevronRight, ArrowLeft, CreditCard, Banknote, ShieldCheck } from 'lucide-react';
@@ -13,6 +14,7 @@ import styles from './detail.module.css';
 
 export default function TruckDetail() {
   const params = useParams();
+  const router = useRouter();
   const { user } = useAuth();
   const { addToast } = useToast();
   const { data: truck, loading: truckLoading } = useFirestore(
@@ -141,7 +143,13 @@ export default function TruckDetail() {
           userEmail: user.email,
         });
 
+        // Update truck status to Sold
+        await updateTruck(truck.id, { status: 'Sold' });
+
         addToast(`Purchase request submitted for ${truck.name}! A sales representative will contact you shortly.`, 'success');
+        
+        // Redirect back to trucks for sale
+        router.push('/trucks-for-sale');
       } catch (err) {
         addToast('Failed to submit purchase request.', 'error');
       }
@@ -162,7 +170,7 @@ export default function TruckDetail() {
             <div className={styles.gallery}>
               <div className={styles.mainImage} style={{ position: 'relative' }}>
                 {allImages.length > 0 ? (
-                  <img src={allImages[selectedImage] || allImages[0]} alt={truck.name} />
+                  <Image src={allImages[selectedImage] || allImages[0]} alt={truck.name} fill sizes="(max-width: 768px) 100vw, 800px" style={{ objectFit: 'cover' }} priority />
                 ) : (
                   <div className={styles.imagePlaceholder}>
                     <Truck size={48} />
@@ -227,7 +235,9 @@ export default function TruckDetail() {
                         transition: 'all 0.2s ease', background: 'none', padding: 0,
                       }}
                     >
-                      <img src={img} alt={`View ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px' }} />
+                      <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                        <Image src={img} alt={`View ${idx + 1}`} fill sizes="72px" style={{ objectFit: 'cover', borderRadius: '6px' }} />
+                      </div>
                     </button>
                   ))}
                 </div>

@@ -1,13 +1,15 @@
 'use client';
 
-import DashboardLayout from '@/components/DashboardLayout';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useFirestore } from '@/lib/useFirestore';
 import { getTruckById, addAppointment, addNotification } from '@/lib/firebaseService';
 import { useAuth } from '@/lib/AuthContext';
 import { useToast } from '@/components/Toast';
+import { highlightAndFocusMissingFields } from '@/lib/validation';
 import { ArrowLeft, Truck, User, Clock, Calendar } from 'lucide-react';
 import styles from './viewing.module.css';
 
@@ -20,6 +22,13 @@ export default function ScheduleViewing() {
     () => getTruckById(params.id),
     [params.id]
   );
+
+  useEffect(() => {
+    if (!user) {
+      router.push(`/login?redirect=/trucks-for-sale/${params.id}/viewing`);
+    }
+  }, [user, router, params.id]);
+
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -31,6 +40,7 @@ export default function ScheduleViewing() {
     time: '',
     message: '',
   });
+  const [privacyConsent, setPrivacyConsent] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -39,6 +49,11 @@ export default function ScheduleViewing() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (highlightAndFocusMissingFields()) return;
+    if (!privacyConsent) {
+      addToast('You must agree to the Data Privacy Policy to proceed.', 'error');
+      return;
+    }
     setSubmitting(true);
 
     const locationFull = [formData.locationStreet, formData.locationBarangay, formData.locationCity].filter(Boolean).join(', ');
@@ -109,23 +124,34 @@ export default function ScheduleViewing() {
 
   if (truckLoading || !truck) {
     return (
-      <DashboardLayout>
-        <div className="spinner-overlay" style={{ height: '60vh' }}>
-          <div className="spinner"></div>
+      <>
+        <Navbar />
+        <div style={{ paddingTop: '80px', minHeight: '100vh', background: 'var(--gray-50)' }}>
+          <div className="spinner-overlay" style={{ height: '60vh' }}>
+            <div className="spinner"></div>
+          </div>
         </div>
-      </DashboardLayout>
+        <Footer />
+      </>
     );
   }
 
+  // Prevent rendering if not authenticated
+  if (!user) {
+    return null;
+  }
+
   return (
-    <DashboardLayout>
+    <>
+      <Navbar />
+      <div style={{ paddingTop: '80px', minHeight: '100vh', background: 'var(--gray-50)' }}>
       <div className={styles.container}>
         <div className={styles.inner}>
           <Link href={`/trucks-for-sale/${truck.id}`} className={styles.backLink}>
             <ArrowLeft size={16} /> Return to Truck Details
           </Link>
 
-          <form onSubmit={handleSubmit} className={styles.formCard}>
+          <form onSubmit={handleSubmit} className={styles.formCard} noValidate>
             {/* Header */}
             <div className={styles.header}>
               <span className={styles.headerIcon}><Calendar size={24} color="var(--primary)" /></span>
@@ -207,6 +233,15 @@ export default function ScheduleViewing() {
               </div>
             </div>
 
+            <div className="form-group" style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer' }}>
+                <input type="checkbox" checked={privacyConsent} onChange={(e) => setPrivacyConsent(e.target.checked)} required style={{ marginTop: '4px' }} />
+                <span style={{ fontSize: '0.85rem', lineHeight: '1.4', color: 'var(--text-muted)' }}>
+                  I consent to the collection and processing of my personal data in accordance with the <a href="/privacy" style={{ color: 'var(--primary)', textDecoration: 'underline' }} target="_blank">Data Privacy Policy</a>.
+                </span>
+              </label>
+            </div>
+
             <button type="submit" className={`btn btn-accent btn-full btn-lg ${styles.submitBtn}`} disabled={submitting}>
               {submitting ? 'Scheduling...' : 'Schedule Appointment'}
             </button>
@@ -217,6 +252,8 @@ export default function ScheduleViewing() {
           </form>
         </div>
       </div>
-    </DashboardLayout>
+      </div>
+      <Footer />
+    </>
   );
 }

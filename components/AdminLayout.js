@@ -3,7 +3,7 @@
 import AdminSidebar from './AdminSidebar';
 import Link from 'next/link';
 import { useAuth } from '@/lib/AuthContext';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Truck, Bell, User, Menu } from 'lucide-react';
 
@@ -60,9 +60,14 @@ export default function AdminLayout({ children }) {
       </div>
       <AdminSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <main className="dashboard-main animate-slide-up">
-        {children}
-        <div style={{ textAlign: 'center', padding: '32px 0 16px', fontSize: '0.8rem', color: 'var(--gray-500)' }}>
-          &copy; 2026 GCLT Transport & Trucking Services. All rights reserved.
+        <div style={{ flex: 1 }}>
+          {children}
+        </div>
+        <div style={{ padding: '32px 0 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', fontSize: '0.8rem', color: 'var(--gray-500)', borderTop: '1px solid var(--gray-200)', marginTop: '24px' }}>
+          <span>&copy; {new Date().getFullYear()} GCLT Transport & Trucking Services. All rights reserved.</span>
+          <div style={{ display: 'flex', gap: '16px' }}>
+            <Link href="/privacy" style={{ color: 'var(--text-muted)' }}>Data Privacy Policy</Link>
+          </div>
         </div>
       </main>
     </div>

@@ -23,15 +23,18 @@ export default function Navbar() {
   const handleLogout = async () => {
     setMobileOpen(false);
     await logout();
-    router.push('/');
+    window.location.href = '/login';
   };
+
+  const loginHref = pathname.startsWith('/trucks-for-sale') ? `/login?redirect=${pathname}` : '/login';
+  const registerHref = pathname.startsWith('/trucks-for-sale') ? `/login?tab=register&redirect=${pathname}` : '/login?tab=register';
 
   return (
     <nav className="navbar">
       <div className="navbar-inner">
 
         {/* Brand */}
-        <Link href="/" className="navbar-brand">
+        <a href="/" className="navbar-brand">
           <Image
             src="/gclt-logo-new.png"
             alt="GCLT Transport & Trucking Services"
@@ -41,18 +44,28 @@ export default function Navbar() {
             priority
           />
           <span>GCLT Transport</span>
-        </Link>
+        </a>
 
         {/* Desktop Nav Links */}
         <div className="navbar-links">
           {navLinks.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              className={`navbar-link${link.isActive ? ' active' : ''}`}
-            >
-              {link.label}
-            </Link>
+            link.href.startsWith('/#') ? (
+              <a
+                key={link.label}
+                href={link.href}
+                className={`navbar-link${link.isActive ? ' active' : ''}`}
+              >
+                {link.label}
+              </a>
+            ) : (
+              <Link
+                key={link.label}
+                href={link.href}
+                className={`navbar-link${link.isActive ? ' active' : ''}`}
+              >
+                {link.label}
+              </Link>
+            )
           ))}
         </div>
 
@@ -80,10 +93,10 @@ export default function Navbar() {
           ) : (
             <>
               {/* Not authenticated: Login + Register */}
-              <Link href="/login" className="navbar-link">
+              <Link href={loginHref} className="navbar-link">
                 Login
               </Link>
-              <Link href="/login?tab=register" className="btn-pill">
+              <Link href={registerHref} className="btn-pill">
                 Register
               </Link>
             </>
@@ -103,14 +116,25 @@ export default function Navbar() {
       {/* Mobile Menu Dropdown */}
       <div className={`navbar-mobile-menu${mobileOpen ? ' open' : ''}`}>
         {navLinks.map((link) => (
-          <Link
-            key={link.label}
-            href={link.href}
-            className={`navbar-mobile-link${link.isActive ? ' active' : ''}`}
-            onClick={() => setMobileOpen(false)}
-          >
-            {link.label}
-          </Link>
+          link.href.startsWith('/#') ? (
+            <a
+              key={link.label}
+              href={link.href}
+              className={`navbar-mobile-link${link.isActive ? ' active' : ''}`}
+              onClick={() => setMobileOpen(false)}
+            >
+              {link.label}
+            </a>
+          ) : (
+            <Link
+              key={link.label}
+              href={link.href}
+              className={`navbar-mobile-link${link.isActive ? ' active' : ''}`}
+              onClick={() => setMobileOpen(false)}
+            >
+              {link.label}
+            </Link>
+          )
         ))}
         <div className="navbar-mobile-divider" />
         {user ? (
@@ -134,11 +158,11 @@ export default function Navbar() {
           </>
         ) : (
           <>
-            <Link href="/login" className="navbar-mobile-link" onClick={() => setMobileOpen(false)}>
+            <Link href={loginHref} className="navbar-mobile-link" onClick={() => setMobileOpen(false)}>
               Login
             </Link>
             <Link
-              href="/login?tab=register"
+              href={registerHref}
               className="btn-pill"
               style={{ marginTop: '12px', textAlign: 'center' }}
               onClick={() => setMobileOpen(false)}
