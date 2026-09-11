@@ -80,7 +80,6 @@ export default function AdminPurchasesPage() {
           <table className="table">
             <thead>
               <tr>
-                <th>Request ID</th>
                 <th>User Details</th>
                 <th>Truck Details</th>
                 <th>Payment</th>
@@ -90,17 +89,15 @@ export default function AdminPurchasesPage() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="6" style={{ textAlign: 'center', padding: '32px' }}>Loading purchase history...</td></tr>
+                <tr><td colSpan="5" style={{ textAlign: 'center', padding: '32px' }}>Loading purchase history...</td></tr>
               ) : !currentPurchases.length ? (
-                <tr><td colSpan="6" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
+                <tr><td colSpan="5" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
                   {searchQuery ? 'No purchases match your search.' : 'No purchases found'}
                 </td></tr>
               ) : currentPurchases.map((p) => (
                 <tr key={p.id}>
-                  <td><strong style={{ color: 'var(--primary)' }}>{p.id.slice(-8)}</strong></td>
                   <td>
                     <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>{p.userEmail || 'Guest'}</div>
-                    {p.userId && <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>ID: {p.userId.slice(-6)}</div>}
                   </td>
                   <td>
                     <div style={{ fontWeight: '500' }}>{p.truckName}</div>

@@ -5,9 +5,18 @@ import { useAuth } from '@/lib/AuthContext';
 import { useToast } from '@/components/Toast';
 import { useState, useEffect } from 'react';
 import { getUserProfile, updateUserProfile } from '@/lib/firebaseService';
+import { DEFAULT_NOTIFICATION_PREFS } from '@/lib/AuthContext';
 import { highlightAndFocusMissingFields } from '@/lib/validation';
 import { User, MapPin } from 'lucide-react';
 import styles from './profile.module.css';
+
+const NOTIFICATION_PREF_ITEMS = [
+  { key: 'bookingUpdates', title: 'Booking Confirmations', desc: 'Receive emails when your transport is scheduled' },
+  { key: 'deliveryUpdates', title: 'Delivery Status Updates', desc: 'Live tracking and waypoint updates' },
+  { key: 'paymentReceipts', title: 'Payment Receipts', desc: 'Invoices and confirmation of payment' },
+  { key: 'portAlerts', title: 'Port Area Alerts', desc: 'Important SBMA port advisories or delays' },
+  { key: 'promos', title: 'Fleet Sales Promotions', desc: 'Special offers on new truck arrivals' },
+];
 
 export default function Profile() {
   const { user } = useAuth();
@@ -23,6 +32,8 @@ export default function Profile() {
     locationCity: '',
     isIndividual: false,
   });
+  const [prefs, setPrefs] = useState(null);
+  const [prefSavingKey, setPrefSavingKey] = useState(null);
 
   useEffect(() => {
     if (user?.uid) {
@@ -37,6 +48,7 @@ export default function Profile() {
           locationCity: profile?.locationCity || profile?.location || profile?.address || '',
           isIndividual: profile?.isIndividual || false,
         });
+        setPrefs({ ...DEFAULT_NOTIFICATION_PREFS, ...(profile?.notificationPrefs || {}) });
       });
     }
   }, [user]);
@@ -61,6 +73,41 @@ export default function Profile() {
       addToast('Failed to update profile. Please try again.', 'error');
     }
     setSaving(false);
+  };
+
+  const handleCancel = async () => {
+    if (!user?.uid) return;
+    try {
+      const profile = await getUserProfile(user.uid);
+      setFormData({
+        displayName: profile?.displayName || user?.displayName || '',
+        email: profile?.email || user?.email || '',
+        phone: profile?.phone || '',
+        company: profile?.company || '',
+        locationStreet: profile?.locationStreet || '',
+        locationBarangay: profile?.locationBarangay || '',
+        locationCity: profile?.locationCity || profile?.location || profile?.address || '',
+        isIndividual: profile?.isIndividual || false,
+      });
+      addToast('Changes discarded.', 'info');
+    } catch {
+      addToast('Could not reload profile.', 'error');
+    }
+  };
+
+  const handlePrefToggle = async (key) => {
+    const current = prefs?.[key] !== false;
+    const next = { ...DEFAULT_NOTIFICATION_PREFS, ...(prefs || {}), [key]: !current };
+    setPrefs(next);
+    setPrefSavingKey(key);
+    try {
+      await updateUserProfile(user.uid, { notificationPrefs: next });
+      addToast(`${next[key] ? 'Enabled' : 'Disabled'} notifications.`, 'success');
+    } catch {
+      setPrefs(prev => ({ ...prev, [key]: current }));
+      addToast('Failed to update preference.', 'error');
+    }
+    setPrefSavingKey(null);
   };
 
   return (
@@ -134,7 +181,7 @@ export default function Profile() {
                 <input type="text" name="company" className="form-input" value={formData.company} onChange={handleChange} placeholder="Company name" required />
               </div>
             )}
-            
+
             {!formData.isIndividual && (
               <div className="form-group" style={{ gridColumn: '1 / -1', marginBottom: 0 }}>
                 <label className="form-label">Business Address</label>
@@ -157,7 +204,7 @@ export default function Profile() {
           </div>
 
           <div className={styles.actions}>
-            <button className="btn btn-outline btn-lg" style={{ minWidth: '120px' }}>Cancel</button>
+            <button className="btn btn-outline btn-lg" style={{ minWidth: '120px' }} onClick={handleCancel}>Cancel</button>
             <button className="btn btn-primary btn-lg" style={{ minWidth: '160px' }} onClick={handleSave} disabled={saving}>
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
@@ -167,34 +214,40 @@ export default function Profile() {
         <div className="card card-lg" style={{ padding: '32px' }}>
           <h3 style={{ fontSize: '1.25rem', marginBottom: '8px' }}>Notification Preferences</h3>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '24px' }}>Control what emails and alerts you receive from GCLT.</p>
-          
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {[
-              { id: 'notif1', title: 'Booking Confirmations', desc: 'Receive emails when your transport is scheduled' },
-              { id: 'notif2', title: 'Delivery Status Updates', desc: 'Live tracking and waypoint updates' },
-              { id: 'notif3', title: 'Payment Receipts', desc: 'Invoices and confirmation of payment' },
-              { id: 'notif4', title: 'Port Area Alerts', desc: 'Important SBMA port advisories or delays' },
-              { id: 'notif5', title: 'Fleet Sales Promotions', desc: 'Special offers on new truck arrivals' }
-            ].map(pref => (
-              <label key={pref.id} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: '16px', background: 'var(--gray-50)', borderRadius: 'var(--border-radius)', cursor: 'pointer', border: '1px solid var(--gray-200)', transition: 'var(--transition)' }} className="hover:border-primary">
-                <div>
-                  <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: '4px' }}>{pref.title}</span>
-                  <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{pref.desc}</span>
-                </div>
-                <div style={{ position: 'relative', display: 'inline-block', width: '44px', height: '24px' }}>
-                  <input type="checkbox" defaultChecked style={{ opacity: 0, width: 0, height: 0 }} id={pref.id} />
-                  <span style={{
-                    position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: 'var(--primary)', transition: '.4s', borderRadius: '34px'
-                  }}>
-                    <span style={{
-                      position: 'absolute', content: '""', height: '18px', width: '18px',
-                      left: '22px', bottom: '3px', backgroundColor: 'white', transition: '.4s', borderRadius: '50%'
-                    }}></span>
-                  </span>
-                </div>
-              </label>
-            ))}
+            {NOTIFICATION_PREF_ITEMS.map(pref => {
+              const enabled = prefs?.[pref.key] !== false;
+              return (
+                <label key={pref.key} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: '16px', background: 'var(--gray-50)', borderRadius: 'var(--border-radius)', cursor: 'pointer', border: '1px solid var(--gray-200)', transition: 'var(--transition)' }}>
+                  <div>
+                    <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: '4px' }}>{pref.title}</span>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{pref.desc}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {prefSavingKey === pref.key && <span className="spinner" style={{ width: '14px', height: '14px', borderWidth: '2px' }}></span>}
+                    <div style={{ position: 'relative', display: 'inline-block', width: '44px', height: '24px' }}>
+                      <input
+                        type="checkbox"
+                        checked={enabled}
+                        onChange={() => handlePrefToggle(pref.key)}
+                        style={{ opacity: 0, width: 0, height: 0 }}
+                        id={pref.key}
+                      />
+                      <span style={{
+                        position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
+                        backgroundColor: enabled ? 'var(--primary)' : 'var(--gray-300)', transition: '.4s', borderRadius: '34px'
+                      }}>
+                        <span style={{
+                          position: 'absolute', content: '""', height: '18px', width: '18px',
+                          left: enabled ? '22px' : '3px', bottom: '3px', backgroundColor: 'white', transition: '.4s', borderRadius: '50%'
+                        }}></span>
+                      </span>
+                    </div>
+                  </div>
+                </label>
+              );
+            })}
           </div>
         </div>
       </div>

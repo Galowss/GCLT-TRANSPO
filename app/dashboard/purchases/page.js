@@ -13,10 +13,10 @@ export default function UserPurchases() {
     (cb) => subscribeToUserPurchaseRequests(user?.uid, cb),
     [user?.uid]
   );
-  
+
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  
+
   const purchasesList = purchases || [];
   const totalPages = Math.ceil(purchasesList.length / itemsPerPage);
   const currentPurchases = purchasesList.slice(
@@ -42,7 +42,6 @@ export default function UserPurchases() {
           <table className="table">
             <thead>
               <tr>
-                <th>Request ID</th>
                 <th>Truck Details</th>
                 <th>Price</th>
                 <th>Payment Method</th>
@@ -53,11 +52,11 @@ export default function UserPurchases() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '32px' }}>Loading your purchases...</td>
+                  <td colSpan="5" style={{ textAlign: 'center', padding: '32px' }}>Loading your purchases...</td>
                 </tr>
               ) : !currentPurchases.length ? (
                 <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
+                  <td colSpan="5" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
                     <Truck size={32} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
                     <p>You haven't purchased any trucks yet.</p>
                   </td>
@@ -65,14 +64,8 @@ export default function UserPurchases() {
               ) : (
                 currentPurchases.map((purchase) => (
                   <tr key={purchase.id}>
-                    <td><strong style={{ color: 'var(--primary)' }}>{purchase.id.slice(-8)}</strong></td>
                     <td>
                       <div style={{ fontWeight: '600' }}>{purchase.truckName}</div>
-                      {purchase.truckId && (
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                          ID: {purchase.truckId.slice(-6)}
-                        </div>
-                      )}
                     </td>
                     <td>
                       {purchase.truckPrice ? `₱${purchase.truckPrice.toLocaleString()}` : '--'}
@@ -86,7 +79,7 @@ export default function UserPurchases() {
                       </span>
                     </td>
                     <td style={{ fontSize: '0.85rem' }}>
-                      {purchase.createdAt?.seconds 
+                      {purchase.createdAt?.seconds
                         ? new Date(purchase.createdAt.seconds * 1000).toLocaleDateString()
                         : purchase.date || '--'}
                     </td>
@@ -101,7 +94,7 @@ export default function UserPurchases() {
             </tbody>
           </table>
         </div>
-        
+
         {/* Pagination */}
         {totalPages > 1 && (
           <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

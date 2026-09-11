@@ -2,7 +2,7 @@
 
 import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
-import Image from 'next/image';
+import TruckImage from '@/components/TruckImage';
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
@@ -20,7 +20,7 @@ import styles from './book.module.css';
 function determineRouteType(weight, cargoSize, pickupCity, deliveryCity) {
   const pCity = (pickupCity || '').trim().toLowerCase();
   const dCity = (deliveryCity || '').trim().toLowerCase();
-  
+
   if (pCity && dCity && pCity === dCity) {
     return { route: 'Local Route', reason: 'Pickup and delivery are in the same area. Routed via local city roads.' };
   }
@@ -44,6 +44,32 @@ const CARGO_TYPES = [
   { value: 'Skeletal', label: 'Skeletal', Icon: Truck },
   { value: '20 footer', label: '20 footer', Icon: Truck },
   { value: '40 footer', label: '40 footer', Icon: Truck },
+];
+
+/* Google Calendar-style 30-minute time slots (8:00 AM – 6:00 PM) */
+const TIME_SLOTS = (() => {
+  const slots = [];
+  for (let h = 8; h <= 18; h++) {
+    for (const m of [0, 30]) {
+      const value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+      // Skip the trailing 18:30 (outside the 8AM–6PM window)
+      if (h === 18 && m === 30) continue;
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const hour12 = h % 12 === 0 ? 12 : h % 12;
+      slots.push({ value, label: `${hour12}:${String(m).padStart(2, '0')} ${ampm}` });
+    }
+  }
+  return slots;
+})();
+
+/* Placeholder vehicles shown when no fleet data is configured yet.
+   Same shape as fleetType docs so selecting/booking works end-to-end. */
+const PLACEHOLDER_FLEETS = [
+  { id: 'gt-sample-trailer', name: '48ft Flatbed Trailer', category: 'Trailer', loadCapacity: 15000, capacity: '15,000kg', dimensions: '14.6m × 2.5m × 2.8m', passengerCapacity: 2, ratePerKm: 120, available: true },
+  { id: 'gt-sample-flatbed', name: '10-Wheeler Flatbed', category: 'Flatbed', loadCapacity: 12000, capacity: '12,000kg', dimensions: '11m × 2.4m × 2.6m', passengerCapacity: 2, ratePerKm: 105, available: true },
+  { id: 'gt-sample-skeletal', name: 'Container Skeletal Trailer', category: 'Skeletal', loadCapacity: 20000, capacity: '20,000kg', dimensions: '12.2m × 2.5m × —', passengerCapacity: 1, ratePerKm: 180, available: true },
+  { id: 'gt-sample-20ft', name: '20ft Container Truck', category: '20 footer', loadCapacity: 9000, capacity: '9,000kg', dimensions: '6.1m × 2.4m × 2.4m', passengerCapacity: 2, ratePerKm: 95, available: true },
+  { id: 'gt-sample-40ft', name: '40ft Container Truck', category: '40 footer', loadCapacity: 18000, capacity: '18,000kg', dimensions: '12.2m × 2.4m × 2.6m', passengerCapacity: 2, ratePerKm: 160, available: true },
 ];
 
 
@@ -103,7 +129,10 @@ export default function BookTransport() {
   const routeInfo = useMemo(() => determineRouteType(formData.weight, cargoSizeFull, formData.pickupCity, formData.deliveryCity), [formData.weight, cargoSizeFull, formData.pickupCity, formData.deliveryCity]);
 
   /* ── Fleet data ── */
-  const allFleets = useMemo(() => (fleetTypes || []).filter(f => f.available !== false), [fleetTypes]);
+  const allFleets = useMemo(() => {
+    const real = (fleetTypes || []).filter(f => f.available !== false);
+    return real.length ? real : PLACEHOLDER_FLEETS;
+  }, [fleetTypes]);
   const filteredFleets = useMemo(() => {
     if (fleetFilter === 'all') return allFleets;
     const cat = FLEET_CATEGORIES.find(c => c.value.toLowerCase() === fleetFilter.toLowerCase());
@@ -166,10 +195,13 @@ export default function BookTransport() {
       addToast('You must agree to the Data Privacy Policy to submit a quote request.', 'error');
       return;
     }
-    setLoading(true); 
+    setLoading(true);
     const fleet = fleetTypes?.find(f => f.id === selectedFleet);
     if (!fleet) { addToast('Please select a fleet type.', 'error'); setLoading(false); return; }
     if (!formData.time) { addToast('Please select a specific time.', 'error'); setLoading(false); return; }
+    const time = formData.time || '';
+    const timeOK = /^([01]\d|2[0-3]):[0-5]\d$/.test(time) && time >= '08:00' && time <= '18:00';
+    if (!timeOK) { addToast('Bookings are only available between 8:00 AM and 6:00 PM.', 'error'); setLoading(false); return; }
 
     const now = new Date();
     const timeString = now.toLocaleString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -204,7 +236,9 @@ export default function BookTransport() {
       await addBooking(bookingData);
       await addNotification(userNotif);
       await addNotification(adminNotif);
-      await sendEmailNotification(bookingData);
+      if (user?.notificationPrefs?.bookingUpdates !== false) {
+        await sendEmailNotification(bookingData);
+      }
       addToast('Quote request submitted! Redirecting to your bookings...', 'success');
       router.push('/dashboard/bookings');
     } catch (err) {
@@ -222,7 +256,19 @@ export default function BookTransport() {
   const canProceedStep1 = formData.pickupStreet && formData.deliveryStreet && formData.date && formData.time && formData.weight && formData.cargoLength && formData.cargoWidth && formData.cargoHeight && !isSameDestination;
   const canProceedStep2 = !!selectedFleet;
   const today = new Date().toISOString().split('T')[0];
-  const selectedFleetData = fleetTypes?.find(f => f.id === selectedFleet);
+  const selectedFleetData = allFleets?.find(f => f.id === selectedFleet);
+
+  /* ── Vehicle compare helper ── */
+  const handleCompareFleet = (fleet) => {
+    const specs = [
+      fleet.category ? `Type: ${fleet.category}` : null,
+      fleet.capacity ? `Capacity: ${fleet.capacity}` : null,
+      fleet.dimensions ? `Size: ${fleet.dimensions}` : null,
+      fleet.ratePerKm ? `Rate: ₱${fleet.ratePerKm}/km` : null,
+      fleet.passengerCapacity ? `Crew: ${fleet.passengerCapacity}` : null,
+    ].filter(Boolean);
+    addToast(`📋 ${fleet.name}: ${specs.join(' • ') || 'Details on request'}`, 'info', 6000);
+  };
 
   /* ── Inline map pin callback ── */
   const handleMapPin = (target, { street, barangay, city }) => {
@@ -349,18 +395,20 @@ export default function BookTransport() {
                     </div>
                     <div className={styles.fieldGroup}>
                       <label className={styles.fieldLabel}>TIME</label>
-                      <input
-                        className={styles.fieldInput}
-                        type="time"
-                        name="time"
-                        value={formData.time}
-                        onChange={handleChange}
-                        min="08:00"
-                        max="18:00"
-                        required
-                      />
+                      <div className={styles.timeSlotGrid}>
+                        {TIME_SLOTS.map(slot => (
+                          <button
+                            key={slot.value}
+                            type="button"
+                            className={`${styles.timeSlot} ${formData.time === slot.value ? styles.timeSlotActive : ''}`}
+                            onClick={() => setFormData(prev => ({ ...prev, time: slot.value }))}
+                          >
+                            {slot.label}
+                          </button>
+                        ))}
+                      </div>
                       <span style={{ fontSize: '0.72rem', color: '#6f7a70', marginTop: '4px', display: 'block' }}>
-                        📅 Bookings available 8:00 AM–6:00 PM
+                        Bookings available 8:00 AM–6:00 PM
                       </span>
                     </div>
                   </div>
@@ -433,10 +481,10 @@ export default function BookTransport() {
                     </div>
                   </div>
                 )}
-                
+
                 {estimatedDistance && (
                   <div style={{
-                    marginTop: '16px', padding: '16px', background: '#f6fbf3', border: '1px solid #bec9be', 
+                    marginTop: '16px', padding: '16px', background: '#f6fbf3', border: '1px solid #bec9be',
                     borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '12px'
                   }}>
                     <div style={{ fontSize: '1.5rem' }}>📏</div>
@@ -546,7 +594,19 @@ export default function BookTransport() {
                   className={`${styles.filterTab} ${fleetFilter === tab ? styles.filterTabActive : ''}`}
                   onClick={() => setFleetFilter(tab)}
                 >
-                  {tab === 'all' ? 'All Vehicles' : FLEET_CATEGORIES.find(c => c.value.toLowerCase() === tab)?.label || tab}
+                  {tab === 'all' ? 'All Vehicles' : (
+                    (() => {
+                      const cat = FLEET_CATEGORIES.find(c => c.value.toLowerCase() === tab);
+                      if (!cat) return tab;
+                      const CatIcon = cat.icon;
+                      return (
+                        <>
+                          <CatIcon size={14} />
+                          {cat.label}
+                        </>
+                      );
+                    })()
+                  )}
                 </button>
               ))}
             </div>
@@ -579,7 +639,7 @@ export default function BookTransport() {
                       )}
                       <div className={styles.truckImageWrap}>
                         {fleet.imageUrl ? (
-                          <Image src={fleet.imageUrl} alt={fleet.name} fill sizes="(max-width: 768px) 100vw, 33vw" className={styles.truckImage} />
+                          <TruckImage src={fleet.imageUrl} alt={fleet.name} fill sizes="(max-width: 768px) 100vw, 33vw" className={styles.truckImage} />
                         ) : (
                           <div className={styles.truckImagePlaceholder}>
                             <span className={styles.truckEmoji}>🚛</span>
@@ -649,8 +709,8 @@ export default function BookTransport() {
                             </div>
                           ) : (
                             <div className={styles.truckCardActions}>
-                              <button className={styles.btnSelectVehicle}>Select Vehicle</button>
-                              <button className={styles.btnCompare} title="Compare">⇄</button>
+                              <button className={styles.btnSelectVehicle} onClick={() => setSelectedFleet(fleet.id)}>Select Vehicle</button>
+                              <button className={styles.btnCompare} title="Compare" onClick={() => handleCompareFleet(fleet)}>⇄</button>
                             </div>
                           )}
                         </div>
@@ -778,7 +838,7 @@ export default function BookTransport() {
                   {selectedFleetData ? (
                     <div className={styles.reviewVehicle}>
                       {selectedFleetData.imageUrl ? (
-                        <Image src={selectedFleetData.imageUrl} alt={selectedFleetData.name} width={72} height={56} className={styles.reviewVehicleImg} />
+                        <TruckImage src={selectedFleetData.imageUrl} alt={selectedFleetData.name} width={72} height={56} className={styles.reviewVehicleImg} />
                       ) : (
                         <div className={styles.reviewVehicleImgPlaceholder}>🚛</div>
                       )}
@@ -819,7 +879,7 @@ export default function BookTransport() {
                     <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer' }}>
                       <input type="checkbox" checked={privacyConsent} onChange={(e) => setPrivacyConsent(e.target.checked)} required style={{ marginTop: '4px' }} />
                       <span style={{ fontSize: '0.85rem', lineHeight: '1.4', color: 'var(--text-muted)' }}>
-                        I consent to the collection and processing of my personal data in accordance with the <a href="/privacy" style={{ color: 'var(--primary)', textDecoration: 'underline' }} target="_blank">Data Privacy Policy</a>.
+                        I consent to the collection and processing of my personal data in accordance with the <a href="/legal/privacy" style={{ color: 'var(--primary)', textDecoration: 'underline' }} target="_blank" rel="noopener noreferrer">Data Privacy Policy</a>.
                       </span>
                     </label>
                   </div>

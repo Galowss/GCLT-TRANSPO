@@ -93,7 +93,7 @@ export default function LeafletInlineMap({
 
             onPinLocation(target, { street, barangay, city });
             setPinFeedback(`${target === 'pickup' ? 'Pickup' : 'Drop-off'} pinned to ${street}`);
-            
+
             if (target === 'pickup') {
               setPinTarget('delivery');
             }
@@ -121,7 +121,7 @@ export default function LeafletInlineMap({
         leafletRef.current = null;
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Update markers when addresses change ──
@@ -204,20 +204,20 @@ export default function LeafletInlineMap({
 
         // Route polyline and fit bounds
         if (routeLineRef.current) { map.removeLayer(routeLineRef.current); routeLineRef.current = null; }
-        
+
         if (bounds.length === 2) {
           try {
             const [lat1, lng1] = bounds[0];
             const [lat2, lng2] = bounds[1];
-            
+
             let routeGeometry;
             let distanceKm;
-            
+
             if (routeType === 'Old Road') {
               // Use BRouter with moped profile to force avoiding expressways (simulates old road)
               const brouterRes = await fetch(`https://brouter.de/brouter?lonlats=${lng1},${lat1}|${lng2},${lat2}&profile=moped&format=geojson`);
               const brouterData = await brouterRes.json();
-              
+
               if (brouterData.features && brouterData.features.length > 0) {
                 const feature = brouterData.features[0];
                 distanceKm = feature.properties['track-length'] / 1000;
@@ -229,7 +229,7 @@ export default function LeafletInlineMap({
               // OSRM expects longitude,latitude (Fastest car route, usually uses expressways)
               const osrmRes = await fetch(`https://router.project-osrm.org/route/v1/driving/${lng1},${lat1};${lng2},${lat2}?overview=full&geometries=geojson`);
               const osrmData = await osrmRes.json();
-              
+
               if (osrmData.code === 'Ok' && osrmData.routes.length > 0) {
                 const route = osrmData.routes[0];
                 distanceKm = route.distance / 1000;
@@ -238,7 +238,7 @@ export default function LeafletInlineMap({
                 throw new Error("No route found from OSRM");
               }
             }
-            
+
             let lineColor = '#00522c'; // Expressway green
             let lineWeight = 4;
             let dashArray = null;
@@ -249,16 +249,16 @@ export default function LeafletInlineMap({
             }
 
             const distanceStr = distanceKm.toFixed(1);
-            
+
             if (onRouteCalculated) {
               onRouteCalculated(distanceStr);
             }
-            
+
             // Draw the actual road route
             routeLineRef.current = L.geoJSON(routeGeometry, {
               style: { color: lineColor, weight: lineWeight, opacity: 0.8, dashArray: dashArray }
             }).addTo(map);
-            
+
             // Fit bounds to the route line
             map.fitBounds(routeLineRef.current.getBounds(), { padding: [60, 60], maxZoom: 14 });
           } catch (err) {

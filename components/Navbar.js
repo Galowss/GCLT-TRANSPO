@@ -14,10 +14,10 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navLinks = [
-    { label: 'Book a Truck',    href: '/dashboard/book',  isActive: pathname === '/dashboard/book' },
+    { label: 'Book a Truck', href: '/dashboard/book', isActive: pathname === '/dashboard/book' },
     { label: 'Trucks for Sale', href: '/trucks-for-sale', isActive: pathname.startsWith('/trucks-for-sale') },
-    { label: 'About Us',        href: '/#about',          isActive: false },
-    { label: 'Contact',         href: '/#contact',        isActive: false },
+    { label: 'About Us', href: '/#about', isActive: false },
+    { label: 'Contact', href: '/#contact', isActive: false },
   ];
 
   const handleLogout = async () => {

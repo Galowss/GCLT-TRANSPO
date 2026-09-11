@@ -1,8 +1,25 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { MapPin, Phone, Mail } from 'lucide-react';
+import { useToast } from '@/components/Toast';
 
 export default function Footer() {
+  const { addToast } = useToast();
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+
+  const handleNewsletterJoin = () => {
+    const email = newsletterEmail.trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      addToast('Please enter a valid email address to join the newsletter.', 'error');
+      return;
+    }
+    setNewsletterEmail('');
+    addToast('You are on the list! Keep an eye on your inbox for fleet updates.', 'success');
+  };
+
   return (
     <footer className="footer">
       <div className="footer-inner">
@@ -53,16 +70,22 @@ export default function Footer() {
         <div>
           <h4 className="footer-title">Newsletter</h4>
           <div className="footer-newsletter">
-            <input type="email" placeholder="Email address" />
-            <button>Join</button>
+            <input
+              type="email"
+              placeholder="Email address"
+              value={newsletterEmail}
+              onChange={(e) => setNewsletterEmail(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleNewsletterJoin(); }}
+            />
+            <button onClick={handleNewsletterJoin}>Join</button>
           </div>
         </div>
       </div>
       <div className="footer-bottom" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <span>&copy; 2026 GCLT Transport & Trucking Services, Inc. All rights reserved.</span>
         <div style={{ display: 'flex', gap: '16px' }}>
-          <Link href="/privacy" className="footer-link" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Data Privacy Policy</Link>
-          <Link href="/terms" className="footer-link" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Terms of Service</Link>
+          <a href="/legal/privacy" target="_blank" rel="noopener noreferrer" className="footer-link" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Data Privacy Policy</a>
+          <a href="/legal/terms" target="_blank" rel="noopener noreferrer" className="footer-link" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Terms of Service</a>
         </div>
       </div>
     </footer>

@@ -1,8 +1,9 @@
 'use client';
 
-import DashboardLayout from '@/components/DashboardLayout';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import Link from 'next/link';
-import Image from 'next/image';
+import TruckImage from '@/components/TruckImage';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useFirestore } from '@/lib/useFirestore';
@@ -28,23 +29,27 @@ export default function TruckDetail() {
 
   if (truckLoading) {
     return (
-      <DashboardLayout>
-        <div className="spinner-overlay" style={{ height: '60vh' }}>
+      <>
+        <Navbar />
+        <div style={{ paddingTop: '80px', height: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="spinner"></div>
         </div>
-      </DashboardLayout>
+        <Footer />
+      </>
     );
   }
 
   if (!truck) {
     return (
-      <DashboardLayout>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', flexDirection: 'column', gap: '16px' }}>
+      <>
+        <Navbar />
+        <div style={{ paddingTop: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', flexDirection: 'column', gap: '16px' }}>
           <Truck size={48} color="var(--text-muted)" />
           <p style={{ fontSize: '1.1rem', fontWeight: 600 }}>Truck not found</p>
           <Link href="/trucks-for-sale" className="btn btn-primary">Browse All Trucks</Link>
         </div>
-      </DashboardLayout>
+        <Footer />
+      </>
     );
   }
   // Combine legacy single image + new multi-image array
@@ -147,7 +152,7 @@ export default function TruckDetail() {
         await updateTruck(truck.id, { status: 'Sold' });
 
         addToast(`Purchase request submitted for ${truck.name}! A sales representative will contact you shortly.`, 'success');
-        
+
         // Redirect back to trucks for sale
         router.push('/trucks-for-sale');
       } catch (err) {
@@ -158,7 +163,8 @@ export default function TruckDetail() {
   };
 
   return (
-    <DashboardLayout>
+    <>
+      <Navbar />
       <div className={styles.container}>
         <div className={styles.inner}>
           <Link href="/trucks-for-sale" className={styles.backLink}>
@@ -170,7 +176,7 @@ export default function TruckDetail() {
             <div className={styles.gallery}>
               <div className={styles.mainImage} style={{ position: 'relative' }}>
                 {allImages.length > 0 ? (
-                  <Image src={allImages[selectedImage] || allImages[0]} alt={truck.name} fill sizes="(max-width: 768px) 100vw, 800px" style={{ objectFit: 'cover' }} priority />
+                  <TruckImage src={allImages[selectedImage] || allImages[0]} alt={truck.name} fill sizes="(max-width: 768px) 100vw, 800px" style={{ objectFit: 'cover' }} priority />
                 ) : (
                   <div className={styles.imagePlaceholder}>
                     <Truck size={48} />
@@ -236,7 +242,7 @@ export default function TruckDetail() {
                       }}
                     >
                       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                        <Image src={img} alt={`View ${idx + 1}`} fill sizes="72px" style={{ objectFit: 'cover', borderRadius: '6px' }} />
+                        <TruckImage src={img} alt={`View ${idx + 1}`} fill sizes="72px" style={{ objectFit: 'cover', borderRadius: '6px' }} />
                       </div>
                     </button>
                   ))}
@@ -257,7 +263,7 @@ export default function TruckDetail() {
               <div className={styles.specGrid}>
                 <div className={styles.specItem}><span className={styles.specLabel}>Engine</span><span className={styles.specValue}>{truck.engine || '—'}</span></div>
                 <div className={styles.specItem}><span className={styles.specLabel}>Mileage</span><span className={styles.specValue}>{truck.mileage || '—'}</span></div>
-                <div className={styles.specItem}><span className={styles.specLabel}>Transmission</span><span className={styles.specValue}>{truck.transmission || '—'}</span></div>
+                <div className={styles.specItem}><span className={styles.specLabel}>Transmission</span><span className={styles.specValue}>{truck.transmission || truck.specs?.transmission || '—'}</span></div>
                 <div className={styles.specItem}><span className={styles.specLabel}>Speed / Gear</span><span className={styles.specValue}>{truck.speedGear || '—'}</span></div>
                 <div className={styles.specItem}><span className={styles.specLabel}>Capacity</span><span className={styles.specValue}>{truck.capacity || '—'}</span></div>
                 <div className={styles.specItem}><span className={styles.specLabel}>Condition</span><span className={styles.specValue}>{truck.condition || '—'}</span></div>
@@ -339,6 +345,6 @@ export default function TruckDetail() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

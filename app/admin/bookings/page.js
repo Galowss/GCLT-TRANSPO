@@ -3,7 +3,7 @@
 import AdminLayout from '@/components/AdminLayout';
 import { useState, useEffect } from 'react';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
-import { subscribeToAllBookings, updateBooking, addNotification } from '@/lib/firebaseService';
+import { subscribeToAllBookings, updateBooking, addNotification, getUserNotificationPrefs } from '@/lib/firebaseService';
 import { compressImage } from '@/lib/compressImage';
 import { useToast } from '@/components/Toast';
 import { Download, Search, CheckCircle, XCircle, Clock, MoreHorizontal, Mail, Truck, Package, MapPin, Upload, FileImage } from 'lucide-react';
@@ -138,24 +138,28 @@ export default function BookingManagement() {
       addToast(`Booking ${newStatus.toLowerCase()} successfully.`, 'success');
       setSelectedBooking(prev => prev ? { ...prev, status: newStatus } : null);
 
-      // Send email notification for status change
+      // Send email notification for status change (respects the user's notification preferences)
       const booking = bookingsData?.find(b => b.id === bookingId);
       if (booking?.userEmail) {
-        fetch('/api/send-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to: booking.userEmail,
-            type: 'booking_status_update',
-            data: {
-              bookingId: bookingId.slice(-8),
-              status: newStatus,
-              truckRoute: booking.truckRoute,
-              pickup: booking.pickup,
-              delivery: booking.delivery,
-            }
-          })
-        }).catch(err => console.error('Failed to send email:', err));
+        getUserNotificationPrefs(booking.userId).then(prefs => {
+          if (prefs == null || prefs.bookingUpdates !== false) {
+            fetch('/api/send-email', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                to: booking.userEmail,
+                type: 'booking_status_update',
+                data: {
+                  bookingId: booking.refNumber || bookingId.slice(-8),
+                  status: newStatus,
+                  truckRoute: booking.truckRoute,
+                  pickup: booking.pickup,
+                  delivery: booking.delivery,
+                }
+              })
+            }).catch(err => console.error('Failed to send email:', err));
+          }
+        }).catch(() => {});
       }
     } catch (err) {
       addToast('Failed to update booking status.', 'error');
@@ -196,29 +200,33 @@ export default function BookingManagement() {
       setSelectedBooking(prev => prev ? { ...prev, status: 'Quoted', quotedAmount: amount } : null);
       setQuoteAmount('');
 
-      // Send invoice receipt email for quote
+      // Send invoice receipt email for quote (respects the user's notification preferences)
       if (selectedBooking.userEmail) {
-        fetch('/api/send-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to: selectedBooking.userEmail,
-            type: 'booking_invoice',
-            data: {
-              userName: selectedBooking.userName || 'Customer',
-              userEmail: selectedBooking.userEmail,
-              truckRoute: selectedBooking.truckRoute,
-              pickup: selectedBooking.pickup,
-              delivery: selectedBooking.delivery,
-              date: selectedBooking.date || new Date().toLocaleDateString(),
-              amount: amount,
-              bookingId: selectedBooking.id.slice(-8),
-              invoiceNumber: selectedBooking.id.slice(-6),
-              paymentMethod: 'Pending (Quote)',
-              invoiceDate: new Date().toLocaleDateString('en-PH')
-            }
-          })
-        }).catch(err => console.error('Failed to send invoice email:', err));
+        getUserNotificationPrefs(selectedBooking.userId).then(prefs => {
+          if (prefs == null || prefs.paymentReceipts !== false) {
+            fetch('/api/send-email', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                to: selectedBooking.userEmail,
+                type: 'booking_invoice',
+                data: {
+                  userName: selectedBooking.userName || 'Customer',
+                  userEmail: selectedBooking.userEmail,
+                  truckRoute: selectedBooking.truckRoute,
+                  pickup: selectedBooking.pickup,
+                  delivery: selectedBooking.delivery,
+                  date: selectedBooking.date || new Date().toLocaleDateString(),
+                  amount: amount,
+                  bookingId: selectedBooking.refNumber || selectedBooking.id.slice(-8),
+                  invoiceNumber: (selectedBooking.refNumber || selectedBooking.id.slice(-6)).toUpperCase(),
+                  paymentMethod: 'Pending (Quote)',
+                  invoiceDate: new Date().toLocaleDateString('en-PH')
+                }
+              })
+            }).catch(err => console.error('Failed to send invoice email:', err));
+          }
+        }).catch(() => {});
       }
     } catch (err) {
       console.error('Quote error:', err);
@@ -238,7 +246,7 @@ export default function BookingManagement() {
       });
       await addNotification({
         title: `Booking Update: ${selectedBooking.status}`,
-        message: `Your booking (${selectedBooking.id.slice(-6)}) for ${selectedBooking.truckRoute} has been updated to: ${selectedBooking.status}.${selectedBooking.quotedAmount ? ' Amount: PHP ' + selectedBooking.quotedAmount.toLocaleString() : ''}`,
+        message: `Your booking (${selectedBooking.refNumber || '#' + selectedBooking.id.slice(-6)}) for ${selectedBooking.truckRoute} has been updated to: ${selectedBooking.status}.${selectedBooking.quotedAmount ? ' Amount: PHP ' + selectedBooking.quotedAmount.toLocaleString() : ''}`,
         type: 'booking',
         isNew: true,
         time: timeString,
@@ -433,7 +441,7 @@ export default function BookingManagement() {
                         </span>
                       </td>
                       <td>
-                        <button className="btn btn-outline btn-sm" style={{ padding: '4px 8px' }}>
+                        <button className="btn btn-outline btn-sm" style={{ padding: '4px 8px' }} onClick={() => { setSelectedBooking(booking); setQuoteAmount(booking.quotedAmount?.toString() || ''); }}>
                           <MoreHorizontal size={14} />
                         </button>
                       </td>
@@ -448,255 +456,254 @@ export default function BookingManagement() {
         {/* Order Details Sidebar */}
         {selectedBooking && (
           <>
-            <div 
+            <div
               className="animate-fade-in"
-              style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.2)', zIndex: 499, backdropFilter: 'blur(2px)' }} 
-              onClick={() => setSelectedBooking(null)} 
+              style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.2)', zIndex: 499, backdropFilter: 'blur(2px)' }}
+              onClick={() => setSelectedBooking(null)}
             />
             <div className="animate-slide-right" style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '400px', background: '#ffffff', borderLeft: '1px solid var(--gray-200)', boxShadow: '-4px 0 24px rgba(0,0,0,0.15)', zIndex: 500, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--gray-200)', background: 'var(--gray-50)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
-              <span className="badge" style={{ background: getStatusColor(selectedBooking.status) + '20', color: getStatusColor(selectedBooking.status) }}>
-                {selectedBooking.status}
-              </span>
-              <button style={{ background: 'none', fontSize: '1rem', color: 'var(--text-muted)' }} onClick={() => setSelectedBooking(null)}>
-                <XCircle size={18} />
-              </button>
-            </div>
-
-            <div style={{ padding: '20px' }}>
-              {/* Customer Info */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', fontWeight: 700, fontSize: '1.1rem' }}>
-                  {(selectedBooking.userName || 'U').charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <h4>{selectedBooking.userName || (selectedBooking.userId === 'anonymous' ? 'Guest Booking' : 'User: ' + selectedBooking.userId.slice(0, 8))}</h4>
-                  {selectedBooking.userEmail && (
-                    <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{selectedBooking.userEmail}</p>
-                  )}
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{selectedBooking.id}</p>
-                </div>
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--gray-200)', background: 'var(--gray-50)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
+                <span className="badge" style={{ background: getStatusColor(selectedBooking.status) + '20', color: getStatusColor(selectedBooking.status) }}>
+                  {selectedBooking.status}
+                </span>
+                <button style={{ background: 'none', fontSize: '1rem', color: 'var(--text-muted)' }} onClick={() => setSelectedBooking(null)}>
+                  <XCircle size={18} />
+                </button>
               </div>
 
-              {/* Route Info */}
-              <div style={{ marginBottom: '20px' }}>
-                <h5 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
-                  Route Information
-                </h5>
-                <div style={{ paddingLeft: '12px', borderLeft: '2px solid var(--primary)' }}>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={12} /> Pickup Location</p>
-                  <p style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '12px' }}>{selectedBooking.pickup}</p>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={12} /> Delivery Location</p>
-                  <p style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '12px' }}>{selectedBooking.delivery}</p>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Notes: {selectedBooking.notes || 'None'}</p>
+              <div style={{ padding: '20px' }}>
+                {/* Customer Info */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', fontWeight: 700, fontSize: '1.1rem' }}>
+                    {(selectedBooking.userName || 'U').charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <h4>{selectedBooking.userName || (selectedBooking.userId === 'anonymous' ? 'Guest Booking' : 'Guest')}</h4>
+                    {selectedBooking.userEmail && (
+                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{selectedBooking.userEmail}</p>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {/* Vehicle, Timing & Cargo */}
-              <div style={{ marginBottom: '20px' }}>
-                <h5 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
-                  Vehicle, Cargo &amp; Timing
-                </h5>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.8rem' }}>
-                  <div><span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}><Truck size={12} /> Vehicle</span><strong>{selectedBooking.truckRoute}</strong></div>
-                  <div><span style={{ color: 'var(--text-muted)', display: 'block' }}>Date</span><strong>{selectedBooking.date}</strong></div>
-                  <div><span style={{ color: 'var(--text-muted)', display: 'block' }}>Time Slot</span><strong>{selectedBooking.time && selectedBooking.time !== 'undefined' && selectedBooking.time !== 'null' ? selectedBooking.time : 'N/A'}</strong></div>
-                  <div><span style={{ color: 'var(--text-muted)', display: 'block' }}>Weight</span><strong>{selectedBooking.weight ? selectedBooking.weight + ' KG' : 'N/A'}</strong></div>
-                  {selectedBooking.cargoSize && (
-                    <div style={{ gridColumn: '1 / -1' }}><span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}><Package size={12} /> Dimensions</span><strong>{selectedBooking.cargoSize}</strong></div>
-                  )}
-                  {selectedBooking.routeType && (
-                    <div><span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>Route</span><strong>{selectedBooking.routeType}</strong></div>
-                  )}
+                {/* Route Info */}
+                <div style={{ marginBottom: '20px' }}>
+                  <h5 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                    Route Information
+                  </h5>
+                  <div style={{ paddingLeft: '12px', borderLeft: '2px solid var(--primary)' }}>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={12} /> Pickup Location</p>
+                    <p style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '12px' }}>{selectedBooking.pickup}</p>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={12} /> Delivery Location</p>
+                    <p style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '12px' }}>{selectedBooking.delivery}</p>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Notes: {selectedBooking.notes || 'None'}</p>
+                  </div>
+                </div>
+
+                {/* Vehicle, Timing & Cargo */}
+                <div style={{ marginBottom: '20px' }}>
+                  <h5 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                    Vehicle, Cargo &amp; Timing
+                  </h5>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.8rem' }}>
+                    <div><span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}><Truck size={12} /> Vehicle</span><strong>{selectedBooking.truckRoute}</strong></div>
+                    <div><span style={{ color: 'var(--text-muted)', display: 'block' }}>Date</span><strong>{selectedBooking.date}</strong></div>
+                    <div><span style={{ color: 'var(--text-muted)', display: 'block' }}>Time Slot</span><strong>{selectedBooking.time && selectedBooking.time !== 'undefined' && selectedBooking.time !== 'null' ? selectedBooking.time : 'N/A'}</strong></div>
+                    <div><span style={{ color: 'var(--text-muted)', display: 'block' }}>Weight</span><strong>{selectedBooking.weight ? selectedBooking.weight + ' KG' : 'N/A'}</strong></div>
+                    {selectedBooking.cargoSize && (
+                      <div style={{ gridColumn: '1 / -1' }}><span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}><Package size={12} /> Dimensions</span><strong>{selectedBooking.cargoSize}</strong></div>
+                    )}
+                    {selectedBooking.routeType && (
+                      <div><span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>Route</span><strong>{selectedBooking.routeType}</strong></div>
+                    )}
                     <div><span style={{ color: 'var(--text-muted)', display: 'block' }}>Trucks Requested</span><strong>{selectedBooking.truckQuantity || 1} truck{(selectedBooking.truckQuantity || 1) > 1 ? 's' : ''}</strong></div>
-                  <div><span style={{ color: 'var(--text-muted)', display: 'block' }}>Payment</span><strong>{selectedBooking.paymentMethod === 'stripe' ? 'Stripe' : selectedBooking.paymentMethod === 'cod' ? 'COD' : 'Not yet selected'}</strong></div>
+                    <div><span style={{ color: 'var(--text-muted)', display: 'block' }}>Payment</span><strong>{selectedBooking.paymentMethod === 'stripe' ? 'Stripe' : selectedBooking.paymentMethod === 'cod' ? 'COD' : 'Not yet selected'}</strong></div>
+                  </div>
                 </div>
-              </div>
 
-              {/* Quote Amount Display or Input */}
-              {selectedBooking.quotedAmount && selectedBooking.status !== 'Quote Requested' && (
-                <div style={{ marginBottom: '20px', padding: '12px', background: 'var(--primary-light)', borderRadius: 'var(--border-radius)', textAlign: 'center' }}>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>QUOTED AMOUNT</p>
-                  <p style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary)' }}>PHP {selectedBooking.quotedAmount?.toLocaleString()}</p>
-                </div>
-              )}
+                {/* Quote Amount Display or Input */}
+                {selectedBooking.quotedAmount && selectedBooking.status !== 'Quote Requested' && (
+                  <div style={{ marginBottom: '20px', padding: '12px', background: 'var(--primary-light)', borderRadius: 'var(--border-radius)', textAlign: 'center' }}>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>QUOTED AMOUNT</p>
+                    <p style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary)' }}>PHP {selectedBooking.quotedAmount?.toLocaleString()}</p>
+                  </div>
+                )}
 
-              {/* Quote Input — for Quote Requested status */}
-              {selectedBooking.status === 'Quote Requested' && (
-                <div style={{ marginBottom: '20px', padding: '16px', background: '#FFF8E1', borderRadius: 'var(--border-radius)', border: '1px solid #F5A623' }}>
-                  <h5 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px', color: '#E65100' }}>
-                    ₱ Set Transport Quote (PHP)
-                  </h5>
-                  {!showQuoteConfirm ? (
-                    <>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <div style={{ position: 'relative', flex: 1 }}>
-                          <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>PHP</span>
-                          <input
-                            type="number"
-                            className="form-input"
-                            placeholder="Enter amount"
-                            value={quoteAmount}
-                            onChange={e => { setQuoteAmount(e.target.value); setShowQuoteConfirm(false); }}
-                            style={{ paddingLeft: '48px', width: '100%' }}
-                            min="1"
-                          />
+                {/* Quote Input — for Quote Requested status */}
+                {selectedBooking.status === 'Quote Requested' && (
+                  <div style={{ marginBottom: '20px', padding: '16px', background: '#FFF8E1', borderRadius: 'var(--border-radius)', border: '1px solid #F5A623' }}>
+                    <h5 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px', color: '#E65100' }}>
+                      ₱ Set Transport Quote (PHP)
+                    </h5>
+                    {!showQuoteConfirm ? (
+                      <>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <div style={{ position: 'relative', flex: 1 }}>
+                            <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>PHP</span>
+                            <input
+                              type="number"
+                              className="form-input"
+                              placeholder="Enter amount"
+                              value={quoteAmount}
+                              onChange={e => { setQuoteAmount(e.target.value); setShowQuoteConfirm(false); }}
+                              style={{ paddingLeft: '48px', width: '100%' }}
+                              min="1"
+                            />
+                          </div>
+                          <button
+                            className="btn btn-accent"
+                            onClick={() => {
+                              if (!quoteAmount || Number(quoteAmount) <= 0) {
+                                return;
+                              }
+                              setShowQuoteConfirm(true);
+                            }}
+                            disabled={settingQuote || !quoteAmount}
+                          >
+                            Review Quote
+                          </button>
                         </div>
-                        <button
-                          className="btn btn-accent"
-                          onClick={() => {
-                            if (!quoteAmount || Number(quoteAmount) <= 0) {
-                              return;
-                            }
-                            setShowQuoteConfirm(true);
-                          }}
-                          disabled={settingQuote || !quoteAmount}
-                        >
-                          Review Quote
-                        </button>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+                          The user will be notified and can accept/decline the quote.
+                        </p>
+                      </>
+                    ) : (
+                      <div style={{ background: '#fff', borderRadius: '8px', border: '1px solid #F5A623', padding: '16px' }}>
+                        <p style={{ fontSize: '0.85rem', fontWeight: 700, color: '#E65100', marginBottom: '6px' }}>Confirm Quotation</p>
+                        <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: '1.5' }}>
+                          Send a quote of{' '}
+                          <strong style={{ color: '#00522c' }}>₱{Number(quoteAmount).toLocaleString()}</strong>{' '}
+                          to <strong>{selectedBooking.userName || 'this customer'}</strong> for{' '}
+                          <strong>{selectedBooking.pickup} → {selectedBooking.delivery}</strong>?
+                        </p>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            className="btn btn-outline btn-sm"
+                            onClick={() => setShowQuoteConfirm(false)}
+                            style={{ flex: 1 }}
+                            disabled={settingQuote}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            className="btn btn-accent"
+                            onClick={async () => { await handleSetQuote(); setShowQuoteConfirm(false); }}
+                            disabled={settingQuote}
+                            style={{ flex: 1 }}
+                          >
+                            {settingQuote ? 'Sending...' : '✓ Confirm & Send'}
+                          </button>
+                        </div>
                       </div>
-                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '8px' }}>
-                        The user will be notified and can accept/decline the quote.
-                      </p>
-                    </>
-                  ) : (
-                    <div style={{ background: '#fff', borderRadius: '8px', border: '1px solid #F5A623', padding: '16px' }}>
-                      <p style={{ fontSize: '0.85rem', fontWeight: 700, color: '#E65100', marginBottom: '6px' }}>Confirm Quotation</p>
-                      <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: '1.5' }}>
-                        Send a quote of{' '}
-                        <strong style={{ color: '#00522c' }}>₱{Number(quoteAmount).toLocaleString()}</strong>{' '}
-                        to <strong>{selectedBooking.userName || 'this customer'}</strong> for{' '}
-                        <strong>{selectedBooking.pickup} → {selectedBooking.delivery}</strong>?
-                      </p>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <button
-                          className="btn btn-outline btn-sm"
-                          onClick={() => setShowQuoteConfirm(false)}
-                          style={{ flex: 1 }}
-                          disabled={settingQuote}
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          className="btn btn-accent"
-                          onClick={async () => { await handleSetQuote(); setShowQuoteConfirm(false); }}
-                          disabled={settingQuote}
-                          style={{ flex: 1 }}
-                        >
-                          {settingQuote ? 'Sending...' : '✓ Confirm & Send'}
-                        </button>
-                      </div>
-                    </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Status Actions */}
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                  {selectedBooking.status === 'Confirmed' && (
+                    <button
+                      className="btn btn-primary btn-sm"
+                      style={{ flex: 1, gap: '4px' }}
+                      onClick={() => handleStatusChange(selectedBooking.id, 'In Transit')}
+                    >
+                      <Truck size={14} /> In Transit
+                    </button>
+                  )}
+                  {(selectedBooking.status === 'Confirmed' || selectedBooking.status === 'In Transit') && (
+                    <button
+                      className="btn btn-success btn-sm"
+                      style={{ flex: 1, gap: '4px' }}
+                      onClick={() => handleStatusChange(selectedBooking.id, 'Completed')}
+                    >
+                      <CheckCircle size={14} /> Complete
+                    </button>
+                  )}
+                  {!['Completed', 'Cancelled', 'Declined'].includes(selectedBooking.status) && (
+                    <button
+                      className="btn btn-outline btn-sm"
+                      style={{ gap: '4px', color: 'var(--danger)', borderColor: 'var(--danger)' }}
+                      onClick={() => handleStatusChange(selectedBooking.id, 'Cancelled')}
+                    >
+                      <XCircle size={14} /> Cancel
+                    </button>
                   )}
                 </div>
-              )}
 
-              {/* Status Actions */}
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                {selectedBooking.status === 'Confirmed' && (
-                  <button
-                    className="btn btn-primary btn-sm"
-                    style={{ flex: 1, gap: '4px' }}
-                    onClick={() => handleStatusChange(selectedBooking.id, 'In Transit')}
-                  >
-                    <Truck size={14} /> In Transit
-                  </button>
+                {/* Cash Receipt Upload — for COD payments */}
+                {selectedBooking.paymentMethod === 'cod' && ['Confirmed', 'Completed', 'In Transit'].includes(selectedBooking.status) && (
+                  <div style={{ marginBottom: '16px', padding: '14px', background: 'var(--gray-50)', borderRadius: 'var(--border-radius)', border: '1px solid var(--gray-200)' }}>
+                    <h5 style={{ fontSize: '0.8rem', fontWeight: 700, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
+                      <FileImage size={14} /> Proof of Payment / Receipt
+                    </h5>
+                    {selectedBooking.receiptUrl ? (
+                      <div>
+                        <img
+                          src={selectedBooking.receiptUrl}
+                          alt="Payment receipt"
+                          style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px', border: '1px solid var(--gray-200)', marginBottom: '8px' }}
+                        />
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <a href={selectedBooking.receiptUrl} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-sm" style={{ flex: 1, fontSize: '0.75rem' }}>View Full</a>
+                          <label className="btn btn-outline btn-sm" style={{ flex: 1, fontSize: '0.75rem', cursor: 'pointer', gap: '4px' }}>
+                            <Upload size={12} /> Replace
+                            <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
+                              const file = e.target.files[0];
+                              if (!file) return;
+                              setReceiptUploading(true);
+                              try {
+                                const result = await compressImage(file, 800, 0.7);
+                                await updateBooking(selectedBooking.id, { receiptUrl: result.dataUrl });
+                                setSelectedBooking(prev => prev ? { ...prev, receiptUrl: result.dataUrl } : null);
+                                addToast('Receipt updated.', 'success');
+                              } catch { addToast('Failed to upload receipt.', 'error'); }
+                              setReceiptUploading(false);
+                            }} />
+                          </label>
+                        </div>
+                      </div>
+                    ) : (
+                      <label style={{
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
+                        padding: '20px', border: '2px dashed var(--gray-300)', borderRadius: 'var(--border-radius)',
+                        cursor: 'pointer', textAlign: 'center',
+                      }}>
+                        <Upload size={20} color="var(--text-muted)" />
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          {receiptUploading ? 'Uploading...' : 'Click to attach receipt or proof of payment'}
+                        </span>
+                        <input type="file" accept="image/*" style={{ display: 'none' }} disabled={receiptUploading} onChange={async (e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+                          setReceiptUploading(true);
+                          try {
+                            const result = await compressImage(file, 800, 0.7);
+                            await updateBooking(selectedBooking.id, { receiptUrl: result.dataUrl });
+                            setSelectedBooking(prev => prev ? { ...prev, receiptUrl: result.dataUrl } : null);
+                            addToast('Receipt attached successfully.', 'success');
+                          } catch { addToast('Failed to upload receipt.', 'error'); }
+                          setReceiptUploading(false);
+                        }} />
+                      </label>
+                    )}
+                  </div>
                 )}
-                {(selectedBooking.status === 'Confirmed' || selectedBooking.status === 'In Transit') && (
-                  <button
-                    className="btn btn-success btn-sm"
-                    style={{ flex: 1, gap: '4px' }}
-                    onClick={() => handleStatusChange(selectedBooking.id, 'Completed')}
-                  >
-                    <CheckCircle size={14} /> Complete
-                  </button>
-                )}
-                {!['Completed', 'Cancelled', 'Declined'].includes(selectedBooking.status) && (
-                  <button
-                    className="btn btn-outline btn-sm"
-                    style={{ gap: '4px', color: 'var(--danger)', borderColor: 'var(--danger)' }}
-                    onClick={() => handleStatusChange(selectedBooking.id, 'Cancelled')}
-                  >
-                    <XCircle size={14} /> Cancel
-                  </button>
+
+                {/* Notification Button */}
+                <button
+                  className="btn btn-outline btn-full btn-sm"
+                  style={{ gap: '6px', marginTop: '4px' }}
+                  onClick={handleSendNotification}
+                  disabled={sendingNotif || selectedBooking.userId === 'anonymous'}
+                >
+                  <Mail size={14} /> {sendingNotif ? 'Sending...' : 'Send Notification to User'}
+                </button>
+                {selectedBooking.userId === 'anonymous' && (
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '6px' }}>
+                    Guest bookings cannot receive notifications.
+                  </p>
                 )}
               </div>
-
-              {/* Cash Receipt Upload — for COD payments */}
-              {selectedBooking.paymentMethod === 'cod' && ['Confirmed', 'Completed', 'In Transit'].includes(selectedBooking.status) && (
-                <div style={{ marginBottom: '16px', padding: '14px', background: 'var(--gray-50)', borderRadius: 'var(--border-radius)', border: '1px solid var(--gray-200)' }}>
-                  <h5 style={{ fontSize: '0.8rem', fontWeight: 700, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
-                    <FileImage size={14} /> Proof of Payment / Receipt
-                  </h5>
-                  {selectedBooking.receiptUrl ? (
-                    <div>
-                      <img
-                        src={selectedBooking.receiptUrl}
-                        alt="Payment receipt"
-                        style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px', border: '1px solid var(--gray-200)', marginBottom: '8px' }}
-                      />
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <a href={selectedBooking.receiptUrl} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-sm" style={{ flex: 1, fontSize: '0.75rem' }}>View Full</a>
-                        <label className="btn btn-outline btn-sm" style={{ flex: 1, fontSize: '0.75rem', cursor: 'pointer', gap: '4px' }}>
-                          <Upload size={12} /> Replace
-                          <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
-                            const file = e.target.files[0];
-                            if (!file) return;
-                            setReceiptUploading(true);
-                            try {
-                              const result = await compressImage(file, 800, 0.7);
-                              await updateBooking(selectedBooking.id, { receiptUrl: result.dataUrl });
-                              setSelectedBooking(prev => prev ? { ...prev, receiptUrl: result.dataUrl } : null);
-                              addToast('Receipt updated.', 'success');
-                            } catch { addToast('Failed to upload receipt.', 'error'); }
-                            setReceiptUploading(false);
-                          }} />
-                        </label>
-                      </div>
-                    </div>
-                  ) : (
-                    <label style={{
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
-                      padding: '20px', border: '2px dashed var(--gray-300)', borderRadius: 'var(--border-radius)',
-                      cursor: 'pointer', textAlign: 'center',
-                    }}>
-                      <Upload size={20} color="var(--text-muted)" />
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                        {receiptUploading ? 'Uploading...' : 'Click to attach receipt or proof of payment'}
-                      </span>
-                      <input type="file" accept="image/*" style={{ display: 'none' }} disabled={receiptUploading} onChange={async (e) => {
-                        const file = e.target.files[0];
-                        if (!file) return;
-                        setReceiptUploading(true);
-                        try {
-                          const result = await compressImage(file, 800, 0.7);
-                          await updateBooking(selectedBooking.id, { receiptUrl: result.dataUrl });
-                          setSelectedBooking(prev => prev ? { ...prev, receiptUrl: result.dataUrl } : null);
-                          addToast('Receipt attached successfully.', 'success');
-                        } catch { addToast('Failed to upload receipt.', 'error'); }
-                        setReceiptUploading(false);
-                      }} />
-                    </label>
-                  )}
-                </div>
-              )}
-
-              {/* Notification Button */}
-              <button
-                className="btn btn-outline btn-full btn-sm"
-                style={{ gap: '6px', marginTop: '4px' }}
-                onClick={handleSendNotification}
-                disabled={sendingNotif || selectedBooking.userId === 'anonymous'}
-              >
-                <Mail size={14} /> {sendingNotif ? 'Sending...' : 'Send Notification to User'}
-              </button>
-              {selectedBooking.userId === 'anonymous' && (
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '6px' }}>
-                  Guest bookings cannot receive notifications.
-                </p>
-              )}
             </div>
-          </div>
           </>
         )}
       </div>

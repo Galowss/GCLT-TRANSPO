@@ -7,7 +7,7 @@ import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToBookings, updateBooking, addNotification } from '@/lib/firebaseService';
 import { useToast } from '@/components/Toast';
 import { useState, useMemo, useEffect } from 'react';
-import { X, CreditCard, Banknote, CheckCircle, XCircle, Truck, MapPin, Clock, Package, Edit3, ArrowRight, Plus, Filter, Download, FileText, Receipt, FileImage, Upload } from 'lucide-react';
+import { X, CreditCard, Banknote, CheckCircle, XCircle, Truck, MapPin, Clock, Package, Edit3, ArrowRight, Plus, Filter, Download, FileText, Receipt, FileImage, Upload, Mail } from 'lucide-react';
 import { compressImage } from '@/lib/compressImage';
 
 const STATUS_COLORS = {
@@ -173,7 +173,7 @@ export default function MyBookings() {
       const now = new Date();
       const timeString = now.toLocaleString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
       await updateBooking(selectedBooking.id, { editRequest: { message: editMessage, requestedAt: now.toISOString(), status: 'Pending' } });
-      await addNotification({ title: 'Edit Request Received', message: `${user?.displayName || 'User'} requested an edit for booking ${selectedBooking.id.slice(-8)}: "${editMessage}"`, type: 'booking', isNew: true, time: timeString, forAdmin: true, userId: 'admin', userEmail: user?.email || '' });
+      await addNotification({ title: 'Edit Request Received', message: `${user?.displayName || 'User'} requested an edit for booking ${selectedBooking.refNumber || '#' + selectedBooking.id.slice(-8)}: "${editMessage}"`, type: 'booking', isNew: true, time: timeString, forAdmin: true, userId: 'admin', userEmail: user?.email || '' });
       setEditMessage('');
       closeEditModal();
       addToast('Edit request submitted successfully. We will review it shortly.', 'success');
@@ -199,7 +199,9 @@ export default function MyBookings() {
         const { url, error } = await res.json();
         if (error || !url) throw new Error(error || 'No checkout URL returned');
         await addNotification({ title: 'Quote Accepted — Online Payment', message: `${user?.displayName || 'User'} accepted the quote for ${booking.truckRoute} and is paying PHP ${booking.quotedAmount?.toLocaleString()} via Stripe.`, type: 'booking', isNew: true, time: timeString, forAdmin: true, userId: 'admin' });
-        sendEmail('quote_accepted', { bookingId: booking.id.slice(-8), truckRoute: booking.truckRoute, pickup: booking.pickup, delivery: booking.delivery, date: booking.date, amount: booking.quotedAmount, paymentMethod: 'stripe' });
+        if (user?.notificationPrefs?.bookingUpdates !== false) {
+          sendEmail('quote_accepted', { bookingId: booking.refNumber || booking.id.slice(-8), truckRoute: booking.truckRoute, pickup: booking.pickup, delivery: booking.delivery, date: booking.date, amount: booking.quotedAmount, paymentMethod: 'stripe' });
+        }
         window.location.href = url; return;
       } catch { addToast('Payment failed. Please try again.', 'error'); }
     } else {
@@ -208,8 +210,12 @@ export default function MyBookings() {
         await addNotification({ title: 'Booking Confirmed', message: `Your booking for ${booking.truckRoute} has been confirmed. Amount: PHP ${booking.quotedAmount?.toLocaleString()}. Payment: Cash on Delivery.`, type: 'booking', isNew: true, time: timeString, userId: user?.uid });
         await addNotification({ title: 'Quote Accepted — Cash on Delivery', message: `${user?.displayName || 'User'} accepted the quote for ${booking.truckRoute}. Amount: PHP ${booking.quotedAmount?.toLocaleString()}. Payment method: COD.`, type: 'booking', isNew: true, time: timeString, forAdmin: true, userId: 'admin' });
         addToast('Payment confirmed successfully. We will review your booking soon.', 'success');
-        sendEmail('quote_accepted', { bookingId: booking.id.slice(-8), truckRoute: booking.truckRoute, pickup: booking.pickup, delivery: booking.delivery, date: booking.date, amount: booking.quotedAmount, paymentMethod: 'cod' });
-        sendEmail('booking_invoice', { bookingId: booking.id.slice(-8), userName: user?.displayName || 'Customer', userEmail: user?.email || '', truckRoute: booking.truckRoute, pickup: booking.pickup, delivery: booking.delivery, date: booking.date, amount: booking.quotedAmount, paymentMethod: 'cod' });
+        if (user?.notificationPrefs?.bookingUpdates !== false) {
+          sendEmail('quote_accepted', { bookingId: booking.refNumber || booking.id.slice(-8), truckRoute: booking.truckRoute, pickup: booking.pickup, delivery: booking.delivery, date: booking.date, amount: booking.quotedAmount, paymentMethod: 'cod' });
+        }
+        if (user?.notificationPrefs?.paymentReceipts !== false) {
+          sendEmail('booking_invoice', { bookingId: booking.refNumber || booking.id.slice(-8), userName: user?.displayName || 'Customer', userEmail: user?.email || '', truckRoute: booking.truckRoute, pickup: booking.pickup, delivery: booking.delivery, date: booking.date, amount: booking.quotedAmount, paymentMethod: 'cod' });
+        }
         closePaymentModal();
       } catch (err) {
         addToast('Failed to confirm booking.', 'error');
@@ -222,7 +228,7 @@ export default function MyBookings() {
 
   return (
     <DashboardLayout>
-      
+
       {/* ── Edit Modal ── */}
       {showEditModal && selectedBooking && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
@@ -234,7 +240,6 @@ export default function MyBookings() {
               </h3>
               <button style={{ background: 'none', color: '#6f7a70' }} onClick={closeEditModal}><X size={20} /></button>
             </div>
-            <p style={{ fontSize: '0.85rem', color: '#6f7a70', marginBottom: '16px' }}>Booking ID: {selectedBooking.id.slice(-8)}</p>
             <div className="form-group">
               <label className="form-label">Describe changes needed *</label>
               <textarea className="form-input form-textarea" placeholder="e.g. Change pickup date to May 15..." value={editMessage} onChange={e => setEditMessage(e.target.value)} rows={4} />
@@ -410,7 +415,7 @@ export default function MyBookings() {
                       body: JSON.stringify({
                         to: user.email,
                         userName: user.displayName || 'Customer',
-                        invoiceNumber: b.id.slice(-8).toUpperCase(),
+                        invoiceNumber: b.refNumber || b.id.slice(-8).toUpperCase(),
                         invoiceDate: b.date || 'N/A',
                         items: [{ description: b.truckRoute || 'Logistics Service', detail: `${b.pickup} → ${b.delivery}`, amount: b.quotedAmount || 0 }],
                         total: b.quotedAmount || 0,
@@ -434,10 +439,10 @@ export default function MyBookings() {
                     <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.825rem', color: '#181d19', flex: 1 }}>{docLabel}</span>
                     <button
                       onClick={handleDownloadInvoice}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#00522c', display: 'flex', alignItems: 'center', padding: '2px 4px', borderRadius: '4px', transition: 'background 0.15s' }}
-                      title="Send invoice to email"
+                      style={{ background: '#eaf4eb', border: '1px solid #00522c', cursor: 'pointer', color: '#00522c', display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '6px', transition: 'background 0.15s', fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', fontWeight: 700, flexShrink: 0 }}
+                      title="Email the invoice to your account email"
                     >
-                      <Download size={16} />
+                      <Mail size={14} /> Send
                     </button>
                   </div>
                 );
@@ -610,12 +615,12 @@ export default function MyBookings() {
             </tbody>
           </table>
         </div>
-        
+
         {/* Pagination Controls */}
         {totalPages > 1 && (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', padding: '16px', borderTop: '1px solid #bec9be', background: '#f6fbf3' }}>
-            <button 
-              className="btn btn-outline btn-sm" 
+            <button
+              className="btn btn-outline btn-sm"
               style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid #bec9be', background: currentPage === 1 ? '#e0e6e0' : '#fff', cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
@@ -625,8 +630,8 @@ export default function MyBookings() {
             <span style={{ fontSize: '0.85rem', color: '#5f5e5e', fontFamily: 'Inter, sans-serif' }}>
               Page {currentPage} of {totalPages}
             </span>
-            <button 
-              className="btn btn-outline btn-sm" 
+            <button
+              className="btn btn-outline btn-sm"
               style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid #bec9be', background: currentPage === totalPages ? '#e0e6e0' : '#fff', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
@@ -640,120 +645,151 @@ export default function MyBookings() {
       {/* ── Booking Detail Drawer ── */}
       {selectedBooking && (
         <>
-          <div 
+          <div
             className={`animate-fade-in ${isClosingBooking ? 'animate-fade-out' : ''}`}
-            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.2)', zIndex: 499, backdropFilter: 'blur(2px)' }} 
-            onClick={closeBookingDrawer} 
+            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.2)', zIndex: 499, backdropFilter: 'blur(2px)' }}
+            onClick={closeBookingDrawer}
           />
           <div className={`animate-slide-right ${isClosingBooking ? 'animate-slide-out-right' : ''}`} style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '380px', background: '#ffffff', borderLeft: '1px solid #bec9be', boxShadow: '-4px 0 20px rgba(0,0,0,0.1)', zIndex: 500, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-          {/* Drawer header */}
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid #ebefe8', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f6fbf3', position: 'sticky', top: 0, zIndex: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <StatusPill status={selectedBooking.status} />
-              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: '#6f7a70' }}>#{selectedBooking.id.slice(-8)}</span>
-            </div>
-            <button style={{ background: 'none', color: '#6f7a70', display: 'flex', alignItems: 'center' }} onClick={closeBookingDrawer}>
-              <X size={18} />
-            </button>
-          </div>
-
-          <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', flex: 1 }}>
-            {/* Route */}
-            <div>
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#5f5e5e', marginBottom: '10px' }}>Route Information</p>
-              <div style={{ paddingLeft: '12px', borderLeft: '3px solid #00522c', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div>
-                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: '#6f7a70', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}><MapPin size={11} /> Pickup</p>
-                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 600, color: '#181d19', margin: 0 }}>{selectedBooking.pickup || '—'}</p>
-                </div>
-                <div>
-                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: '#6f7a70', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}><MapPin size={11} /> Delivery</p>
-                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 600, color: '#181d19', margin: 0 }}>{selectedBooking.delivery || '—'}</p>
-                </div>
+            {/* Drawer header */}
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #ebefe8', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f6fbf3', position: 'sticky', top: 0, zIndex: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <StatusPill status={selectedBooking.status} />
+                {selectedBooking.refNumber && (
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: '#6f7a70' }}>#{selectedBooking.refNumber}</span>
+                )}
               </div>
+              <button style={{ background: 'none', color: '#6f7a70', display: 'flex', alignItems: 'center' }} onClick={closeBookingDrawer}>
+                <X size={18} />
+              </button>
             </div>
 
-            {/* Details */}
-            <div>
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#5f5e5e', marginBottom: '10px' }}>Cargo &amp; Schedule</p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                {[
-                  { label: 'Vehicle', value: selectedBooking.truckRoute, icon: <Truck size={11} /> },
-                  { label: 'Date', value: selectedBooking.date, icon: <Clock size={11} /> },
-                  { label: 'Time', value: selectedBooking.time },
-                  { label: 'Weight', value: selectedBooking.weight ? selectedBooking.weight + ' KG' : 'N/A', icon: <Package size={11} /> },
-                  ...(selectedBooking.routeType ? [{ label: 'Route', value: selectedBooking.routeType }] : []),
-                  ...(selectedBooking.cargoSize ? [{ label: 'Cargo Size', value: selectedBooking.cargoSize, span: true }] : []),
-                ].map((item, i) => (
-                  <div key={i} style={{ gridColumn: item.span ? '1 / -1' : undefined }}>
-                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', color: '#6f7a70', display: 'flex', alignItems: 'center', gap: '3px' }}>{item.icon} {item.label}</span>
-                    <strong style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: '#181d19' }}>{item.value || '—'}</strong>
-                  </div>
-                ))}
-              </div>
-              {selectedBooking.notes && (
-                <div style={{ marginTop: '12px', padding: '10px 12px', background: '#f0f5ee', borderRadius: '8px', fontFamily: 'Inter, sans-serif', fontSize: '0.825rem', color: '#3f4941' }}>
-                  <strong>Notes: </strong>{selectedBooking.notes}
-                </div>
-              )}
-              {selectedBooking.editRequest && (
-                <div style={{ marginTop: '12px', padding: '10px 12px', background: '#FFF8E1', borderRadius: '8px', border: '1px solid #F5A623' }}>
-                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', fontWeight: 700, color: '#E65100', marginBottom: '4px' }}>EDIT REQUESTED</p>
-                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.825rem', color: '#795548' }}>{selectedBooking.editRequest.message}</p>
-                </div>
-              )}
-            </div>
-
-            {/* Quote Amount Display / Invoice Receipt */}
-            {selectedBooking.quotedAmount && (
-              <div style={{ marginBottom: '20px', padding: '16px', background: '#eaf4eb', borderRadius: '12px', border: '1px dashed #00522c' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <h5 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#00522c', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
-                    <FileText size={16} /> INVOICE / RECEIPT
-                  </h5>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#00522c', background: '#fff', padding: '2px 6px', borderRadius: '4px' }}>
-                    SENT
-                  </span>
-                </div>
-                <p style={{ fontSize: '0.8rem', color: '#3f4941', marginBottom: '12px', fontFamily: 'Inter, sans-serif' }}>
-                  Invoice #{selectedBooking.id.slice(-6)} <br/>
-                  Generated: {selectedBooking.quotedAt ? new Date(selectedBooking.quotedAt).toLocaleDateString() : 'N/A'}
-                </p>
-                <div style={{ textAlign: 'center', background: '#fff', padding: '12px', borderRadius: '6px' }}>
-                  <p style={{ fontSize: '0.75rem', color: '#6f7a70', marginBottom: '2px', fontFamily: 'Inter, sans-serif' }}>TOTAL QUOTED AMOUNT</p>
-                  <p style={{ fontSize: '1.5rem', fontWeight: 800, color: '#00522c', margin: 0, fontFamily: 'Manrope, sans-serif' }}>PHP {selectedBooking.quotedAmount?.toLocaleString()}</p>
-                  {selectedBooking.paymentMethod && (
-                    <span style={{
-                      display: 'inline-block', marginTop: '8px', padding: '4px 12px', borderRadius: '100px',
-                      background: selectedBooking.paymentMethod === 'stripe' ? '#E8F5E9' : '#FFF8E1',
-                      color: selectedBooking.paymentMethod === 'stripe' ? '#2E7D32' : '#E65100',
-                      fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', fontWeight: 700,
-                    }}>
-                      {selectedBooking.paymentMethod === 'stripe' ? 'Paid (Stripe)' : 'Cash on Delivery'}
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Cash Receipt Upload — for COD payments */}
-            {selectedBooking.paymentMethod === 'cod' && ['Confirmed', 'Completed', 'In Transit'].includes(selectedBooking.status) && (
-              <div style={{ marginBottom: '16px', padding: '14px', background: '#f6fbf3', borderRadius: '12px', border: '1px solid #ebefe8' }}>
-                <h5 style={{ fontSize: '0.8rem', fontWeight: 700, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px', color: '#3f4941', fontFamily: 'Inter, sans-serif' }}>
-                  <FileImage size={14} /> Proof of Payment / Receipt
-                </h5>
-                {selectedBooking.receiptUrl ? (
+            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', flex: 1 }}>
+              {/* Route */}
+              <div>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#5f5e5e', marginBottom: '10px' }}>Route Information</p>
+                <div style={{ paddingLeft: '12px', borderLeft: '3px solid #00522c', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div>
-                    <img
-                      src={selectedBooking.receiptUrl}
-                      alt="Payment receipt"
-                      style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px', border: '1px solid #ebefe8', marginBottom: '8px' }}
-                    />
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <a href={selectedBooking.receiptUrl} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-sm" style={{ flex: 1, fontSize: '0.75rem' }}>View Full</a>
-                      <label className="btn btn-outline btn-sm" style={{ flex: 1, fontSize: '0.75rem', cursor: 'pointer', gap: '4px' }}>
-                        <Upload size={12} /> Replace
-                        <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
+                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: '#6f7a70', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}><MapPin size={11} /> Pickup</p>
+                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 600, color: '#181d19', margin: 0 }}>{selectedBooking.pickup || '—'}</p>
+                  </div>
+                  <div>
+                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: '#6f7a70', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}><MapPin size={11} /> Delivery</p>
+                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 600, color: '#181d19', margin: 0 }}>{selectedBooking.delivery || '—'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Details */}
+              <div>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#5f5e5e', marginBottom: '10px' }}>Cargo &amp; Schedule</p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  {[
+                    { label: 'Vehicle', value: selectedBooking.truckRoute, icon: <Truck size={11} /> },
+                    { label: 'Date', value: selectedBooking.date, icon: <Clock size={11} /> },
+                    { label: 'Time', value: selectedBooking.time },
+                    { label: 'Weight', value: selectedBooking.weight ? selectedBooking.weight + ' KG' : 'N/A', icon: <Package size={11} /> },
+                    ...(selectedBooking.routeType ? [{ label: 'Route', value: selectedBooking.routeType }] : []),
+                    ...(selectedBooking.cargoSize ? [{ label: 'Cargo Size', value: selectedBooking.cargoSize, span: true }] : []),
+                  ].map((item, i) => (
+                    <div key={i} style={{ gridColumn: item.span ? '1 / -1' : undefined }}>
+                      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', color: '#6f7a70', display: 'flex', alignItems: 'center', gap: '3px' }}>{item.icon} {item.label}</span>
+                      <strong style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: '#181d19' }}>{item.value || '—'}</strong>
+                    </div>
+                  ))}
+                </div>
+                {selectedBooking.notes && (
+                  <div style={{ marginTop: '12px', padding: '10px 12px', background: '#f0f5ee', borderRadius: '8px', fontFamily: 'Inter, sans-serif', fontSize: '0.825rem', color: '#3f4941' }}>
+                    <strong>Notes: </strong>{selectedBooking.notes}
+                  </div>
+                )}
+                {selectedBooking.editRequest && (
+                  <div style={{ marginTop: '12px', padding: '10px 12px', background: '#FFF8E1', borderRadius: '8px', border: '1px solid #F5A623' }}>
+                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', fontWeight: 700, color: '#E65100', marginBottom: '4px' }}>EDIT REQUESTED</p>
+                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.825rem', color: '#795548' }}>{selectedBooking.editRequest.message}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Quote Amount Display / Invoice Receipt */}
+              {selectedBooking.quotedAmount && (
+                <div style={{ marginBottom: '20px', padding: '16px', background: '#eaf4eb', borderRadius: '12px', border: '1px dashed #00522c' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <h5 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#00522c', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
+                      <FileText size={16} /> INVOICE / RECEIPT
+                    </h5>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#00522c', background: '#fff', padding: '2px 6px', borderRadius: '4px' }}>
+                      SENT
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: '#3f4941', marginBottom: '12px', fontFamily: 'Inter, sans-serif' }}>
+                    {selectedBooking.refNumber ? `Invoice #${selectedBooking.refNumber}` : 'Invoice'} <br />
+                    Generated: {selectedBooking.quotedAt ? new Date(selectedBooking.quotedAt).toLocaleDateString() : 'N/A'}
+                  </p>
+                  <div style={{ textAlign: 'center', background: '#fff', padding: '12px', borderRadius: '6px' }}>
+                    <p style={{ fontSize: '0.75rem', color: '#6f7a70', marginBottom: '2px', fontFamily: 'Inter, sans-serif' }}>TOTAL QUOTED AMOUNT</p>
+                    <p style={{ fontSize: '1.5rem', fontWeight: 800, color: '#00522c', margin: 0, fontFamily: 'Manrope, sans-serif' }}>PHP {selectedBooking.quotedAmount?.toLocaleString()}</p>
+                    {selectedBooking.paymentMethod && (
+                      <span style={{
+                        display: 'inline-block', marginTop: '8px', padding: '4px 12px', borderRadius: '100px',
+                        background: selectedBooking.paymentMethod === 'stripe' ? '#E8F5E9' : '#FFF8E1',
+                        color: selectedBooking.paymentMethod === 'stripe' ? '#2E7D32' : '#E65100',
+                        fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', fontWeight: 700,
+                      }}>
+                        {selectedBooking.paymentMethod === 'stripe' ? 'Paid (Stripe)' : 'Cash on Delivery'}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Cash Receipt Upload — for COD payments */}
+              {selectedBooking.paymentMethod === 'cod' && ['Confirmed', 'Completed', 'In Transit'].includes(selectedBooking.status) && (
+                <div style={{ marginBottom: '16px', padding: '14px', background: '#f6fbf3', borderRadius: '12px', border: '1px solid #ebefe8' }}>
+                  <h5 style={{ fontSize: '0.8rem', fontWeight: 700, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px', color: '#3f4941', fontFamily: 'Inter, sans-serif' }}>
+                    <FileImage size={14} /> Proof of Payment / Receipt
+                  </h5>
+                  {selectedBooking.receiptUrl ? (
+                    <div>
+                      <img
+                        src={selectedBooking.receiptUrl}
+                        alt="Payment receipt"
+                        style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px', border: '1px solid #ebefe8', marginBottom: '8px' }}
+                      />
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <a href={selectedBooking.receiptUrl} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-sm" style={{ flex: 1, fontSize: '0.75rem' }}>View Full</a>
+                        <label className="btn btn-outline btn-sm" style={{ flex: 1, fontSize: '0.75rem', cursor: 'pointer', gap: '4px' }}>
+                          <Upload size={12} /> Replace
+                          <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
+                            const file = e.target.files[0];
+                            if (!file) return;
+                            setReceiptUploading(true);
+                            try {
+                              const result = await compressImage(file, 800, 0.7);
+                              await updateBooking(selectedBooking.id, { receiptUrl: result.dataUrl });
+                              setSelectedBooking(prev => prev ? { ...prev, receiptUrl: result.dataUrl } : null);
+                              addToast('Receipt updated successfully.', 'success');
+                              addNotification({
+                                title: 'Payment Receipt Uploaded',
+                                message: `User uploaded a receipt for booking ${selectedBooking.refNumber || '#' + selectedBooking.id.slice(-6)}`,
+                                type: 'booking',
+                                isNew: true,
+                                time: new Date().toLocaleString('en-PH'),
+                                role: 'admin'
+                              });
+                            } catch { addToast('Failed to upload receipt.', 'error'); }
+                            setReceiptUploading(false);
+                          }} />
+                        </label>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: 'center', padding: '20px 10px', background: '#fff', borderRadius: '8px', border: '1px dashed #bec9be' }}>
+                      <p style={{ fontSize: '0.75rem', color: '#6f7a70', marginBottom: '12px', fontFamily: 'Inter, sans-serif' }}>Please upload your proof of payment or bank deposit slip.</p>
+                      <label className="btn btn-primary btn-sm" style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        {receiptUploading ? <span className="spinner" style={{ width: '14px', height: '14px', borderWidth: '2px' }}></span> : <Upload size={14} />}
+                        {receiptUploading ? 'Uploading...' : 'Upload Receipt'}
+                        <input type="file" accept="image/*" style={{ display: 'none' }} disabled={receiptUploading} onChange={async (e) => {
                           const file = e.target.files[0];
                           if (!file) return;
                           setReceiptUploading(true);
@@ -761,10 +797,10 @@ export default function MyBookings() {
                             const result = await compressImage(file, 800, 0.7);
                             await updateBooking(selectedBooking.id, { receiptUrl: result.dataUrl });
                             setSelectedBooking(prev => prev ? { ...prev, receiptUrl: result.dataUrl } : null);
-                            addToast('Receipt updated successfully.', 'success');
+                            addToast('Receipt uploaded successfully.', 'success');
                             addNotification({
                               title: 'Payment Receipt Uploaded',
-                              message: `User uploaded a receipt for booking ${selectedBooking.id.slice(-6)}`,
+                              message: `User uploaded a receipt for booking ${selectedBooking.refNumber || '#' + selectedBooking.id.slice(-6)}`,
                               type: 'booking',
                               isNew: true,
                               time: new Date().toLocaleString('en-PH'),
@@ -775,65 +811,36 @@ export default function MyBookings() {
                         }} />
                       </label>
                     </div>
-                  </div>
-                ) : (
-                  <div style={{ textAlign: 'center', padding: '20px 10px', background: '#fff', borderRadius: '8px', border: '1px dashed #bec9be' }}>
-                    <p style={{ fontSize: '0.75rem', color: '#6f7a70', marginBottom: '12px', fontFamily: 'Inter, sans-serif' }}>Please upload your proof of payment or bank deposit slip.</p>
-                    <label className="btn btn-primary btn-sm" style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                      {receiptUploading ? <span className="spinner" style={{ width: '14px', height: '14px', borderWidth: '2px' }}></span> : <Upload size={14} />}
-                      {receiptUploading ? 'Uploading...' : 'Upload Receipt'}
-                      <input type="file" accept="image/*" style={{ display: 'none' }} disabled={receiptUploading} onChange={async (e) => {
-                        const file = e.target.files[0];
-                        if (!file) return;
-                        setReceiptUploading(true);
-                        try {
-                          const result = await compressImage(file, 800, 0.7);
-                          await updateBooking(selectedBooking.id, { receiptUrl: result.dataUrl });
-                          setSelectedBooking(prev => prev ? { ...prev, receiptUrl: result.dataUrl } : null);
-                          addToast('Receipt uploaded successfully.', 'success');
-                          addNotification({
-                            title: 'Payment Receipt Uploaded',
-                            message: `User uploaded a receipt for booking ${selectedBooking.id.slice(-6)}`,
-                            type: 'booking',
-                            isNew: true,
-                            time: new Date().toLocaleString('en-PH'),
-                            role: 'admin'
-                          });
-                        } catch { addToast('Failed to upload receipt.', 'error'); }
-                        setReceiptUploading(false);
-                      }} />
-                    </label>
-                  </div>
-                )}
-              </div>
-            )}
+                  )}
+                </div>
+              )}
 
-            {/* Actions */}
-            {selectedBooking.status === 'Quoted' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <button className="btn btn-accent btn-full" style={{ gap: '6px' }} onClick={() => handleAcceptQuote(selectedBooking)} disabled={processing}>
-                  <CheckCircle size={14} /> Accept Quote &amp; Choose Payment
+              {/* Actions */}
+              {selectedBooking.status === 'Quoted' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <button className="btn btn-accent btn-full" style={{ gap: '6px' }} onClick={() => handleAcceptQuote(selectedBooking)} disabled={processing}>
+                    <CheckCircle size={14} /> Accept Quote &amp; Choose Payment
+                  </button>
+                  <button className="btn btn-outline btn-full" style={{ gap: '6px', color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => handleDeclineQuote(selectedBooking)} disabled={processing}>
+                    <XCircle size={14} /> Decline Quote
+                  </button>
+                </div>
+              )}
+
+              {selectedBooking.status === 'Quote Requested' && (
+                <div style={{ padding: '14px', background: '#FFF8E1', borderRadius: '8px', textAlign: 'center', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: '#E65100', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                  <Clock size={16} />
+                  <p style={{ margin: 0 }}>Awaiting admin quote. You will be notified once the price is calculated.</p>
+                </div>
+              )}
+
+              {canRequestEdit(selectedBooking.status) && (
+                <button className="btn btn-outline btn-full" style={{ gap: '6px', fontSize: '0.85rem' }} onClick={() => setShowEditModal(true)}>
+                  <Edit3 size={14} /> Request a Booking Edit
                 </button>
-                <button className="btn btn-outline btn-full" style={{ gap: '6px', color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => handleDeclineQuote(selectedBooking)} disabled={processing}>
-                  <XCircle size={14} /> Decline Quote
-                </button>
-              </div>
-            )}
-
-            {selectedBooking.status === 'Quote Requested' && (
-              <div style={{ padding: '14px', background: '#FFF8E1', borderRadius: '8px', textAlign: 'center', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: '#E65100', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-                <Clock size={16} />
-                <p style={{ margin: 0 }}>Awaiting admin quote. You will be notified once the price is calculated.</p>
-              </div>
-            )}
-
-            {canRequestEdit(selectedBooking.status) && (
-              <button className="btn btn-outline btn-full" style={{ gap: '6px', fontSize: '0.85rem' }} onClick={() => setShowEditModal(true)}>
-                <Edit3 size={14} /> Request a Booking Edit
-              </button>
-            )}
+              )}
+            </div>
           </div>
-        </div>
         </>
       )}
     </DashboardLayout>

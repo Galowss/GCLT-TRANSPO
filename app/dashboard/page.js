@@ -86,7 +86,7 @@ export default function Dashboard() {
         {/* Header */}
         <div className={styles.header}>
           <div>
-            <h1 className={styles.welcome}>Welcome back, {user?.displayName?.split(' ')[0] || 'User'} 👋</h1>
+            <h1 className={styles.welcome}>Welcome back, {user?.displayName?.split(' ')[0] || 'User'}</h1>
             <p className={styles.subtitle}>
               Managing logistics for <strong>SBMA / Olongapo Port Region</strong>
             </p>

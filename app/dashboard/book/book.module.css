@@ -308,6 +308,41 @@
   gap: 12px;
 }
 
+/* ── Time Slot Picker ── */
+.timeSlotGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+  max-height: 168px;
+  overflow-y: auto;
+  padding: 2px;
+}
+
+.timeSlot {
+  height: 38px;
+  border: 1.5px solid #bec9be;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #5f5e5e;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.timeSlot:hover {
+  background: #f0f5ee;
+  border-color: #6f7a70;
+}
+
+.timeSlotActive {
+  border-color: #00522c;
+  background: #EBF9F1;
+  color: #00522c;
+}
+
 /* ── Divider ── */
 .divider {
   height: 1px;

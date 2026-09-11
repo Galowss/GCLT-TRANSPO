@@ -15,6 +15,8 @@ export default function DashboardLayout({ children }) {
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login');
+    } else if (!loading && user && ['admin', 'staff'].includes(user.role)) {
+      router.push('/admin');
     }
   }, [user, loading, router]);
 
@@ -33,8 +35,8 @@ export default function DashboardLayout({ children }) {
     <div className="dashboard-layout">
       <div className="dashboard-topbar">
         <div className="dashboard-topbar-brand">
-          <button 
-            className="sidebar-mobile-toggle" 
+          <button
+            className="sidebar-mobile-toggle"
             onClick={() => setSidebarOpen(true)}
             aria-label="Open Sidebar"
           >
@@ -69,7 +71,7 @@ export default function DashboardLayout({ children }) {
         <div style={{ padding: '32px 0 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', fontSize: '0.8rem', color: 'var(--gray-500)', borderTop: '1px solid var(--gray-200)', marginTop: '24px' }}>
           <span>&copy; {new Date().getFullYear()} GCLT Transport & Trucking Services. All rights reserved.</span>
           <div style={{ display: 'flex', gap: '16px' }}>
-            <Link href="/privacy" style={{ color: 'var(--text-muted)' }}>Data Privacy Policy</Link>
+            <a href="/legal/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-muted)' }}>Data Privacy Policy</a>
           </div>
         </div>
       </main>

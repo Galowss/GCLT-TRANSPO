@@ -142,7 +142,6 @@ export default function AdminAppointments() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>ID</th>
                   <th>Customer</th>
                   <th>Truck</th>
                   <th>Location</th>
@@ -154,9 +153,9 @@ export default function AdminAppointments() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan="8" style={{ textAlign: 'center', padding: '32px' }}>Loading appointments...</td></tr>
+                  <tr><td colSpan="7" style={{ textAlign: 'center', padding: '32px' }}>Loading appointments...</td></tr>
                 ) : !filteredAppointments.length ? (
-                  <tr><td colSpan="8" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
+                  <tr><td colSpan="7" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
                     <Calendar size={28} style={{ display: 'block', margin: '0 auto 8px' }} />
                     {hasActiveFilters ? 'No appointments match your filters.' : 'No appointments found. They will appear here when users schedule viewings.'}
                   </td></tr>
@@ -169,7 +168,6 @@ export default function AdminAppointments() {
                     }}
                     onClick={() => setSelectedAppointment(a)}
                   >
-                    <td><strong style={{ color: 'var(--primary)' }}>{a.id.slice(-6)}</strong></td>
                     <td>{a.customerName || a.customer || 'N/A'}</td>
                     <td>{a.truck}</td>
                     <td style={{ fontSize: '0.85rem' }}>{a.location}</td>
@@ -209,7 +207,6 @@ export default function AdminAppointments() {
             </div>
 
             <div style={{ padding: '20px' }}>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '16px' }}>ID: {selectedAppointment.id}</p>
 
               {/* Customer Info */}
               <div style={{ marginBottom: '20px' }}>

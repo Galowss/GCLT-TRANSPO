@@ -135,8 +135,14 @@
   gap: 16px;
 }
 
+.mainGrid > * {
+  min-width: 0;
+}
+
 .bookingsCard {
   padding: 20px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .cardHeader {

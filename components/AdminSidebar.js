@@ -21,7 +21,12 @@ const adminLinks = [
 
 export default function AdminSidebar({ isOpen, setIsOpen }) {
   const pathname = usePathname();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+
+  // Staff cannot see or access User Management (promote/demote is admin-only)
+  const links = user?.role === 'admin'
+    ? adminLinks
+    : adminLinks.filter(link => link.href !== '/admin/customers');
 
   return (
     <>
@@ -41,7 +46,7 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
           </button>
         </div>
         <nav className="sidebar-nav">
-        {adminLinks.map((link) => {
+        {links.map((link) => {
           const Icon = link.icon;
           return (
             <Link

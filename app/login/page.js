@@ -11,13 +11,17 @@ import styles from './login.module.css';
 function LoginForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { login, register, loginWithGoogle } = useAuth();
+  const { login, register, loginWithGoogle, resetPassword } = useAuth();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') === 'register' ? 'register' : 'login');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState('');
   const [turnstileResetKey, setTurnstileResetKey] = useState(0);
+  const [showReset, setShowReset] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetSent, setResetSent] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -32,6 +36,24 @@ function LoginForm() {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     setError('');
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (!resetEmail) { setError('Please enter your email address.'); return; }
+    setResetLoading(true);
+    setError('');
+    try {
+      await resetPassword(resetEmail);
+      setResetSent(true);
+    } catch (err) {
+      if (err.code === 'auth/user-not-found') {
+        setError('No account found with that email address.');
+      } else {
+        setError(err.message || 'Failed to send reset email. Please try again.');
+      }
+    }
+    setResetLoading(false);
   };
 
   const handleTabChange = (tab) => {
@@ -65,7 +87,7 @@ function LoginForm() {
       const user = await login(formData.email, formData.password);
       if (!user.emailVerified) {
         router.push('/verify-email');
-      } else if (user.role === 'admin') {
+      } else if (['admin', 'staff'].includes(user.role)) {
         router.push('/admin');
       } else {
         router.push('/dashboard');
@@ -156,7 +178,7 @@ function LoginForm() {
     setError('');
     try {
       const user = await loginWithGoogle();
-      if (user.role === 'admin') {
+      if (['admin', 'staff'].includes(user.role)) {
         router.push('/admin');
       } else {
         router.push('/dashboard');
@@ -219,7 +241,46 @@ function LoginForm() {
             </div>
           )}
 
-          {activeTab === 'login' ? (
+          {activeTab === 'login' && showReset ? (
+            <div className={styles.form} style={{ paddingTop: '8px' }}>
+              <h3 style={{ fontSize: '1.1rem', marginBottom: '4px', color: 'var(--text-primary)' }}>Reset Your Password</h3>
+              <p className={styles.formSubtitle} style={{ margin: '0 0 16px' }}>
+                Enter your account email and we'll send you a link to reset your password.
+              </p>
+              {resetSent ? (
+                <>
+                  <div style={{ display: 'flex', gap: '12px' }} className="alert alert-success" role="alert">
+                    <div style={{ fontSize: '0.9rem', padding: '12px 16px', background: '#EEF7EB', border: '1px solid #2E7D32', borderRadius: 'var(--border-radius)', color: '#24551F', marginBottom: '16px', lineHeight: '1.5' }}>
+                      If an account exists for <strong>{resetEmail}</strong>, a password reset link has been sent. Check your inbox (and spam folder), then return here to sign in.
+                    </div>
+                  </div>
+                  <button type="button" className="btn btn-primary btn-full btn-lg" onClick={() => { setResetSent(false); setShowReset(false); }}>
+                    Back to Login
+                  </button>
+                </>
+              ) : (
+                <form onSubmit={handleResetPassword}>
+                  <div className="form-group">
+                    <label className="form-label">Email Address</label>
+                    <input
+                      type="email"
+                      className="form-input"
+                      placeholder="name@company.com"
+                      value={resetEmail}
+                      onChange={(e) => { setResetEmail(e.target.value); setError(''); }}
+                      required
+                    />
+                  </div>
+                  <button type="submit" className="btn btn-accent btn-full btn-lg" disabled={resetLoading}>
+                    {resetLoading ? 'Sending...' : 'Send Reset Link'}
+                  </button>
+                </form>
+              )}
+              <p style={{ textAlign: 'center', marginTop: '16px' }}>
+                <a href="#" className={styles.forgotLink} onClick={(e) => { e.preventDefault(); setShowReset(false); setError(''); }}>Back to Login</a>
+              </p>
+            </div>
+          ) : activeTab === 'login' ? (
             <form onSubmit={handleLogin} className={styles.form}>
               <div className="form-group">
                 <label className="form-label">Email Address</label>
@@ -241,7 +302,7 @@ function LoginForm() {
               <div className="form-group">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <label className="form-label">Password</label>
-                  <a href="#" className={styles.forgotLink}>Forgot password?</a>
+                  <a href="#" className={styles.forgotLink} onClick={(e) => { e.preventDefault(); setShowReset(true); setError(''); }}>Forgot password?</a>
                 </div>
                 <div className={styles.inputWithIcon}>
                   <span className={styles.inputIcon}><Lock size={16} color="#9E9E9E" /></span>
@@ -297,12 +358,12 @@ function LoginForm() {
                   fontWeight: 600, borderColor: 'var(--gray-300)',
                 }}
               >
-                <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" /><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" /><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" /><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" /></svg>
                 Continue with Google
               </button>
 
               <p className={styles.supportText}>
-                Trouble accessing your account? <a href="#">Contact Support</a>
+                Trouble accessing your account? <a href="tel:+630472526258">Contact Support</a>
               </p>
 
               <p className={styles.privacyText}>
@@ -426,7 +487,7 @@ function LoginForm() {
                   fontWeight: 600, borderColor: 'var(--gray-300)',
                 }}
               >
-                <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" /><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" /><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" /><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" /></svg>
                 Sign up with Google
               </button>
             </form>

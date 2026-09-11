@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { db } from '@/lib/firebase';
-import { doc, updateDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { sendEmail } from '@/lib/mailjet';
 import templates from '@/lib/emailTemplates';
 
@@ -52,6 +52,15 @@ export async function POST(request) {
             updatedAt: serverTimestamp(),
           });
 
+          let bookingRefNumber = '';
+          try {
+            const bookingSnap = await getDoc(bookingRef);
+            bookingRefNumber = bookingSnap.data()?.refNumber || '';
+          } catch (e) {
+            console.warn('[Webhook] Could not fetch booking reference:', e.message);
+          }
+          const displayRef = bookingRefNumber || '#' + bookingId.slice(-6);
+
           // Notify user — payment confirmed
           if (session.customer_email || session.metadata?.userEmail) {
             await addDoc(collection(db, 'notifications'), {
@@ -68,7 +77,7 @@ export async function POST(request) {
           // Notify admin — payment received
           await addDoc(collection(db, 'notifications'), {
             title: 'Payment Received',
-            message: `Stripe payment completed for booking ${bookingId.slice(-6)} (${fleet || 'transport'}). Route: ${pickup || 'N/A'} to ${delivery || 'N/A'}.`,
+            message: `Stripe payment completed for ${fleet || 'transport booking'} (${displayRef}). Route: ${pickup || 'N/A'} to ${delivery || 'N/A'}.`,
             type: 'booking',
             isNew: true,
             time: timeString,
@@ -84,7 +93,7 @@ export async function POST(request) {
               const invoiceData = {
                 to: customerEmail,
                 userName: session.metadata?.userName || session.customer_details?.name || 'Customer',
-                invoiceNumber: bookingId.slice(-8).toUpperCase(),
+                invoiceNumber: (bookingRefNumber || bookingId.slice(-8)).toUpperCase(),
                 invoiceDate: date || new Date().toISOString().split('T')[0],
                 items: [{ description: fleet || 'Logistics Service', detail: `${pickup || 'N/A'} → ${delivery || 'N/A'}`, amount: (session.amount_total / 100) || 0 }],
                 total: (session.amount_total / 100) || 0,
@@ -92,7 +101,7 @@ export async function POST(request) {
                 pickup, 
                 delivery,
                 paymentMethod: 'stripe', 
-                bookingId: bookingId,
+                bookingId: bookingRefNumber || bookingId,
               };
               
               const { subject, html } = templates.booking_invoice(invoiceData);

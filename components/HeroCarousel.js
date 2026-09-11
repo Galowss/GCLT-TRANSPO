@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getTrucksForSale } from '@/lib/firebaseService';
+import TruckImage from '@/components/TruckImage';
 import styles from './HeroCarousel.module.css';
 
 // Fallback slides if no truck-for-sale data is available
@@ -121,24 +121,15 @@ export default function HeroCarousel() {
           className={`${styles.slide} ${i === current ? styles.slideActive : ''}`}
           aria-hidden={i !== current}
         >
-          {/* Background image — next/image with fill for known URLs, <img> for data URLs */}
-          {slide.image?.startsWith('data:') ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={slide.image}
-              alt={slide.title}
-              className={styles.slideImg}
-            />
-          ) : (
-            <Image
-              src={slide.image}
-              alt={slide.title}
-              fill
-              className={styles.slideImg}
-              priority={i === 0}
-              sizes="100vw"
-            />
-          )}
+          {/* Background image — next/image for configured hosts, plain <img> for data: URLs / external hosts */}
+          <TruckImage
+            src={slide.image}
+            alt={slide.title}
+            fill
+            className={styles.slideImg}
+            priority={i === 0}
+            sizes="100vw"
+          />
 
           {/* Dark overlay */}
           <div className={styles.overlay} />

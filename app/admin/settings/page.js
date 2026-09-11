@@ -2,9 +2,8 @@
 
 import AdminLayout from '@/components/AdminLayout';
 import { useState } from 'react';
-import { seedFirestore } from '@/lib/seedFirestore';
 import { useToast } from '@/components/Toast';
-import { Database, CreditCard, CheckCircle, AlertCircle, Save } from 'lucide-react';
+import { CreditCard, CheckCircle, AlertCircle, Save } from 'lucide-react';
 
 const defaultSettings = {
   companyName: 'GCLT Transport & Trucking Services',
@@ -14,8 +13,6 @@ const defaultSettings = {
 };
 
 export default function AdminSettings() {
-  const [seeding, setSeeding] = useState(false);
-  const [seedResults, setSeedResults] = useState(null);
   const [settings, setSettings] = useState(defaultSettings);
   const [saving, setSaving] = useState(false);
   const { addToast } = useToast();
@@ -31,19 +28,6 @@ export default function AdminSettings() {
     await new Promise(res => setTimeout(res, 600));
     setSaving(false);
     addToast('Settings saved successfully.', 'success');
-  };
-
-  const handleSeed = async () => {
-    setSeeding(true);
-    try {
-      const results = await seedFirestore();
-      setSeedResults(results);
-      addToast('Database seeded successfully.', 'success');
-    } catch (err) {
-      setSeedResults(['Error: ' + err.message]);
-      addToast('Database seeding failed.', 'error');
-    }
-    setSeeding(false);
   };
 
   return (
@@ -142,42 +126,6 @@ export default function AdminSettings() {
               <span className="badge badge-warning">Cash on Delivery</span>
             </div>
           </div>
-        </div>
-
-        {/* Database Seeding */}
-        <div className="card card-lg" style={{ borderColor: 'var(--primary)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-            <Database size={20} color="var(--primary)" />
-            <h3 style={{ margin: 0 }}>Database Management</h3>
-          </div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '20px' }}>
-            Seed Firestore with initial data (fleet types, trucks, bookings, notifications, customers, appointments).
-            This will only add data if the collections are empty.
-          </p>
-          <button
-            className="btn btn-accent"
-            onClick={handleSeed}
-            disabled={seeding}
-          >
-            {seeding ? 'Seeding Database...' : 'Seed Firestore Database'}
-          </button>
-
-          {seedResults && (
-            <div style={{
-              marginTop: '16px', padding: '16px', background: 'var(--gray-50)',
-              borderRadius: 'var(--border-radius)', fontSize: '0.85rem',
-            }}>
-              <strong>Seed Results:</strong>
-              <ul style={{ margin: '8px 0 0 16px', listStyleType: 'none', padding: 0 }}>
-                {seedResults.map((r, i) => (
-                  <li key={i} style={{ padding: '4px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {r.includes('Error') ? <AlertCircle size={14} color="var(--danger)" /> : <CheckCircle size={14} color="var(--success)" />}
-                    {r.replace(/^[^\s]+\s/, '')}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
         </div>
       </div>
     </AdminLayout>

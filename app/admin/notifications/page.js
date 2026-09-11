@@ -41,7 +41,6 @@ export default function AdminNotifications() {
     try {
       const unread = (notifications || []).filter(n => n.isNew);
       await Promise.all(unread.map(n => markNotificationRead(n.id)));
-      refetch();
       addToast('All notifications marked as read.', 'success');
     } catch {
       addToast('Failed to mark all as read.', 'error');

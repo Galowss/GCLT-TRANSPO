@@ -2,13 +2,9 @@
 
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { CheckCircle } from 'lucide-react';
 
 function SuccessContent() {
-  const searchParams = useSearchParams();
-  const sessionId = searchParams.get('session_id');
-
   return (
     <div style={{
       minHeight: '100vh',
@@ -31,11 +27,6 @@ function SuccessContent() {
           Your payment has been processed successfully. A GCLT representative will contact you
           shortly to confirm the details.
         </p>
-        {sessionId && (
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '24px' }}>
-            Session ID: {sessionId.slice(0, 20)}...
-          </p>
-        )}
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
           <Link href="/dashboard" className="btn btn-primary">Go to Dashboard</Link>
           <Link href="/" className="btn btn-outline">Return Home</Link>

@@ -2,10 +2,9 @@
 
 import AdminLayout from '@/components/AdminLayout';
 import Link from 'next/link';
-import { useState } from 'react';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToAllBookings } from '@/lib/firebaseService';
-import { Truck, Clock, CheckCircle, ClipboardList, TrendingUp, TrendingDown, ArrowRight, BarChart3 } from 'lucide-react';
+import { Truck, Clock, CheckCircle, ClipboardList, ArrowRight, BarChart3 } from 'lucide-react';
 
 function formatBookingDate(dateStr, timeStr) {
   if (!dateStr) return '—';
@@ -23,12 +22,14 @@ export default function AdminDashboard() {
   const { data: adminBookings, loading: bookingsLoading } = useRealtimeFirestore(
     (cb) => subscribeToAllBookings(cb)
   );
-  const [statsPeriod, setStatsPeriod] = useState('monthly');
-
   const totalBookings = adminBookings?.length || 0;
   const pendingBookings = adminBookings?.filter(b => b.status === 'Pending' || b.status === 'Pending Payment' || b.status === 'Quote Requested' || b.status === 'Quoted').length || 0;
   const confirmedBookings = adminBookings?.filter(b => b.status === 'Confirmed' || b.status === 'In Transit').length || 0;
   const completedBookings = adminBookings?.filter(b => b.status === 'Completed').length || 0;
+  const completedRate = totalBookings > 0 ? Math.round((completedBookings / totalBookings) * 100) : 0;
+  const bookedWithAmount = adminBookings?.filter(b => b.quotedAmount && ['Confirmed','In Transit','Completed'].includes(b.status)) || [];
+  const totalRevenue = bookedWithAmount.reduce((sum, b) => sum + (Number(b.quotedAmount) || 0), 0);
+  const avgBookingValue = bookedWithAmount.length > 0 ? Math.round(totalRevenue / bookedWithAmount.length) : 0;
 
   return (
     <AdminLayout>
@@ -46,13 +47,12 @@ export default function AdminDashboard() {
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '24px', marginBottom: '32px' }}>
         {[
-          { title: 'Total Bookings', value: totalBookings, icon: Truck, color: 'var(--primary)', trend: '+12.5%', up: true },
-          { title: 'Pending Requests', value: pendingBookings, icon: Clock, color: '#F5A623', trend: '+4.2%', up: true },
-          { title: 'Active / Confirmed', value: confirmedBookings, icon: CheckCircle, color: 'var(--success)', trend: '-8.1%', up: false },
-          { title: 'Completed', value: completedBookings, icon: ClipboardList, color: 'var(--primary-dark)', trend: '+15.3%', up: true },
+          { title: 'Total Bookings', value: totalBookings, icon: Truck, color: 'var(--primary)' },
+          { title: 'Pending Requests', value: pendingBookings, icon: Clock, color: '#F5A623' },
+          { title: 'Active / Confirmed', value: confirmedBookings, icon: CheckCircle, color: 'var(--success)' },
+          { title: 'Completed', value: completedBookings, icon: ClipboardList, color: 'var(--primary-dark)' },
         ].map((stat) => {
           const Icon = stat.icon;
-          const TrendIcon = stat.up ? TrendingUp : TrendingDown;
           return (
             <div key={stat.title} className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -62,64 +62,32 @@ export default function AdminDashboard() {
                 </span>
               </div>
               <span style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)', display: 'block', marginBottom: '8px' }}>{stat.value}</span>
-              <span style={{ fontSize: '0.8rem', color: stat.up ? 'var(--success)' : 'var(--danger)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
-                <TrendIcon size={14} /> {stat.trend} <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>vs last 30 days</span>
-              </span>
             </div>
           );
         })}
       </div>
 
-      {/* Statistics Period Toggle */}
+      {/* Performance Overview */}
       <div className="card" style={{ marginBottom: '32px', padding: '32px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ background: 'var(--primary-light)', padding: '10px', borderRadius: '12px', display: 'flex', color: 'var(--primary-dark)' }}>
-              <BarChart3 size={24} />
-            </div>
-            <div>
-              <h3 style={{ fontSize: '1.25rem', marginBottom: '2px', color: 'var(--text-primary)' }}>Performance Overview</h3>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>Revenue and booking conversion metrics</p>
-            </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+          <div style={{ background: 'var(--primary-light)', padding: '10px', borderRadius: '12px', display: 'flex', color: 'var(--primary-dark)' }}>
+            <BarChart3 size={24} />
           </div>
-          <div style={{ display: 'flex', gap: '4px', background: 'var(--gray-100)', borderRadius: 'var(--border-radius)', padding: '4px' }}>
-            {['weekly', 'monthly', 'yearly'].map(period => (
-              <button
-                key={period}
-                onClick={() => setStatsPeriod(period)}
-                style={{
-                  padding: '8px 20px',
-                  borderRadius: '6px',
-                  fontSize: '0.85rem',
-                  fontWeight: statsPeriod === period ? 600 : 500,
-                  background: statsPeriod === period ? 'var(--white)' : 'transparent',
-                  color: statsPeriod === period ? 'var(--primary)' : 'var(--text-secondary)',
-                  boxShadow: statsPeriod === period ? 'var(--shadow-sm)' : 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  transition: 'var(--transition)',
-                  textTransform: 'capitalize',
-                }}
-              >
-                {period}
-              </button>
-            ))}
+          <div>
+            <h3 style={{ fontSize: '1.25rem', marginBottom: '2px', color: 'var(--text-primary)' }}>Performance Overview</h3>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>Lifetime booking and revenue metrics</p>
           </div>
         </div>
-
-        {/* Stats bars */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px', background: 'var(--gray-50)', padding: '24px', borderRadius: 'var(--border-radius-lg)' }}>
           {[
-            { label: 'Bookings Created', value: statsPeriod === 'weekly' ? 12 : statsPeriod === 'monthly' ? 48 : 576, color: 'var(--primary)' },
-            { label: 'Revenue Generated', value: statsPeriod === 'weekly' ? '42.5K' : statsPeriod === 'monthly' ? '185K' : '2.2M', color: 'var(--success)', prefix: 'PHP ' },
-            { label: 'Completion Rate', value: statsPeriod === 'weekly' ? '94%' : statsPeriod === 'monthly' ? '96%' : '97%', color: 'var(--accent)' },
+            { label: 'Completed Bookings', value: completedBookings, color: 'var(--primary)' },
+            { label: 'Total Revenue', value: `PHP ${totalRevenue.toLocaleString()}`, color: 'var(--success)' },
+            { label: 'Completion Rate', value: `${completedRate}%`, color: 'var(--accent)' },
+            { label: 'Average Booking Value', value: `PHP ${avgBookingValue.toLocaleString()}`, color: 'var(--primary-dark)' },
           ].map(item => (
-            <div key={item.label} style={{ textAlign: 'center', padding: '16px 0', borderRight: item.label !== 'Completion Rate' ? '1px solid var(--gray-200)' : 'none' }}>
-              <span style={{ fontSize: '2.5rem', fontWeight: 800, color: item.color, display: 'block', lineHeight: 1.1, marginBottom: '8px' }}>
-                <span style={{ fontSize: '1.25rem', opacity: 0.8, verticalAlign: 'middle', marginRight: '4px' }}>{item.prefix || ''}</span>
-                {item.value}
-              </span>
-              <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)' }}>{item.label}</span>
+            <div key={item.label} style={{ textAlign: 'center', padding: '16px 0' }}>
+              <span style={{ fontSize: '2rem', fontWeight: 800, color: item.color, display: 'block', lineHeight: 1.1, marginBottom: '8px' }}>{item.value}</span>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>{item.label}</span>
             </div>
           ))}
         </div>

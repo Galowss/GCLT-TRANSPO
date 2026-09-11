@@ -2,11 +2,8 @@
 
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import AdminLayout from '@/components/AdminLayout';
-import DashboardLayout from '@/components/DashboardLayout';
-import { useAuth } from '@/lib/AuthContext';
 import Link from 'next/link';
-import Image from 'next/image';
+import TruckImage from '@/components/TruckImage';
 import { useState, useMemo } from 'react';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToTrucksForSale } from '@/lib/firebaseService';
@@ -14,7 +11,6 @@ import { Truck, MapPin, DollarSign, Search, ArrowRight, Filter, Calendar, Chevro
 import styles from './trucks.module.css';
 
 export default function TrucksForSale() {
-  const { user } = useAuth();
   const { data: trucksForSale, loading } = useRealtimeFirestore(
     (cb) => subscribeToTrucksForSale(cb)
   );
@@ -61,7 +57,7 @@ export default function TrucksForSale() {
   const hasFilters = searchQuery || filterType !== 'all' || filterLocation !== 'all' || sortPrice !== 'none';
 
   const content = (
-    <div style={{ paddingTop: user ? '0' : '80px', minHeight: '100vh', background: 'var(--gray-50)' }}>
+    <div style={{ paddingTop: '80px', minHeight: '100vh', background: 'var(--gray-50)' }}>
       {/* Inventory */}
       <section className={styles.inventory}>
         <div className={styles.inventoryInner}>
@@ -75,54 +71,54 @@ export default function TrucksForSale() {
 
           {/* Search Bar */}
           <div className={styles.searchBar}>
-        <div className={styles.searchInner}>
-          <div style={{ position: 'relative', flex: 1 }}>
-            <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-            <input
-              type="text"
-              className={styles.searchInput}
-              placeholder="Search trucks by model, type, or engine..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ paddingLeft: '40px' }}
-            />
-          </div>
-          <div className={styles.filterBtns}>
-            <select
-              className="form-select"
-              value={filterType}
-              onChange={e => setFilterType(e.target.value)}
-              style={{ minWidth: '140px', padding: '8px 32px 8px 12px', fontSize: '0.8rem' }}
-            >
-              <option value="all">All Types</option>
-              {allTypes.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-            <select
-              className="form-select"
-              value={filterLocation}
-              onChange={e => setFilterLocation(e.target.value)}
-              style={{ minWidth: '140px', padding: '8px 32px 8px 12px', fontSize: '0.8rem' }}
-            >
-              <option value="all">All Locations</option>
-              {allLocations.map(l => <option key={l} value={l}>{l}</option>)}
-            </select>
-            <select
-              className="form-select"
-              value={sortPrice}
-              onChange={e => setSortPrice(e.target.value)}
-              style={{ minWidth: '140px', padding: '8px 32px 8px 12px', fontSize: '0.8rem' }}
-            >
-              <option value="none">Sort by Price</option>
-              <option value="low">Price: Low → High</option>
-              <option value="high">Price: High → Low</option>
-            </select>
-            {hasFilters && (
-              <button className="btn btn-outline btn-sm" onClick={clearFilters} style={{ gap: '4px' }}>
-                <Filter size={14} /> Clear
-              </button>
-            )}
-          </div>
-        </div>
+            <div className={styles.searchInner}>
+              <div style={{ position: 'relative', flex: 1 }}>
+                <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <input
+                  type="text"
+                  className={styles.searchInput}
+                  placeholder="Search trucks by model, type, or engine..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{ paddingLeft: '40px' }}
+                />
+              </div>
+              <div className={styles.filterBtns}>
+                <select
+                  className="form-select"
+                  value={filterType}
+                  onChange={e => setFilterType(e.target.value)}
+                  style={{ minWidth: '140px', padding: '8px 32px 8px 12px', fontSize: '0.8rem' }}
+                >
+                  <option value="all">All Types</option>
+                  {allTypes.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <select
+                  className="form-select"
+                  value={filterLocation}
+                  onChange={e => setFilterLocation(e.target.value)}
+                  style={{ minWidth: '140px', padding: '8px 32px 8px 12px', fontSize: '0.8rem' }}
+                >
+                  <option value="all">All Locations</option>
+                  {allLocations.map(l => <option key={l} value={l}>{l}</option>)}
+                </select>
+                <select
+                  className="form-select"
+                  value={sortPrice}
+                  onChange={e => setSortPrice(e.target.value)}
+                  style={{ minWidth: '140px', padding: '8px 32px 8px 12px', fontSize: '0.8rem' }}
+                >
+                  <option value="none">Sort by Price</option>
+                  <option value="low">Price: Low → High</option>
+                  <option value="high">Price: High → Low</option>
+                </select>
+                {hasFilters && (
+                  <button className="btn btn-outline btn-sm" onClick={clearFilters} style={{ gap: '4px' }}>
+                    <Filter size={14} /> Clear
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
 
           <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '24px' }}>
@@ -147,7 +143,7 @@ export default function TrucksForSale() {
                       const idx = getImgIdx(truck.id);
                       return imgs.length > 0 ? (
                         <>
-                          <Image src={imgs[idx]} alt={truck.name} fill sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" />
+                          <TruckImage src={imgs[idx]} alt={truck.name} fill sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" />
                           {imgs.length > 1 && (
                             <>
                               <button
@@ -201,14 +197,8 @@ export default function TrucksForSale() {
           </div>
         </div>
       </section>
-      </div>
+    </div>
   );
-
-  if (user?.role === 'admin') {
-    return <AdminLayout>{content}</AdminLayout>;
-  } else if (user) {
-    return <DashboardLayout>{content}</DashboardLayout>;
-  }
 
   return (
     <>

@@ -61,7 +61,8 @@ export default function AdminTrucks() {
       (String(truck.year || '')).includes(q);
     const matchesType = filterType === 'all' || (truck.type || '') === filterType;
     const matchesCondition = filterCondition === 'all' || (truck.condition || '') === filterCondition;
-    const matchesTransmission = filterTransmission === 'all' || (truck.transmission || '') === filterTransmission;
+    const matchesTransmission = filterTransmission === 'all' ||
+      (truck.transmission || truck.specs?.transmission || '').toLowerCase().startsWith(filterTransmission.toLowerCase());
     // Safe number coercion — trucks with no price (null/undefined) are treated as 0
     const price = typeof truck.price === 'number' ? truck.price : Number(truck.price) || 0;
     const minOk = !filterPriceMin || price >= Number(filterPriceMin);
@@ -135,7 +136,7 @@ export default function AdminTrucks() {
       description: truck.description || '',
       capacity: truck.capacity || '',
       loadSize: truck.loadSize || '',
-      transmission: truck.transmission || 'Manual',
+      transmission: truck.transmission || truck.specs?.transmission || 'Manual',
       speedGear: truck.speedGear || '6-Speed',
     });
     setImageFiles([]);
@@ -386,7 +387,7 @@ export default function AdminTrucks() {
                   placeholder="e.g. 2500000"
                   value={formData.price}
                   onChange={handleChange}
-                  onKeyDown={(e) => ['e','E','+','-','.'].includes(e.key) && e.preventDefault()}
+                  onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
                   min="0"
                   required
                 />
@@ -416,7 +417,7 @@ export default function AdminTrucks() {
                   placeholder="e.g. 2019"
                   value={formData.year}
                   onChange={handleChange}
-                  onKeyDown={(e) => ['e','E','+','-','.'].includes(e.key) && e.preventDefault()}
+                  onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
                   min="1900"
                   max="2099"
                 />
@@ -567,7 +568,7 @@ export default function AdminTrucks() {
                   <td>{truck.mileage}</td>
                   <td>
                     <span style={{ fontSize: '0.85rem' }}>
-                      {truck.transmission || 'N/A'}
+                      {truck.transmission || truck.specs?.transmission || 'N/A'}
                       {truck.transmission === 'Manual' && truck.speedGear && (
                         <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', display: 'block' }}>{truck.speedGear}</span>
                       )}
