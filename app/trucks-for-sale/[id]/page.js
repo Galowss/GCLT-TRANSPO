@@ -360,7 +360,6 @@ export default function TruckDetail() {
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 
