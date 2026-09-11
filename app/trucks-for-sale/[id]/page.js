@@ -2,6 +2,8 @@
 
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import AdminLayout from '@/components/AdminLayout';
+import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
 import TruckImage from '@/components/TruckImage';
 import { useParams, useRouter } from 'next/navigation';
@@ -28,6 +30,13 @@ export default function TruckDetail() {
   const [selectedImage, setSelectedImage] = useState(0);
 
   if (truckLoading) {
+    const loadingView = (
+      <div className="spinner-overlay" style={{ height: '60vh' }}>
+        <div className="spinner"></div>
+      </div>
+    );
+    if (user?.role === 'admin') return <AdminLayout>{loadingView}</AdminLayout>;
+    if (user) return <DashboardLayout>{loadingView}</DashboardLayout>;
     return (
       <>
         <Navbar />
@@ -40,6 +49,15 @@ export default function TruckDetail() {
   }
 
   if (!truck) {
+    const notFoundView = (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', flexDirection: 'column', gap: '16px' }}>
+        <Truck size={48} color="var(--text-muted)" />
+        <p style={{ fontSize: '1.1rem', fontWeight: 600 }}>Truck not found</p>
+        <Link href="/trucks-for-sale" className="btn btn-primary">Browse All Trucks</Link>
+      </div>
+    );
+    if (user?.role === 'admin') return <AdminLayout>{notFoundView}</AdminLayout>;
+    if (user) return <DashboardLayout>{notFoundView}</DashboardLayout>;
     return (
       <>
         <Navbar />
@@ -162,10 +180,8 @@ export default function TruckDetail() {
     }
   };
 
-  return (
-    <>
-      <Navbar />
-      <div className={styles.container}>
+  const content = (
+    <div className={styles.container} style={{ paddingTop: user ? '24px' : '100px' }}>
         <div className={styles.inner}>
           <Link href="/trucks-for-sale" className={styles.backLink}>
             <ArrowLeft size={16} /> Back to Fleet Inventory
@@ -345,6 +361,20 @@ export default function TruckDetail() {
           </div>
         </div>
       </div>
+    </div>
+  );
+
+  if (user?.role === 'admin') {
+    return <AdminLayout>{content}</AdminLayout>;
+  } else if (user) {
+    return <DashboardLayout>{content}</DashboardLayout>;
+  }
+
+  return (
+    <>
+      <Navbar />
+      {content}
+      <Footer />
     </>
   );
 }

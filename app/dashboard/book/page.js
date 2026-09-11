@@ -395,21 +395,26 @@ export default function BookTransport() {
                     </div>
                     <div className={styles.fieldGroup}>
                       <label className={styles.fieldLabel}>TIME</label>
-                      <div className={styles.timeSlotGrid}>
-                        {TIME_SLOTS.map(slot => (
-                          <button
-                            key={slot.value}
-                            type="button"
-                            className={`${styles.timeSlot} ${formData.time === slot.value ? styles.timeSlotActive : ''}`}
-                            onClick={() => setFormData(prev => ({ ...prev, time: slot.value }))}
-                          >
-                            {slot.label}
-                          </button>
-                        ))}
-                      </div>
-                      <span style={{ fontSize: '0.72rem', color: '#6f7a70', marginTop: '4px', display: 'block' }}>
-                        Bookings available 8:00 AM–6:00 PM
-                      </span>
+                      <input
+                        className={styles.fieldInput}
+                        type="time"
+                        name="time"
+                        value={formData.time}
+                        onChange={handleChange}
+                        min="08:00"
+                        max="18:00"
+                        required
+                        style={formData.time && (formData.time < '08:00' || formData.time > '18:00') ? { borderColor: 'var(--danger)' } : {}}
+                      />
+                      {formData.time && (formData.time < '08:00' || formData.time > '18:00') ? (
+                        <span style={{ fontSize: '0.72rem', color: 'var(--danger)', marginTop: '4px', display: 'block', fontWeight: 600 }}>
+                          Please choose a time between 8:00 AM and 6:00 PM
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '0.72rem', color: '#6f7a70', marginTop: '4px', display: 'block' }}>
+                          Bookings available 8:00 AM–6:00 PM
+                        </span>
+                      )}
                     </div>
                   </div>
 

@@ -26,9 +26,6 @@ export default function Navbar() {
     window.location.href = '/login';
   };
 
-  const loginHref = pathname.startsWith('/trucks-for-sale') ? `/login?redirect=${pathname}` : '/login';
-  const registerHref = pathname.startsWith('/trucks-for-sale') ? `/login?tab=register&redirect=${pathname}` : '/login?tab=register';
-
   return (
     <nav className="navbar">
       <div className="navbar-inner">
@@ -71,7 +68,7 @@ export default function Navbar() {
 
         {/* Actions */}
         <div className="navbar-actions">
-          {user ? (
+          {user && (
             <>
               {/* Authenticated: Dashboard + Avatar + Logout */}
               <Link href="/dashboard" className="navbar-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
@@ -89,16 +86,6 @@ export default function Navbar() {
               >
                 <LogOut size={18} />
               </button>
-            </>
-          ) : (
-            <>
-              {/* Not authenticated: Login + Register */}
-              <Link href={loginHref} className="navbar-link">
-                Login
-              </Link>
-              <Link href={registerHref} className="btn-pill">
-                Register
-              </Link>
             </>
           )}
 
@@ -136,9 +123,9 @@ export default function Navbar() {
             </Link>
           )
         ))}
-        <div className="navbar-mobile-divider" />
-        {user ? (
+        {user && (
           <>
+            <div className="navbar-mobile-divider" />
             <Link href="/dashboard" className="navbar-mobile-link" onClick={() => setMobileOpen(false)}>
               <LayoutDashboard size={16} style={{ marginRight: '8px' }} />
               Dashboard
@@ -155,20 +142,6 @@ export default function Navbar() {
               <LogOut size={16} style={{ marginRight: '8px' }} />
               Sign Out
             </button>
-          </>
-        ) : (
-          <>
-            <Link href={loginHref} className="navbar-mobile-link" onClick={() => setMobileOpen(false)}>
-              Login
-            </Link>
-            <Link
-              href={registerHref}
-              className="btn-pill"
-              style={{ marginTop: '12px', textAlign: 'center' }}
-              onClick={() => setMobileOpen(false)}
-            >
-              Register
-            </Link>
           </>
         )}
       </div>

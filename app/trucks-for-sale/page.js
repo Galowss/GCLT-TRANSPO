@@ -2,6 +2,9 @@
 
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import AdminLayout from '@/components/AdminLayout';
+import DashboardLayout from '@/components/DashboardLayout';
+import { useAuth } from '@/lib/AuthContext';
 import Link from 'next/link';
 import TruckImage from '@/components/TruckImage';
 import { useState, useMemo } from 'react';
@@ -11,6 +14,7 @@ import { Truck, MapPin, DollarSign, Search, ArrowRight, Filter, Calendar, Chevro
 import styles from './trucks.module.css';
 
 export default function TrucksForSale() {
+  const { user } = useAuth();
   const { data: trucksForSale, loading } = useRealtimeFirestore(
     (cb) => subscribeToTrucksForSale(cb)
   );
@@ -57,7 +61,7 @@ export default function TrucksForSale() {
   const hasFilters = searchQuery || filterType !== 'all' || filterLocation !== 'all' || sortPrice !== 'none';
 
   const content = (
-    <div style={{ paddingTop: '80px', minHeight: '100vh', background: 'var(--gray-50)' }}>
+    <div style={{ paddingTop: user ? '0' : '80px', minHeight: '100vh', background: 'var(--gray-50)' }}>
       {/* Inventory */}
       <section className={styles.inventory}>
         <div className={styles.inventoryInner}>
@@ -199,6 +203,12 @@ export default function TrucksForSale() {
       </section>
     </div>
   );
+
+  if (user?.role === 'admin') {
+    return <AdminLayout>{content}</AdminLayout>;
+  } else if (user) {
+    return <DashboardLayout>{content}</DashboardLayout>;
+  }
 
   return (
     <>
