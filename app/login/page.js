@@ -1,12 +1,22 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, lazy } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/AuthContext';
 import Navbar from '@/components/Navbar';
-import Turnstile from '@/components/Turnstile';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, Calendar } from 'lucide-react';
 import styles from './login.module.css';
+
+// Heavy / non-critical pieces load lazily: the legal text modal and the
+// Cloudflare Turnstile widget only download when the login tab needs them.
+const Turnstile = dynamic(() => import('@/components/Turnstile'), {
+  ssr: false,
+  loading: () => <div className="spinner" />,
+});
+const LegalDocsModal = dynamic(() => import('@/components/LegalDocsModal'), {
+  loading: () => null,
+});
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -22,6 +32,7 @@ function LoginForm() {
   const [resetEmail, setResetEmail] = useState('');
   const [resetSent, setResetSent] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
+  const [showLegalModal, setShowLegalModal] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -31,6 +42,10 @@ function LoginForm() {
     dateOfBirth: '',
     agreedToTerms: false,
   });
+
+  // Logged-in users always land on the dashboard (or admin) first,
+  // regardless of the page they came from. Deep links are not restored here.
+  const homeFor = (user) => (['admin', 'staff'].includes(user?.role) ? '/admin' : '/dashboard');
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -87,10 +102,8 @@ function LoginForm() {
       const user = await login(formData.email, formData.password);
       if (!user.emailVerified) {
         router.push('/verify-email');
-      } else if (['admin', 'staff'].includes(user.role)) {
-        router.push('/admin');
       } else {
-        router.push('/dashboard');
+        router.push(homeFor(user));
       }
     } catch (err) {
       // Reset security widget on error
@@ -178,11 +191,7 @@ function LoginForm() {
     setError('');
     try {
       const user = await loginWithGoogle();
-      if (['admin', 'staff'].includes(user.role)) {
-        router.push('/admin');
-      } else {
-        router.push('/dashboard');
-      }
+      router.push(homeFor(user));
     } catch (err) {
       if (err.code === 'auth/popup-closed-by-user') {
         // User closed popup, do nothing
@@ -455,8 +464,20 @@ function LoginForm() {
                   />
                   <span>
                     I have read and agree to the{' '}
-                    <a href="/legal/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', fontWeight: 600 }}>Terms &amp; Conditions</a>{' '}and{' '}
-                    <a href="/legal/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', fontWeight: 600 }}>Privacy Policy</a>.
+                    <button
+                      type="button"
+                      onClick={() => setShowLegalModal(true)}
+                      style={{ color: 'var(--primary)', fontWeight: 600, background: 'none', border: 'none', padding: 0, cursor: 'pointer', textDecoration: 'underline', fontSize: '0.85rem' }}
+                    >
+                      Terms &amp; Conditions
+                    </button>{' '}and{' '}
+                    <button
+                      type="button"
+                      onClick={() => setShowLegalModal(true)}
+                      style={{ color: 'var(--primary)', fontWeight: 600, background: 'none', border: 'none', padding: 0, cursor: 'pointer', textDecoration: 'underline', fontSize: '0.85rem' }}
+                    >
+                      Privacy Policy
+                    </button>.
                   </span>
                 </label>
               </div>
@@ -498,6 +519,12 @@ function LoginForm() {
             <a href="/trucks-for-sale">Browse Fleet</a>
           </div>
         </div>
+
+        <LegalDocsModal
+          open={showLegalModal}
+          onClose={() => setShowLegalModal(false)}
+          onAgree={() => setFormData(prev => ({ ...prev, agreedToTerms: true }))}
+        />
       </div>
     </div>
   );

@@ -457,6 +457,11 @@ h6 {
   color: #C62828;
 }
 
+.status-cancelled {
+  background: #FFF0F0;
+  color: #E8451C;
+}
+
 .status-transit {
   background: #E3F2FD;
   color: #1565C0;
@@ -990,7 +995,7 @@ h6 {
   flex-direction: column;
   flex: 1;
   margin-left: var(--sidebar-width);
-  padding: 84px 28px 28px;
+  padding: 76px 20px 24px;
   min-height: 100vh;
   max-width: 100%;
   box-sizing: border-box;

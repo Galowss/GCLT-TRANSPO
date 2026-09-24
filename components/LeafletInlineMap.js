@@ -11,6 +11,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
  */
 export default function LeafletInlineMap({
   pickupCity, deliveryCity, pickupFull, deliveryFull,
+  pickupLat, pickupLng, deliveryLat, deliveryLng,   // exact pins from click-to-pin
   onPinLocation,   // (target, addressParts) => void
   onRouteCalculated, // (distanceKm) => void
   routeType,         // 'Expressway' or 'Old Road'
@@ -78,10 +79,17 @@ export default function LeafletInlineMap({
         // ── Click-to-pin ──
         map.on('click', async (e) => {
           const { lat, lng } = e.latlng;
+          // Capture the mode this click was made in — the pin lands there
+          // no matter how long geocoding takes.
           const target = pinTargetRef.current;
+          // Immediately switch to the other mode: after picking a pickup
+          // point the map auto-switches to drop-off, and rapid successive
+          // clicks always alternate between the two.
+          setPinTarget(target === 'pickup' ? 'delivery' : 'pickup');
           setPinFeedback('Detecting address…');
 
           const data = await reverseGeocode(lat, lng);
+
           if (data && onPinLocation) {
             const addr = data.address || {};
             const street =
@@ -91,12 +99,8 @@ export default function LeafletInlineMap({
             const barangay = addr.suburb || addr.neighbourhood || addr.village || '';
             const city = addr.city || addr.town || addr.municipality || addr.county || '';
 
-            onPinLocation(target, { street, barangay, city });
+            onPinLocation(target, { street, barangay, city, lat, lng });
             setPinFeedback(`${target === 'pickup' ? 'Pickup' : 'Drop-off'} pinned to ${street}`);
-
-            if (target === 'pickup') {
-              setPinTarget('delivery');
-            }
           } else {
             setPinFeedback('Could not detect address. Try another spot.');
           }
@@ -160,9 +164,14 @@ export default function LeafletInlineMap({
 
         const bounds = [];
 
+        // Use the exact clicked coordinates when available; only fall back
+        // to text-geocoding when none were pinned (e.g. typed addresses).
+        const pickupPinned = pickupLat !== null && pickupLat !== undefined && pickupLng !== null && pickupLng !== undefined;
+        const deliveryPinned = deliveryLat !== null && deliveryLat !== undefined && deliveryLng !== null && deliveryLng !== undefined;
+
         // Pickup
-        if (pickupFull) {
-          const coords = await geocode(pickupFull);
+        if (pickupFull || pickupPinned) {
+          const coords = pickupPinned ? [pickupLat, pickupLng] : await geocode(pickupFull);
           if (coords) {
             if (pickupMarkerRef.current) {
               pickupMarkerRef.current.setLatLng(coords);
@@ -182,8 +191,8 @@ export default function LeafletInlineMap({
         }
 
         // Delivery
-        if (deliveryFull) {
-          const coords = await geocode(deliveryFull);
+        if (deliveryFull || deliveryPinned) {
+          const coords = deliveryPinned ? [deliveryLat, deliveryLng] : await geocode(deliveryFull);
           if (coords) {
             if (deliveryMarkerRef.current) {
               deliveryMarkerRef.current.setLatLng(coords);
@@ -280,7 +289,8 @@ export default function LeafletInlineMap({
 
     const timer = setTimeout(updateMarkers, 800);
     return () => clearTimeout(timer);
-  }, [pickupFull, deliveryFull, pickupCity, deliveryCity, routeType]);
+  }, [pickupFull, deliveryFull, pickupCity, deliveryCity, routeType,
+      pickupLat, pickupLng, deliveryLat, deliveryLng]);
 
   return (
     <>

@@ -10,6 +10,7 @@ import { getTruckById, addAppointment, addNotification } from '@/lib/firebaseSer
 import { useAuth } from '@/lib/AuthContext';
 import { useToast } from '@/components/Toast';
 import { highlightAndFocusMissingFields } from '@/lib/validation';
+import DatePickerInput from '@/components/DatePickerInput';
 import { ArrowLeft, Truck, User, Clock, Calendar } from 'lucide-react';
 import styles from './viewing.module.css';
 
@@ -212,7 +213,16 @@ export default function ScheduleViewing() {
                 <div className={styles.twoCol}>
                   <div className="form-group">
                     <label className="form-label">Preferred Date</label>
-                    <input type="date" name="date" className="form-input" value={formData.date} onChange={handleChange} required />
+                    <DatePickerInput
+                      value={formData.date}
+                      onChange={(v) => setFormData(prev => ({ ...prev, date: v }))}
+                      minDate={new Date().toISOString().slice(0, 10)}
+                      className="form-input"
+                      style={{ width: '100%' }}
+                      placeholder="Select preferred date"
+                      title="Preferred date"
+                      required
+                    />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Preferred Time</label>

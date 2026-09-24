@@ -108,7 +108,9 @@ export default function BookTransport() {
   const [formData, setFormData] = useState({
     cargoType: 'Trailer',
     pickupStreet: '', pickupBarangay: '', pickupCity: '',
+    pickupLat: null, pickupLng: null,
     deliveryStreet: '', deliveryBarangay: '', deliveryCity: '',
+    deliveryLat: null, deliveryLng: null,
     date: '', time: '',
     weight: '', cargoLength: '', cargoWidth: '', cargoHeight: '',
     notes: '',
@@ -271,11 +273,19 @@ export default function BookTransport() {
   };
 
   /* ── Inline map pin callback ── */
-  const handleMapPin = (target, { street, barangay, city }) => {
+  const handleMapPin = (target, { street, barangay, city, lat, lng }) => {
     if (target === 'delivery') {
-      setFormData(prev => ({ ...prev, deliveryStreet: street, deliveryBarangay: barangay, deliveryCity: city }));
+      setFormData(prev => ({
+        ...prev,
+        deliveryStreet: street, deliveryBarangay: barangay, deliveryCity: city,
+        ...(lat !== undefined && lat !== null ? { deliveryLat: lat, deliveryLng: lng } : {}),
+      }));
     } else {
-      setFormData(prev => ({ ...prev, pickupStreet: street, pickupBarangay: barangay, pickupCity: city }));
+      setFormData(prev => ({
+        ...prev,
+        pickupStreet: street, pickupBarangay: barangay, pickupCity: city,
+        ...(lat !== undefined && lat !== null ? { pickupLat: lat, pickupLng: lng } : {}),
+      }));
     }
     addToast(`${target === 'delivery' ? 'Drop-off' : 'Pickup'} pinned on map!`, 'success');
   };
@@ -524,6 +534,10 @@ export default function BookTransport() {
                   deliveryCity={formData.deliveryCity}
                   pickupFull={pickupFull}
                   deliveryFull={deliveryFull}
+                  pickupLat={formData.pickupLat}
+                  pickupLng={formData.pickupLng}
+                  deliveryLat={formData.deliveryLat}
+                  deliveryLng={formData.deliveryLng}
                   onPinLocation={handleMapPin}
                   onRouteCalculated={setEstimatedDistance}
                   routeType={routeInfo.route}

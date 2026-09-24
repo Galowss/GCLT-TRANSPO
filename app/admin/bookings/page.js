@@ -5,7 +5,9 @@ import { useState, useEffect } from 'react';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToAllBookings, updateBooking, addNotification, getUserNotificationPrefs } from '@/lib/firebaseService';
 import { compressImage } from '@/lib/compressImage';
+import DatePickerInput from '@/components/DatePickerInput';
 import { useToast } from '@/components/Toast';
+import { exportCsv } from '@/lib/csvUtils';
 import { Download, Search, CheckCircle, XCircle, Clock, MoreHorizontal, Mail, Truck, Package, MapPin, Upload, FileImage } from 'lucide-react';
 
 function exportToCsv(bookings) {
@@ -28,14 +30,7 @@ function exportToCsv(bookings) {
     b.notes || '',
     b.quotedAt ? new Date(b.quotedAt).toLocaleDateString('en-PH') : '',
   ]);
-  const csv = [headers, ...rows].map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `gclt-bookings-${new Date().toISOString().slice(0, 10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+  exportCsv(`gclt-bookings-${new Date().toISOString().slice(0, 10)}.csv`, headers, rows);
 }
 
 const STATUS_COLORS = {
@@ -340,21 +335,21 @@ export default function BookingManagement() {
               </select>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Date:</span>
-                <input
-                  type="date"
-                  className="form-input"
-                  style={{ width: '145px' }}
+                <DatePickerInput
                   value={filterDateFrom}
-                  onChange={e => setFilterDateFrom(e.target.value)}
+                  onChange={v => setFilterDateFrom(v)}
+                  maxDate={filterDateTo}
+                  style={{ width: '145px' }}
+                  placeholder="From"
                   title="From date"
                 />
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>–</span>
-                <input
-                  type="date"
-                  className="form-input"
-                  style={{ width: '145px' }}
+                <DatePickerInput
                   value={filterDateTo}
-                  onChange={e => setFilterDateTo(e.target.value)}
+                  onChange={v => setFilterDateTo(v)}
+                  minDate={filterDateFrom}
+                  style={{ width: '145px' }}
+                  placeholder="To"
                   title="To date"
                 />
               </div>

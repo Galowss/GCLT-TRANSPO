@@ -12,8 +12,17 @@ export function middleware(request) {
       loginUrl.searchParams.set('redirect', request.nextUrl.pathname);
       return NextResponse.redirect(loginUrl);
     }
+
+    // Sliding session: refresh the cookie so active users stay signed in.
+    const response = NextResponse.next();
+    response.cookies.set('gclt_session', 'true', {
+      path: '/',
+      maxAge: 2592000, // 30 days, refreshed on every visit
+      sameSite: 'lax',
+    });
+    return response;
   }
-  
+
   return NextResponse.next();
 }
 

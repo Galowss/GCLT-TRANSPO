@@ -3,6 +3,7 @@
 import AdminLayout from '@/components/AdminLayout';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToAllBookings } from '@/lib/firebaseService';
+import { exportCsv } from '@/lib/csvUtils';
 import { Receipt, Download, Search } from 'lucide-react';
 import { useState } from 'react';
 
@@ -19,14 +20,7 @@ function exportToCsv(transactions) {
     b.quotedAmount || '',
     b.status || '',
   ]);
-  const csv = [headers, ...rows].map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `gclt-transactions-${new Date().toISOString().slice(0, 10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+  exportCsv(`gclt-transactions-${new Date().toISOString().slice(0, 10)}.csv`, headers, rows);
 }
 
 export default function TransactionsPage() {
