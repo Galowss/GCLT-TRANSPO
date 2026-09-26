@@ -8,7 +8,6 @@ import { useAuth } from '@/lib/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { useAuth } from '@/lib/AuthContext';
 import TruckImage from '@/components/TruckImage';
 import { useState, useMemo } from 'react';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
