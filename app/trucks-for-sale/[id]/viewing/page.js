@@ -2,6 +2,8 @@
 
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import AdminLayout from '@/components/AdminLayout';
+import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
@@ -10,25 +12,42 @@ import { getTruckById, addAppointment, addNotification } from '@/lib/firebaseSer
 import { useAuth } from '@/lib/AuthContext';
 import { useToast } from '@/components/Toast';
 import { highlightAndFocusMissingFields } from '@/lib/validation';
+import { loginHrefFor } from '@/lib/routing';
 import DatePickerInput from '@/components/DatePickerInput';
 import { ArrowLeft, Truck, User, Clock, Calendar } from 'lucide-react';
 import styles from './viewing.module.css';
 
+// Public site shell. Signed-in customers instead get the dashboard chrome so
+// booking a viewing never ejects them from /dashboard/trucks.
+function PublicShell({ children }) {
+  return (
+    <>
+      <Navbar />
+      <div style={{ paddingTop: '80px', minHeight: '100vh', background: 'var(--gray-50)' }}>
+        {children}
+      </div>
+      <Footer />
+    </>
+  );
+}
+
 export default function ScheduleViewing() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { addToast } = useToast();
   const { data: truck, loading: truckLoading } = useFirestore(
     () => getTruckById(params.id),
     [params.id]
   );
 
+  // Wait for the persisted session to restore before deciding to bounce, so a
+  // signed-in user reloading this page is not sent back to the login screen.
   useEffect(() => {
-    if (!user) {
-      router.push(`/login?redirect=/trucks-for-sale/${params.id}/viewing`);
+    if (!authLoading && !user) {
+      router.push(loginHrefFor(`/trucks-for-sale/${params.id}/viewing`));
     }
-  }, [user, router, params.id]);
+  }, [authLoading, user, router, params.id]);
 
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -125,34 +144,49 @@ export default function ScheduleViewing() {
     router.push('/dashboard/appointments');
   };
 
-  if (truckLoading || !truck) {
+  const Shell = user?.role === 'admin'
+    ? AdminLayout
+    : user
+      ? DashboardLayout
+      : PublicShell;
+
+  if (authLoading || truckLoading) {
     return (
-      <>
-        <Navbar />
-        <div style={{ paddingTop: '80px', minHeight: '100vh', background: 'var(--gray-50)' }}>
-          <div className="spinner-overlay" style={{ height: '60vh' }}>
-            <div className="spinner"></div>
-          </div>
+      <Shell>
+        <div className="spinner-overlay" style={{ minHeight: '60vh' }}>
+          <div className="spinner"></div>
         </div>
-        <Footer />
-      </>
+      </Shell>
     );
   }
 
-  // Prevent rendering if not authenticated
+  // The redirect above sends guests to login; render nothing until they land.
   if (!user) {
     return null;
   }
 
+  if (!truck) {
+    const browseHref = user.role === 'admin' ? '/admin/fleet' : '/dashboard/trucks';
+    return (
+      <Shell>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', flexDirection: 'column', gap: '16px' }}>
+          <Truck size={48} color="var(--text-muted)" />
+          <p style={{ fontSize: '1.1rem', fontWeight: 600 }}>Truck not found</p>
+          <Link href={browseHref} className="btn btn-primary">
+            Browse All Trucks
+          </Link>
+        </div>
+      </Shell>
+    );
+  }
+
   return (
-    <>
-      <Navbar />
-      <div style={{ paddingTop: '80px', minHeight: '100vh', background: 'var(--gray-50)' }}>
-        <div className={styles.container}>
-          <div className={styles.inner}>
-            <Link href={`/trucks-for-sale/${truck.id}`} className={styles.backLink}>
-              <ArrowLeft size={16} /> Return to Truck Details
-            </Link>
+    <Shell>
+      <div className={styles.container}>
+        <div className={styles.inner}>
+          <Link href={`/trucks-for-sale/${truck.id}`} className={styles.backLink}>
+            <ArrowLeft size={16} /> Return to Truck Details
+          </Link>
 
             <form onSubmit={handleSubmit} className={styles.formCard} noValidate>
               {/* Header */}
@@ -264,8 +298,6 @@ export default function ScheduleViewing() {
             </form>
           </div>
         </div>
-      </div>
-      <Footer />
-    </>
+    </Shell>
   );
 }

@@ -1,16 +1,25 @@
 'use client';
 
 import { useAuth } from '@/lib/AuthContext';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { safeRedirectPath } from '@/lib/routing';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 import { Mail, RefreshCw, ArrowRight } from 'lucide-react';
 
-export default function VerifyEmail() {
+function VerifyEmailForm() {
   const { user, loading, resendVerification, refreshUser } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
   const [checking, setChecking] = useState(false);
+
+  // Admins and staff continue to the admin panel; everyone else resumes the
+  // deep link they were sent away from, falling back to the dashboard.
+  const destinationFor = (u) =>
+    ['admin', 'staff'].includes(u?.role)
+      ? '/admin'
+      : safeRedirectPath(searchParams.get('redirect'), '/dashboard');
 
   useEffect(() => {
     if (!loading && !user) {
@@ -20,20 +29,20 @@ export default function VerifyEmail() {
 
   useEffect(() => {
     if (user?.emailVerified) {
-      router.push('/dashboard');
+      router.push(destinationFor(user));
     }
-  }, [user, router]);
+  }, [user, router, searchParams]);
 
   // Poll for verification status every 5 seconds
   useEffect(() => {
     const interval = setInterval(async () => {
       const updated = await refreshUser();
       if (updated?.emailVerified) {
-        router.push('/dashboard');
+        router.push(destinationFor(updated));
       }
     }, 5000);
     return () => clearInterval(interval);
-  }, [refreshUser, router]);
+  }, [refreshUser, router, searchParams]);
 
   const handleResend = async () => {
     setResending(true);
@@ -51,7 +60,7 @@ export default function VerifyEmail() {
     setChecking(true);
     const updated = await refreshUser();
     if (updated?.emailVerified) {
-      router.push('/dashboard');
+      router.push(destinationFor(updated));
     }
     setChecking(false);
   };
@@ -119,5 +128,14 @@ export default function VerifyEmail() {
         </p>
       </div>
     </div>
+  );
+}
+
+// useSearchParams needs a Suspense boundary for the route to be prerendered.
+export default function VerifyEmail() {
+  return (
+    <Suspense fallback={<div className="spinner-overlay"><div className="spinner"></div></div>}>
+      <VerifyEmailForm />
+    </Suspense>
   );
 }

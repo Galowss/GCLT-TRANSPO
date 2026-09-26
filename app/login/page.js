@@ -4,6 +4,7 @@ import { useState, Suspense, lazy } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/AuthContext';
+import { safeRedirectPath } from '@/lib/routing';
 import Navbar from '@/components/Navbar';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, Calendar } from 'lucide-react';
 import styles from './login.module.css';
@@ -43,9 +44,20 @@ function LoginForm() {
     agreedToTerms: false,
   });
 
-  // Logged-in users always land on the dashboard (or admin) first,
-  // regardless of the page they came from. Deep links are not restored here.
-  const homeFor = (user) => (['admin', 'staff'].includes(user?.role) ? '/admin' : '/dashboard');
+  // Admins and staff always land on the admin panel. Everyone else returns to
+  // the page they were bounced from (e.g. a truck viewing booking form) when a
+  // safe internal `redirect` param is present, and to the dashboard otherwise.
+  const homeFor = (user) => {
+    if (['admin', 'staff'].includes(user?.role)) return '/admin';
+    return safeRedirectPath(searchParams.get('redirect'), '/dashboard');
+  };
+
+  // Carries the deep link through email verification so newly registered
+  // customers still end up on the booking form they started from.
+  const verifyHref = () => {
+    const target = safeRedirectPath(searchParams.get('redirect'), null);
+    return target ? `/verify-email?redirect=${encodeURIComponent(target)}` : '/verify-email';
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -101,7 +113,7 @@ function LoginForm() {
       // 2. Proceed with login
       const user = await login(formData.email, formData.password);
       if (!user.emailVerified) {
-        router.push('/verify-email');
+        router.push(verifyHref());
       } else {
         router.push(homeFor(user));
       }
@@ -169,7 +181,7 @@ function LoginForm() {
 
       // 2. Proceed with registration
       await register(formData.name, formData.email, formData.password, formData.dateOfBirth);
-      router.push('/verify-email');
+      router.push(verifyHref());
     } catch (err) {
       // Reset security widget on error
       setTurnstileToken('');
