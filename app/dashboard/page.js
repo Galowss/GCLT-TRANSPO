@@ -210,7 +210,7 @@ export default function Dashboard() {
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Browse available trucks for sale</div>
                 </div>
               </div>
-              <Link href="/trucks-for-sale" className="btn btn-outline btn-sm btn-full">
+              <Link href="/dashboard/trucks" className="btn btn-outline btn-sm btn-full">
                 View Marketplace
               </Link>
             </div>

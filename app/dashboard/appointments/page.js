@@ -112,7 +112,7 @@ export default function Appointments() {
                 <>
                   <p>No appointments scheduled yet</p>
                   <p style={{ fontSize: '0.85rem', marginTop: '8px' }}>
-                    Browse our <a href="/trucks-for-sale" style={{ color: 'var(--primary)', fontWeight: 600 }}>Trucks for Sale</a> to schedule a viewing.
+                    Browse our <a href="/dashboard/trucks" style={{ color: 'var(--primary)', fontWeight: 600 }}>Trucks for Sale</a> to schedule a viewing.
                   </p>
                 </>
               )

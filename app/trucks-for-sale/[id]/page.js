@@ -64,7 +64,9 @@ export default function TruckDetail() {
         <div style={{ paddingTop: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', flexDirection: 'column', gap: '16px' }}>
           <Truck size={48} color="var(--text-muted)" />
           <p style={{ fontSize: '1.1rem', fontWeight: 600 }}>Truck not found</p>
-          <Link href="/trucks-for-sale" className="btn btn-primary">Browse All Trucks</Link>
+          <Link href={user ? '/dashboard/trucks' : '/trucks-for-sale'} className="btn btn-primary">
+            Browse All Trucks
+          </Link>
         </div>
         <Footer />
       </>
@@ -172,7 +174,7 @@ export default function TruckDetail() {
         addToast(`Purchase request submitted for ${truck.name}! A sales representative will contact you shortly.`, 'success');
 
         // Redirect back to trucks for sale
-        router.push('/trucks-for-sale');
+        router.push(user ? '/dashboard/trucks' : '/trucks-for-sale');
       } catch (err) {
         addToast('Failed to submit purchase request.', 'error');
       }
@@ -183,7 +185,7 @@ export default function TruckDetail() {
   const content = (
     <div className={styles.container} style={{ paddingTop: user ? '24px' : '100px' }}>
         <div className={styles.inner}>
-          <Link href="/trucks-for-sale" className={styles.backLink}>
+          <Link href={user ? '/dashboard/trucks' : '/trucks-for-sale'} className={styles.backLink}>
             <ArrowLeft size={16} /> Back to Fleet Inventory
           </Link>
 

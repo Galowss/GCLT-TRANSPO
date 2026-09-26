@@ -6,6 +6,7 @@ import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToAppointments, addNotification } from '@/lib/firebaseService';
 import { useToast } from '@/components/Toast';
 import { Calendar, CheckCircle, XCircle, X, MapPin, Clock, User, Phone, Truck, Search } from 'lucide-react';
+import DatePickerInput from '@/components/DatePickerInput';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
@@ -122,9 +123,23 @@ export default function AdminAppointments() {
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Date:</span>
-                <input type="date" className="form-input" style={{ width: '145px' }} value={filterDateFrom} onChange={e => setFilterDateFrom(e.target.value)} title="From" />
+                <DatePickerInput
+                  value={filterDateFrom}
+                  onChange={v => setFilterDateFrom(v)}
+                  maxDate={filterDateTo}
+                  style={{ width: '145px' }}
+                  placeholder="From"
+                  title="From"
+                />
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>–</span>
-                <input type="date" className="form-input" style={{ width: '145px' }} value={filterDateTo} onChange={e => setFilterDateTo(e.target.value)} title="To" />
+                <DatePickerInput
+                  value={filterDateTo}
+                  onChange={v => setFilterDateTo(v)}
+                  minDate={filterDateFrom}
+                  style={{ width: '145px' }}
+                  placeholder="To"
+                  title="To"
+                />
               </div>
               {hasActiveFilters && (
                 <button

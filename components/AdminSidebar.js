@@ -62,11 +62,14 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
         })}
       </nav>
       <div className="sidebar-logout">
-        <button className="sidebar-logout-btn" onClick={() => {
-          if(setIsOpen) setIsOpen(false);
-          logout();
-          window.location.href = '/login';
-        }}>
+        <button
+          className="sidebar-logout-btn"
+          onClick={async () => {
+            if (setIsOpen) setIsOpen(false);
+            await logout();
+            window.location.href = '/login';
+          }}
+        >
           <LogOut size={18} /> Logout
         </button>
       </div>

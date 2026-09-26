@@ -6,6 +6,8 @@ import AdminLayout from '@/components/AdminLayout';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/lib/AuthContext';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import TruckImage from '@/components/TruckImage';
 import { useState, useMemo } from 'react';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
@@ -15,6 +17,14 @@ import styles from './trucks.module.css';
 
 export default function TrucksForSale() {
   const { user } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user) {
+      router.replace('/dashboard/trucks');
+    }
+  }, [user, router]);
+
   const { data: trucksForSale, loading } = useRealtimeFirestore(
     (cb) => subscribeToTrucksForSale(cb)
   );

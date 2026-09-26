@@ -3,6 +3,7 @@
 import AdminLayout from '@/components/AdminLayout';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToAllBookings } from '@/lib/firebaseService';
+import { exportCsv } from '@/lib/csvUtils';
 import { useState, useMemo } from 'react';
 import { Download, Printer, BarChart2, TrendingUp, Users, CheckCircle, XCircle, CreditCard, Truck } from 'lucide-react';
 
@@ -26,14 +27,7 @@ function exportToCsv(bookings, rangeLabel) {
     b.quotedAt ? new Date(b.quotedAt).toLocaleDateString('en-PH') : '',
     b.notes || '',
   ]);
-  const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `gclt-report-${rangeLabel.replace(/\s/g, '-').toLowerCase()}-${new Date().toISOString().slice(0, 10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+  exportCsv(`gclt-report-${rangeLabel.replace(/\s/g, '-').toLowerCase()}-${new Date().toISOString().slice(0, 10)}.csv`, headers, rows);
 }
 
 /* ── Helpers ── */
@@ -54,6 +48,13 @@ function formatMonthKey(key) {
   if (!key) return '';
   const [y, m] = key.split('-');
   return new Date(Number(y), Number(m) - 1, 1).toLocaleString('en-PH', { month: 'short', year: 'numeric' });
+}
+
+function formatDate(value) {
+  if (!value) return '—';
+  const d = new Date(value);
+  if (isNaN(d)) return value;
+  return d.toLocaleDateString('en-PH');
 }
 
 export default function AdminReports() {
@@ -132,10 +133,17 @@ export default function AdminReports() {
   return (
     <AdminLayout>
       <style>{`
+        .report-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+        .report-table th { text-align: left; padding: 8px 10px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #3f4941; border-bottom: 2px solid #bec9be; background: #f0f5ee; white-space: nowrap; }
+        .report-table td { padding: 8px 10px; border-bottom: 1px solid #ebefe8; color: #3f4941; vertical-align: middle; }
+        .report-table tbody tr:nth-child(even) { background: rgba(240, 245, 238, 0.4); }
         @media print {
           .no-print { display: none !important; }
           .dashboard-topbar, aside, .sidebar-overlay { display: none !important; }
           .dashboard-main { margin: 0 !important; padding: 0 !important; }
+          .card { box-shadow: none !important; border: 1px solid #d0d8d0 !important; page-break-inside: avoid; }
+          .report-table { font-size: 10px; }
+          .report-table th, .report-table td { padding: 4px 6px; border: 1px solid #ccc; }
         }
       `}</style>
 
@@ -179,7 +187,7 @@ export default function AdminReports() {
       </div>
 
       {/* Period Badge */}
-      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }} className="no-print">
         <span style={{ background: 'var(--primary-light)', color: 'var(--primary)', fontSize: '0.78rem', fontWeight: 700, padding: '4px 12px', borderRadius: '20px' }}>
           📅 {rangeLabel}
         </span>
@@ -210,77 +218,99 @@ export default function AdminReports() {
         ))}
       </div>
 
+      {/* Monthly tables */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
-        {/* Monthly Bookings Bar Chart */}
+        {/* Monthly Bookings */}
         <div className="card" style={{ padding: '20px' }}>
-          <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <BarChart2 size={16} color="var(--primary)" /> Monthly Bookings
           </h3>
           {loading ? (
-            <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px' }}>Loading...</div>
+            <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px' }}>Loading...</div>
           ) : monthlyData.length === 0 ? (
-            <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px' }}>No data in this period.</div>
+            <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px' }}>No data in this period.</div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {monthlyData.map(([key, { count }]) => (
-                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.8rem' }}>
-                  <span style={{ width: '72px', flexShrink: 0, color: 'var(--text-muted)', fontWeight: 600 }}>{formatMonthKey(key)}</span>
-                  <div style={{ flex: 1, height: '22px', background: 'var(--gray-100)', borderRadius: '4px', overflow: 'hidden', position: 'relative' }}>
-                    <div style={{
-                      height: '100%',
-                      width: `${(count / maxCount) * 100}%`,
-                      background: 'var(--primary)',
-                      borderRadius: '4px',
-                      transition: 'width 0.4s ease',
-                      display: 'flex', alignItems: 'center', paddingLeft: '8px',
-                    }}>
-                      <span style={{ color: '#fff', fontSize: '0.72rem', fontWeight: 700 }}>{count > 0 ? count : ''}</span>
+            <>
+              <table className="report-table">
+                <thead>
+                  <tr>
+                    <th>Month</th>
+                    <th>Bookings</th>
+                    <th>Share</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {monthlyData.map(([key, { count }]) => {
+                    const pct = kpis.total > 0 ? Math.round((count / kpis.total) * 100) : 0;
+                    return (
+                      <tr key={key}>
+                        <td style={{ fontWeight: 600 }}>{formatMonthKey(key)}</td>
+                        <td>{count}</td>
+                        <td>{pct}%</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <div className="no-print" style={{ marginTop: '14px' }}>
+                {monthlyData.map(([key, { count }]) => (
+                  <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.8rem', margin: '6px 0' }}>
+                    <span style={{ width: '64px', flexShrink: 0, color: 'var(--text-muted)', fontWeight: 600 }}>{formatMonthKey(key)}</span>
+                    <div style={{ flex: 1, height: '18px', background: 'var(--gray-100)', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${(count / maxCount) * 100}%`, background: 'var(--primary)', borderRadius: '4px' }} />
                     </div>
+                    <span style={{ width: '20px', flexShrink: 0, fontWeight: 700, color: 'var(--text-secondary)', fontSize: '0.75rem' }}>{count}</span>
                   </div>
-                  <span style={{ width: '24px', flexShrink: 0, fontWeight: 700, color: 'var(--text-secondary)' }}>{count}</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
 
         {/* Revenue by Month */}
         <div className="card" style={{ padding: '20px' }}>
-          <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <TrendingUp size={16} color="#2E7D32" /> Revenue by Month (Completed)
           </h3>
           {loading ? (
-            <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px' }}>Loading...</div>
+            <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px' }}>Loading...</div>
           ) : monthlyData.every(([, v]) => v.revenue === 0) ? (
-            <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px' }}>No revenue data in this period.</div>
+            <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px' }}>No revenue data in this period.</div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {(() => {
-                const maxRev = Math.max(...monthlyData.map(([, v]) => v.revenue), 1);
-                return monthlyData.map(([key, { revenue }]) => (
-                  <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.8rem' }}>
-                    <span style={{ width: '72px', flexShrink: 0, color: 'var(--text-muted)', fontWeight: 600 }}>{formatMonthKey(key)}</span>
-                    <div style={{ flex: 1, height: '22px', background: 'var(--gray-100)', borderRadius: '4px', overflow: 'hidden' }}>
-                      <div style={{
-                        height: '100%',
-                        width: `${(revenue / maxRev) * 100}%`,
-                        background: '#2E7D32',
-                        borderRadius: '4px',
-                        transition: 'width 0.4s ease',
-                        display: 'flex', alignItems: 'center', paddingLeft: '8px',
-                      }}>
-                        <span style={{ color: '#fff', fontSize: '0.7rem', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                          {revenue > 0 ? `₱${(revenue / 1000).toFixed(0)}k` : ''}
-                        </span>
+            <>
+              <table className="report-table">
+                <thead>
+                  <tr>
+                    <th>Month</th>
+                    <th>Revenue (PHP)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {monthlyData.map(([key, { revenue }]) => (
+                    <tr key={key}>
+                      <td style={{ fontWeight: 600 }}>{formatMonthKey(key)}</td>
+                      <td>{revenue > 0 ? `₱${revenue.toLocaleString()}` : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="no-print" style={{ marginTop: '14px' }}>
+                {(() => {
+                  const maxRev = Math.max(...monthlyData.map(([, v]) => v.revenue), 1);
+                  return monthlyData.map(([key, { revenue }]) => (
+                    <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.8rem', margin: '6px 0' }}>
+                      <span style={{ width: '64px', flexShrink: 0, color: 'var(--text-muted)', fontWeight: 600 }}>{formatMonthKey(key)}</span>
+                      <div style={{ flex: 1, height: '18px', background: 'var(--gray-100)', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${(revenue / maxRev) * 100}%`, background: '#2E7D32', borderRadius: '4px' }} />
                       </div>
+                      <span style={{ width: '64px', flexShrink: 0, fontWeight: 700, color: '#2E7D32', fontSize: '0.75rem', textAlign: 'right' }}>
+                        {revenue > 0 ? `₱${(revenue / 1000).toFixed(0)}k` : '—'}
+                      </span>
                     </div>
-                    <span style={{ width: '64px', flexShrink: 0, fontWeight: 700, color: '#2E7D32', fontSize: '0.75rem' }}>
-                      {revenue > 0 ? `₱${revenue.toLocaleString()}` : '—'}
-                    </span>
-                  </div>
-                ));
-              })()}
-            </div>
+                  ));
+                })()}
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -294,25 +324,51 @@ export default function AdminReports() {
           {statusBreakdown.length === 0 ? (
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No bookings in this period.</p>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {statusBreakdown.map(([status, count]) => {
-                const pct = kpis.total > 0 ? Math.round((count / kpis.total) * 100) : 0;
-                const isCompleted = status === 'Completed';
-                const isCancelled = ['Cancelled', 'Declined'].includes(status);
-                const color = isCompleted ? '#2E7D32' : isCancelled ? '#E8451C' : 'var(--primary)';
-                return (
-                  <div key={status}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '0.8rem' }}>
-                      <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>{status}</span>
-                      <span style={{ fontWeight: 700, color }}>{count} ({pct}%)</span>
+            <>
+              <table className="report-table">
+                <thead>
+                  <tr>
+                    <th>Status</th>
+                    <th>Count</th>
+                    <th>%</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {statusBreakdown.map(([status, count]) => {
+                    const pct = kpis.total > 0 ? Math.round((count / kpis.total) * 100) : 0;
+                    const isCompleted = status === 'Completed';
+                    const isCancelled = ['Cancelled', 'Declined'].includes(status);
+                    const color = isCompleted ? '#2E7D32' : isCancelled ? '#E8451C' : 'var(--primary)';
+                    return (
+                      <tr key={status}>
+                        <td style={{ fontWeight: 600 }}>{status}</td>
+                        <td>{count}</td>
+                        <td style={{ color, fontWeight: 700 }}>{pct}%</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <div className="no-print" style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {statusBreakdown.map(([status, count]) => {
+                  const pct = kpis.total > 0 ? Math.round((count / kpis.total) * 100) : 0;
+                  const isCompleted = status === 'Completed';
+                  const isCancelled = ['Cancelled', 'Declined'].includes(status);
+                  const color = isCompleted ? '#2E7D32' : isCancelled ? '#E8451C' : 'var(--primary)';
+                  return (
+                    <div key={status}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '0.8rem' }}>
+                        <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>{status}</span>
+                        <span style={{ fontWeight: 700, color }}>{count} ({pct}%)</span>
+                      </div>
+                      <div style={{ height: '8px', background: 'var(--gray-100)', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: '4px', transition: 'width 0.4s' }} />
+                      </div>
                     </div>
-                    <div style={{ height: '8px', background: 'var(--gray-100)', borderRadius: '4px', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: '4px', transition: 'width 0.4s' }} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            </>
           )}
         </div>
 
@@ -322,22 +378,31 @@ export default function AdminReports() {
             <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               💳 Payment Split
             </h3>
-            <div style={{ display: 'flex', gap: '16px' }}>
-              {[
-                { label: 'Online (Stripe)', count: kpis.stripeCount, color: '#1565C0', bg: '#E3F2FD' },
-                { label: 'Cash on Delivery', count: kpis.codCount, color: '#E65100', bg: '#FFF3E0' },
-              ].map(({ label, count, color, bg }) => {
-                const total = kpis.stripeCount + kpis.codCount;
-                const pct = total > 0 ? Math.round((count / total) * 100) : 0;
-                return (
-                  <div key={label} style={{ flex: 1, padding: '12px', background: bg, borderRadius: '8px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color }}>{count}</div>
-                    <div style={{ fontSize: '0.72rem', color, fontWeight: 600 }}>{label}</div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>{pct}%</div>
-                  </div>
-                );
-              })}
-            </div>
+            <table className="report-table">
+              <thead>
+                <tr>
+                  <th>Method</th>
+                  <th>Count</th>
+                  <th>%</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { label: 'Online (Stripe)', count: kpis.stripeCount },
+                  { label: 'Cash on Delivery', count: kpis.codCount },
+                ].map(({ label, count }) => {
+                  const total = kpis.stripeCount + kpis.codCount;
+                  const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                  return (
+                    <tr key={label}>
+                      <td style={{ fontWeight: 600 }}>{label}</td>
+                      <td>{count}</td>
+                      <td>{pct}%</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
 
           <div className="card" style={{ padding: '20px', flex: 1 }}>
@@ -347,20 +412,79 @@ export default function AdminReports() {
             {topRoutes.length === 0 ? (
               <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No route data in this period.</p>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {topRoutes.map(([route, count], i) => (
-                  <div key={route} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.8rem' }}>
-                    <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary)', fontWeight: 700, fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      {i + 1}
-                    </span>
-                    <span style={{ flex: 1, color: 'var(--text-secondary)', fontSize: '0.78rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{route}</span>
-                    <span style={{ fontWeight: 700, color: 'var(--primary)', flexShrink: 0 }}>{count}×</span>
-                  </div>
-                ))}
-              </div>
+              <table className="report-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: '40px' }}>#</th>
+                    <th>Route</th>
+                    <th style={{ width: '60px' }}>Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topRoutes.map(([route, count], i) => (
+                    <tr key={route}>
+                      <td style={{ color: 'var(--primary)', fontWeight: 800 }}>{i + 1}</td>
+                      <td>{route}</td>
+                      <td style={{ fontWeight: 700 }}>{count}×</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             )}
           </div>
         </div>
+      </div>
+
+      {/* Detailed bookings table */}
+      <div className="card" style={{ padding: '20px', marginBottom: '24px' }}>
+        <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+          <h3 style={{ fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Users size={16} color="var(--primary)" /> Bookings in this period
+          </h3>
+          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+            {bookings.length} record{bookings.length !== 1 ? 's' : ''}
+          </span>
+        </div>
+        {loading ? (
+          <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px' }}>Loading...</div>
+        ) : bookings.length === 0 ? (
+          <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px' }}>No bookings in this period.</div>
+        ) : (
+          <div className="table-container" style={{ maxHeight: '420px', overflowY: 'auto' }}>
+            <table className="report-table">
+              <thead>
+                <tr>
+                  <th>Ref #</th>
+                  <th>Customer</th>
+                  <th>Vehicle Type</th>
+                  <th>Route</th>
+                  <th>Date</th>
+                  <th>Payment</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bookings.map(b => (
+                  <tr key={b.id}>
+                    <td style={{ fontFamily: 'monospace', fontWeight: 700, whiteSpace: 'nowrap' }}>{b.refNumber || 'Legacy'}</td>
+                    <td>{b.userName || 'Guest'}</td>
+                    <td>{b.truckRoute || '—'}</td>
+                    <td>{[b.pickup, b.delivery].filter(Boolean).join(' → ') || '—'}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{formatDate(b.date)}</td>
+                    <td>{b.paymentMethod === 'stripe' ? 'Stripe' : b.paymentMethod ? 'COD' : 'Pending'}</td>
+                    <td>{b.quotedAmount ? `₱${Number(b.quotedAmount).toLocaleString()}` : '—'}</td>
+                    <td>
+                      <span className={`status ${['Completed', 'Confirmed'].includes(b.status) ? 'status-confirmed' : ['Cancelled', 'Declined'].includes(b.status) ? 'status-cancelled' : 'status-pending'}`}>
+                        {b.status || 'Unknown'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Footer note */}
