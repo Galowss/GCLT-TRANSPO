@@ -1,0 +1,694 @@
+/* ─────────────────────────────────────────────────────────────
+   Report Viewer
+   High-density back-office grid, themed off the GCLT design
+   tokens (--primary #006d37, --surface-container-*, --text-*)
+   so it sits inside the existing admin shell.
+   ───────────────────────────────────────────────────────────── */
+
+.rv-shell {
+  --rv-border: #e0e6e1;
+  --rv-border-soft: #edf1ee;
+  --rv-head: #f4f7f5;
+  --rv-zebra: #fafcfa;
+  --rv-selected: #e6f9e4;
+  --rv-accent: #e6f9e4;
+  --rv-accent-line: #006d37;
+  --rv-ink: #101f13;
+  --rv-ink-2: #3d4a3f;
+  --rv-ink-3: #6d7a6e;
+  --rv-accent-ink: #004d26;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  /* Fill the flex parent (.dashboard-content) rather than guessing the admin
+     chrome height — the topbar/padding differs at each breakpoint, so a
+     hardcoded calc() either overflows or leaves a gap. The definite height is
+     what lets the grid scroll internally instead of scrolling the page. */
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  background: var(--surface-container-lowest);
+  border: 1px solid var(--rv-border);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  font-size: 13px;
+  color: var(--rv-ink);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* ── Header + report tabs ── */
+.rv-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--primary);
+  color: var(--on-primary);
+  flex-shrink: 0;
+}
+.rv-head-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.rv-head-sub {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.rv-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.rv-tabs::-webkit-scrollbar { display: none; }
+.rv-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px 5px 10px;
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
+  background: rgba(0, 0, 0, 0.16);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-bottom: none;
+  transition: background 0.12s, color 0.12s;
+}
+.rv-tab:hover { background: rgba(0, 0, 0, 0.26); }
+.rv-tab.is-active {
+  background: var(--surface-container-lowest);
+  color: var(--rv-accent-ink);
+  border-color: var(--rv-border);
+}
+.rv-tab-x {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  opacity: 0.6;
+  cursor: pointer;
+  padding: 0;
+}
+.rv-tab-x:hover { opacity: 1; background: rgba(255, 255, 255, 0.2); }
+.rv-tab.is-active .rv-tab-x:hover { background: var(--surface-container); }
+
+/* ── Body: catalog + viewer ── */
+.rv-body {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.rv-catalog {
+  width: 232px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--rv-border);
+  background: var(--surface-muted);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.rv-catalog-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--rv-border);
+  background: var(--surface-container-low);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--primary-dark);
+  flex-shrink: 0;
+}
+.rv-catalog.is-collapsed .rv-catalog-bar {
+  justify-content: center;
+  padding: 8px 4px;
+}
+.rv-catalog-toggle {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--rv-border);
+  border-radius: 4px;
+  background: var(--surface-container-lowest);
+  color: var(--rv-ink-2);
+  cursor: pointer;
+  padding: 0;
+}
+.rv-catalog-toggle:hover { background: var(--surface-container); }
+.rv-catalog-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 6px 0 12px;
+  min-height: 0;
+}
+.rv-cat-group {
+  padding: 10px 12px 4px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.rv-cat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 12px 6px 14px;
+  border: 0;
+  border-left: 3px solid transparent;
+  background: transparent;
+  color: var(--rv-ink-2);
+  font-size: 12.5px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  line-height: 1.3;
+}
+.rv-cat-item:hover { background: var(--surface-container); color: var(--rv-ink); }
+.rv-cat-item.is-active {
+  background: var(--primary-light);
+  border-left-color: var(--primary);
+  color: var(--primary-dark);
+  font-weight: 700;
+}
+.rv-cat-count {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--rv-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.rv-catalog.is-collapsed { width: 44px; }
+.rv-catalog.is-collapsed .rv-cat-group,
+.rv-catalog.is-collapsed .rv-cat-item span,
+.rv-catalog.is-collapsed .rv-cat-count { display: none; }
+.rv-catalog.is-collapsed .rv-cat-item { justify-content: center; padding: 8px 0; }
+.rv-catalog.is-collapsed .rv-catalog-list { padding: 6px 0 12px; }
+
+/* ── Viewer column ── */
+.rv-viewer {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.rv-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--rv-border);
+  background: var(--surface-container-lowest);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.rv-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s, border-color 0.12s, opacity 0.12s;
+}
+.rv-btn:hover:not(:disabled) { background: var(--primary-hover); border-color: var(--primary-hover); }
+.rv-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.rv-btn-ghost {
+  background: var(--surface-container-lowest);
+  color: var(--primary-dark);
+  border-color: var(--outline-variant);
+}
+.rv-btn-ghost:hover:not(:disabled) {
+  background: var(--primary-light);
+  border-color: var(--primary);
+  color: var(--primary-dark);
+}
+.rv-btn.is-on { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+.rv-toolbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rv-meta {
+  font-size: 11px;
+  color: var(--rv-ink-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.rv-meta strong { color: var(--rv-ink-2); font-weight: 700; }
+
+/* ── Collapsible filter panel ── */
+.rv-filters {
+  padding: 12px;
+  border-bottom: 1px solid var(--rv-border);
+  background: var(--surface-muted);
+  flex-shrink: 0;
+}
+.rv-filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+.rv-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.rv-field label {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--rv-ink-2);
+}
+.rv-field input,
+.rv-field select {
+  height: 30px;
+  padding: 3px 10px;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--border-radius);
+  background: var(--surface-container-lowest);
+  color: var(--rv-ink);
+  font-size: 12.5px;
+  font-family: inherit;
+  width: 100%;
+  min-width: 0;
+}
+.rv-field input:focus,
+.rv-field select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 109, 55, 0.12);
+}
+.rv-filter-actions { display: flex; gap: 6px; }
+.rv-active-filters {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--rv-border);
+  background: var(--primary-light);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+.rv-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 6px 2px 9px;
+  border-radius: 100px;
+  border: 1px solid #b8e3c9;
+  background: var(--surface-container-lowest);
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+.rv-chip button {
+  display: flex;
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  cursor: pointer;
+  padding: 0;
+}
+.rv-chip button:hover { color: var(--primary-dark); }
+
+/* ── Grid ── */
+.rv-grid-wrap {
+  flex: 1 1 auto;
+  overflow: auto;
+  min-height: 0;
+  background: var(--surface-container-lowest);
+}
+.rv-grid {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.rv-grid thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--rv-head);
+  color: var(--rv-ink-2);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: left;
+  padding: 7px 12px;
+  white-space: nowrap;
+  border-right: 1px solid var(--rv-border);
+  border-bottom: 2px solid var(--outline-variant);
+  user-select: none;
+  cursor: pointer;
+}
+.rv-grid thead th:last-child { border-right: 0; }
+.rv-grid thead th:hover { background: var(--surface-container); }
+.rv-grid thead th.is-active-col {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  box-shadow: inset 0 -2px 0 var(--primary);
+}
+.rv-th-inner {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  vertical-align: middle;
+  width: 100%;
+}
+.rv-th-sigma {
+  color: var(--outline);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+.rv-grid th.is-active-col .rv-th-sigma { color: var(--primary); }
+.rv-sort {
+  display: inline-flex;
+  flex-direction: column;
+  line-height: 0;
+  gap: 1px;
+  font-size: 7px;
+  padding: 2px 3px;
+  margin-left: auto;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  opacity: 0.4;
+  cursor: pointer;
+}
+.rv-sort:hover { background: var(--surface-container); opacity: 0.8; }
+.rv-grid th:hover .rv-sort { opacity: 0.65; }
+.rv-grid th.is-sorted .rv-sort { opacity: 1; color: var(--primary); }
+.rv-sort span { line-height: 1; }
+
+.rv-grid tbody td {
+  padding: 6px 12px;
+  border-right: 1px solid var(--rv-border-soft);
+  border-bottom: 1px solid var(--rv-border-soft);
+  color: var(--rv-ink);
+  vertical-align: middle;
+  white-space: nowrap;
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rv-grid tbody td:last-child { border-right: 0; }
+.rv-grid tbody tr:nth-child(even) { background: var(--rv-zebra); }
+.rv-grid tbody tr:hover { background: var(--primary-light); }
+.rv-grid tbody tr.is-selected { background: var(--surface-container); }
+.rv-grid tbody tr.is-selected:hover { background: var(--surface-container-high); }
+.rv-grid tbody tr { cursor: pointer; }
+
+/* Active-column tint, layered under the row background states. */
+.rv-grid tbody td.is-active-col { background: rgba(230, 249, 228, 0.55); }
+.rv-grid tbody tr:nth-child(even) td.is-active-col { background: rgba(230, 249, 228, 0.8); }
+.rv-grid tbody tr:hover td.is-active-col { background: rgba(224, 243, 222, 0.9); }
+.rv-grid tbody tr.is-selected td.is-active-col { background: rgba(0, 109, 55, 0.1); }
+.rv-grid tbody td.is-active-col { box-shadow: inset 1px 0 0 rgba(0, 109, 55, 0.28); }
+
+.rv-a-left { text-align: left; }
+.rv-a-center { text-align: center; }
+.rv-a-right { text-align: right; }
+.rv-num { font-variant-numeric: tabular-nums; }
+.rv-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+.rv-muted { color: var(--text-muted); }
+
+.rv-badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.rv-badge-ok { background: var(--success-light); color: #1b7a3e; border-color: #bfe5ca; }
+.rv-badge-warn { background: var(--warning-light); color: #9a6700; border-color: #ffe0a3; }
+.rv-badge-bad { background: var(--danger-light); color: #c2310f; border-color: #ffc9bb; }
+.rv-badge-info { background: var(--primary-light); color: var(--primary-dark); border-color: #b8e3c9; }
+.rv-badge-mute { background: var(--surface-container); color: var(--text-secondary); border-color: var(--border-low); }
+
+/* Pinned total row */
+.rv-grid tfoot td {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  padding: 8px 12px;
+  background: var(--surface-container);
+  border-top: 2px solid var(--primary);
+  border-right: 1px solid var(--rv-border-soft);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--primary-dark);
+  white-space: nowrap;
+}
+.rv-grid tfoot td:last-child { border-right: 0; }
+.rv-grid tfoot td.is-active-col { background: var(--primary-light); box-shadow: inset 1px 0 0 rgba(0, 109, 55, 0.3); }
+
+.rv-empty {
+  padding: 52px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.rv-empty strong { display: block; color: var(--text-primary); font-size: 15px; margin-bottom: 5px; }
+.rv-empty .rv-spin { vertical-align: -2px; margin-right: 6px; }
+.rv-link {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.rv-link:hover { color: var(--primary-hover); }
+
+/* ── Row search ── */
+.rv-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 0 1 220px;
+  min-width: 150px;
+}
+.rv-search-icon {
+  position: absolute;
+  left: 8px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.rv-search-input {
+  width: 100%;
+  padding: 5px 26px 5px 26px;
+  font-size: 12.5px;
+  font-family: inherit;
+  color: var(--text-primary);
+  background: var(--surface-container-lowest);
+  border: 1px solid var(--rv-border);
+  border-radius: var(--border-radius);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+/* Hide the WebKit clear affordance; the custom button covers it and
+   matches the rest of the toolbar. */
+.rv-search-input::-webkit-search-cancel-button,
+.rv-search-input::-webkit-search-decoration { -webkit-appearance: none; appearance: none; }
+.rv-search-input::placeholder { color: var(--text-muted); }
+.rv-search-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+.rv-search.is-set .rv-search-icon { color: var(--primary); }
+.rv-search-clear {
+  position: absolute;
+  right: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface-container-high);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.rv-search-clear:hover { background: var(--primary); color: var(--white); }
+
+/* Matched text. Warm amber rather than the green accent so hits read as
+   "found" instead of blending into the selected-column and row states. */
+.rv-hit {
+  background: #fff3c4;
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+  font-weight: 700;
+  box-shadow: inset 0 -1px 0 #e8b923;
+}
+.rv-grid td.is-hit { position: relative; }
+
+.rv-statusbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 12px;
+  border-top: 1px solid var(--rv-border);
+  background: var(--surface-muted);
+  font-size: 11px;
+  color: var(--rv-ink-2);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.rv-statusbar b { font-weight: 700; font-variant-numeric: tabular-nums; }
+.rv-statusbar .rv-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+.rv-live .rv-dot { background: var(--success); box-shadow: 0 0 0 2px rgba(39, 174, 96, 0.2); }
+.rv-loading .rv-dot { background: var(--warning); animation: rv-pulse 1s infinite; }
+@keyframes rv-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+
+.rv-spin {
+  width: 13px;
+  height: 13px;
+  border: 2px solid var(--surface-container-highest);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: rv-spin 0.7s linear infinite;
+  display: inline-block;
+}
+@keyframes rv-spin { to { transform: rotate(360deg); } }
+
+@media print {
+  .no-print { display: none !important; }
+  .dashboard-topbar, aside, .sidebar-overlay { display: none !important; }
+  .dashboard-main { margin: 0 !important; padding: 0 !important; }
+  .rv-shell { border: 0; height: auto; }
+  .rv-grid-wrap { overflow: visible; max-height: none; }
+}
+
+/* ── Responsive ──
+   Height is handled by the flex chain, so these rules only adjust the
+   horizontal layout and the density of the chrome. */
+@media (max-width: 1100px) {
+  .rv-catalog { width: 200px; }
+  .rv-head-sub { display: none; }
+}
+
+/* Portrait tablet: stack the catalog above the grid. */
+@media (max-width: 860px) {
+  /* Search takes the full toolbar width so it stays usable on touch. */
+  .rv-search { flex: 1 1 100%; order: -1; }
+  .rv-body { flex-direction: column; }
+  .rv-catalog {
+    width: 100%;
+    border-right: 0;
+    border-bottom: 1px solid var(--rv-border);
+    max-height: 190px;
+  }
+  .rv-catalog.is-collapsed { width: 100%; max-height: none; }
+  .rv-catalog.is-collapsed .rv-cat-item { justify-content: flex-start; padding: 6px 12px 6px 14px; }
+  .rv-catalog.is-collapsed .rv-cat-group,
+  .rv-catalog.is-collapsed .rv-cat-item span,
+  .rv-catalog.is-collapsed .rv-cat-count { display: flex; }
+  .rv-catalog.is-collapsed .rv-catalog-bar { justify-content: flex-start; padding: 8px 10px; }
+  .rv-toolbar { gap: 6px; }
+  .rv-toolbar-right { margin-left: 0; width: 100%; }
+}
+
+/* Phone: shrink the shell chrome, keep the grid full-bleed. */
+@media (max-width: 640px) {
+  .rv-shell { border-radius: var(--border-radius); }
+  .rv-head { padding: 8px 10px; gap: 8px; }
+  .rv-head-title { font-size: 13px; }
+  .rv-toolbar { padding: 8px; }
+  .rv-btn { padding: 5px 9px; font-size: 11.5px; }
+  .rv-meta { display: none; }
+  .rv-statusbar { gap: 9px; font-size: 10.5px; padding: 5px 9px; }
+  .rv-empty { padding: 32px 14px; }
+  /* Freeze the ref column so scrolling right keeps row context.
+     Sticky cells need an opaque background of their own — `background:inherit`
+     resolves to the <tr>, which is transparent on odd rows, letting the
+     scrolled-under cells bleed through. */
+  .rv-grid th:first-child,
+  .rv-grid td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--surface-container-lowest);
+  }
+  .rv-grid thead th:first-child { z-index: 3; background: var(--rv-head); }
+  .rv-grid tfoot td:first-child { z-index: 3; background: var(--surface-container); }
+  .rv-grid tbody tr:nth-child(even) td:first-child { background: var(--rv-zebra); }
+  .rv-grid tbody tr:hover td:first-child { background: var(--primary-light); }
+  .rv-grid tbody tr.is-selected td:first-child { background: var(--surface-container); }
+  .rv-grid tbody tr.is-selected:hover td:first-child { background: var(--surface-container-high); }
+}
+
+/* Short viewports (landscape phones, split screen).
+   Below this there is not enough room to keep every panel on screen at once:
+   the header, toolbar and status bar alone eat the usable height, and forcing
+   the grid to fit would push the pinned totals row out of reach. Drop the
+   optional chrome so the grid keeps a usable minimum. */
+@media (max-height: 560px) {
+  /* The catalog rail costs the grid more than it gives; the report is still
+     switchable through the open tabs. */
+  .rv-catalog { display: none; }
+  .rv-head { padding: 5px 9px; gap: 7px; }
+  .rv-head-sub { display: none; }
+  .rv-toolbar { padding: 5px 8px; }
+  .rv-btn { padding: 4px 8px; font-size: 11px; }
+  .rv-statusbar { padding: 3px 8px; font-size: 10px; }
+  .rv-active-filters { padding: 5px 8px; }
+
+  /* Release the viewport lock on the admin main and give the shell a real
+     floor, so the page scrolls as a whole instead of the shell clipping its
+     own grid and hiding the pinned totals row. The grid keeps an explicit
+     max-height because with the lock released a flex item would otherwise
+     grow to fit all rows and stop scrolling internally. */
+  .dashboard-main-full { height: auto; min-height: 100vh; overflow: visible; }
+  .rv-shell { min-height: 340px; }
+  .rv-grid-wrap { min-height: 120px; max-height: 55vh; }
+}

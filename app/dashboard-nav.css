@@ -340,9 +340,9 @@
   animation: dashDrop 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.dash-mmenu.open {
-  display: flex;
-}
+/* The open state is deliberately NOT declared here. It lives in the
+   max-width: 1000px block below so the slide-down menu can only ever
+   appear while the burger is the active navigation. */
 
 @keyframes dashDrop {
   from { opacity: 0; transform: translateY(-10px); }
@@ -418,6 +418,19 @@
 @media (max-width: 1000px) {
   .dash-nav-links { display: none; }
   .dash-burger { display: grid; }
+  /* The burger is the navigation here, so the slide-down menu may open. */
+  .dash-mmenu.open { display: flex; }
+}
+
+/* Desktop guard: the top bar is fully visible above 1000px, so neither the
+   burger nor the slide-down menu may render. !important keeps this winning
+   even if menuOpen is still true from a narrower layout. */
+@media (min-width: 1001px) {
+  .dash-burger,
+  .dash-mmenu,
+  .dash-mmenu.open {
+    display: none !important;
+  }
 }
 
 @media (max-width: 480px) {

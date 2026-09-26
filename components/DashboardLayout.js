@@ -50,6 +50,18 @@ export default function DashboardLayout({ children }) {
     setMenuOpen(false);
   }, [pathname]);
 
+  // The burger only exists at <=1000px. Without this, a menu opened on a
+  // phone-sized window (or before a rotate) stays open and renders over the
+  // desktop top bar once the window grows back past the breakpoint.
+  useEffect(() => {
+    const closeMenuOnDesktop = () => {
+      if (window.innerWidth > 1000) setMenuOpen(false);
+    };
+    window.addEventListener('resize', closeMenuOnDesktop);
+    closeMenuOnDesktop();
+    return () => window.removeEventListener('resize', closeMenuOnDesktop);
+  }, []);
+
   const isActive = (href) => {
     if (href === '/dashboard') return pathname === '/dashboard';
     return pathname === href || pathname.startsWith(href + '/');

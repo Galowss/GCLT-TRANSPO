@@ -10,7 +10,12 @@ import { Truck, Bell, User, Menu } from 'lucide-react';
 export default function AdminLayout({ children }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // The report viewer is a full-bleed work surface sized to the viewport, so
+  // the site footer would push it past 100vh and reintroduce page scrolling.
+  const isFullBleed = pathname === '/admin/reports';
 
   useEffect(() => {
     if (!loading && !user) {
@@ -59,16 +64,18 @@ export default function AdminLayout({ children }) {
         </div>
       </div>
       <AdminSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="dashboard-main animate-slide-up">
-        <div style={{ flex: 1 }}>
+      <main className={`dashboard-main animate-slide-up${isFullBleed ? ' dashboard-main-full' : ''}`}>
+        <div className="dashboard-content">
           {children}
         </div>
-        <div style={{ padding: '32px 0 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', fontSize: '0.8rem', color: 'var(--gray-500)', borderTop: '1px solid var(--gray-200)', marginTop: '24px' }}>
-          <span>&copy; {new Date().getFullYear()} GCLT Transport & Trucking Services. All rights reserved.</span>
-          <div style={{ display: 'flex', gap: '16px' }}>
-            <a href="/legal/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-muted)' }}>Data Privacy Policy</a>
+        {!isFullBleed && (
+          <div style={{ padding: '32px 0 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', fontSize: '0.8rem', color: 'var(--gray-500)', borderTop: '1px solid var(--gray-200)', marginTop: '24px' }}>
+            <span>&copy; {new Date().getFullYear()} GCLT Transport & Trucking Services. All rights reserved.</span>
+            <div style={{ display: 'flex', gap: '16px' }}>
+              <a href="/legal/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-muted)' }}>Data Privacy Policy</a>
+            </div>
           </div>
-        </div>
+        )}
       </main>
     </div>
   );
