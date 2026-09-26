@@ -3,13 +3,13 @@
 import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
 import TruckImage from '@/components/TruckImage';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToFleetTypes, addBooking, addNotification } from '@/lib/firebaseService';
 import { useAuth } from '@/lib/AuthContext';
 import { useToast } from '@/components/Toast';
-import { MapPin, Navigation, Check, ArrowRight, ArrowLeft, Star, AlertTriangle, Snowflake, Package, Wrench, Truck } from 'lucide-react';
+import { MapPin, Navigation, Check, ArrowRight, ArrowLeft, Star, AlertTriangle, Snowflake, Package, Wrench } from 'lucide-react';
 import LeafletMapModal from '@/components/LeafletMapModalDynamic';
 import LeafletInlineMap from '@/components/LeafletInlineMapDynamic';
 import { FLEET_CATEGORIES } from '@/lib/constants';
@@ -38,13 +38,9 @@ function determineRouteType(weight, cargoSize, pickupCity, deliveryCity) {
 }
 
 /* ── Constants ── */
-const CARGO_TYPES = [
-  { value: 'Trailer', label: 'Trailer', Icon: Truck },
-  { value: 'Flatbed', label: 'Flatbed', Icon: Truck },
-  { value: 'Skeletal', label: 'Skeletal', Icon: Truck },
-  { value: '20 footer', label: '20 footer', Icon: Truck },
-  { value: '40 footer', label: '40 footer', Icon: Truck },
-];
+// Step 1's "Type of Truck" uses the same categories as the step 2 filter tabs,
+// so the choice made up front is what drives the vehicle list.
+const CARGO_TYPES = FLEET_CATEGORIES;
 
 /* Google Calendar-style 30-minute time slots (8:00 AM – 6:00 PM) */
 const TIME_SLOTS = (() => {
@@ -140,6 +136,15 @@ export default function BookTransport() {
     const cat = FLEET_CATEGORIES.find(c => c.value.toLowerCase() === fleetFilter.toLowerCase());
     return cat ? allFleets.filter(f => (f.category || 'Trailer') === cat.value) : allFleets;
   }, [allFleets, fleetFilter]);
+
+  // The truck type picked in step 1 usually narrows step 2 down to a single
+  // unit. When that happens there is nothing left to decide, so preselect it
+  // rather than making the customer pick the same truck type twice.
+  useEffect(() => {
+    if (currentStep !== 2 || selectedFleet) return;
+    if (filteredFleets.length !== 1) return;
+    setSelectedFleet(filteredFleets[0].id);
+  }, [currentStep, selectedFleet, filteredFleets]);
 
   /* ── Geolocation ── */
   const handleUseLocation = (target = 'pickup') => {
@@ -519,6 +524,11 @@ export default function BookTransport() {
                     onClick={() => {
                       if (isSameDestination) { addToast('Pickup and drop-off cannot be the same location.', 'error'); return; }
                       if (highlightAndFocusMissingFields()) { addToast('Please fill in all required fields.', 'error'); return; }
+                      // Carry the truck type chosen in step 1 into the step 2
+                      // filter so the list is already narrowed to that category
+                      // instead of showing every vehicle and asking again.
+                      setFleetFilter((formData.cargoType || 'all').toLowerCase());
+                      setSelectedFleet('');
                       setCurrentStep(2);
                     }}
                   >
@@ -611,7 +621,7 @@ export default function BookTransport() {
                 <button
                   key={tab}
                   className={`${styles.filterTab} ${fleetFilter === tab ? styles.filterTabActive : ''}`}
-                  onClick={() => setFleetFilter(tab)}
+                  onClick={() => { setSelectedFleet(''); setFleetFilter(tab); }}
                 >
                   {tab === 'all' ? 'All Vehicles' : (
                     (() => {
