@@ -39,8 +39,9 @@ function determineRouteType(weight, cargoSize, pickupCity, deliveryCity) {
 
 /* ── Constants ── */
 // Step 1's "Type of Truck" uses the same categories as the step 2 filter tabs,
-// so the choice made up front is what drives the vehicle list.
-const CARGO_TYPES = FLEET_CATEGORIES;
+// so the choice made up front is what drives the vehicle list. FLEET_CATEGORIES
+// names its icon `icon`, while the picker below destructures `Icon`.
+const CARGO_TYPES = FLEET_CATEGORIES.map(({ value, label, icon }) => ({ value, label, Icon: icon }));
 
 /* Google Calendar-style 30-minute time slots (8:00 AM – 6:00 PM) */
 const TIME_SLOTS = (() => {
