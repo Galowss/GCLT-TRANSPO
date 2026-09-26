@@ -2,14 +2,13 @@
 
 import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
-import TruckImage from '@/components/TruckImage';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useRealtimeFirestore } from '@/lib/useRealtimeFirestore';
 import { subscribeToFleetTypes, addBooking, addNotification } from '@/lib/firebaseService';
 import { useAuth } from '@/lib/AuthContext';
 import { useToast } from '@/components/Toast';
-import { MapPin, Navigation, Check, ArrowRight, ArrowLeft, Star, AlertTriangle, Snowflake, Package, Wrench } from 'lucide-react';
+import { MapPin, Navigation, Check, ArrowRight, ArrowLeft, AlertTriangle, Snowflake, Package, Wrench } from 'lucide-react';
 import LeafletMapModal from '@/components/LeafletMapModalDynamic';
 import LeafletInlineMap from '@/components/LeafletInlineMapDynamic';
 import { FLEET_CATEGORIES } from '@/lib/constants';
@@ -73,8 +72,7 @@ const PLACEHOLDER_FLEETS = [
 
 const STEPS = [
   { number: 1, label: 'Route' },
-  { number: 2, label: 'Vehicle' },
-  { number: 3, label: 'Confirm' },
+  { number: 2, label: 'Confirm' },
 ];
 
 /* ══════════════════════════════════════════════════════════════
@@ -84,14 +82,12 @@ export default function BookTransport() {
   const { user } = useAuth();
   const { addToast } = useToast();
   const router = useRouter();
-  const { data: fleetTypes, loading: fleetLoading } = useRealtimeFirestore(
+  const { data: fleetTypes } = useRealtimeFirestore(
     (cb) => subscribeToFleetTypes(cb)
   );
 
   /* ── UI state ── */
   const [currentStep, setCurrentStep] = useState(1);
-  const [selectedFleet, setSelectedFleet] = useState('');
-  const [fleetFilter, setFleetFilter] = useState('all');
   const [loading, setLoading] = useState(false);
   const [locating, setLocating] = useState(false);
   const [locatingTarget, setLocatingTarget] = useState('pickup');
@@ -127,25 +123,25 @@ export default function BookTransport() {
     : '';
   const routeInfo = useMemo(() => determineRouteType(formData.weight, cargoSizeFull, formData.pickupCity, formData.deliveryCity), [formData.weight, cargoSizeFull, formData.pickupCity, formData.deliveryCity]);
 
-  /* ── Fleet data ── */
+  /* ── Fleet data ──
+     The customer no longer picks a specific unit — they pick a truck type in
+     step 1 and the team assigns a vehicle when they send the quote. Fleet data
+     is still needed to warn early when the chosen type cannot carry the load. */
   const allFleets = useMemo(() => {
     const real = (fleetTypes || []).filter(f => f.available !== false);
     return real.length ? real : PLACEHOLDER_FLEETS;
   }, [fleetTypes]);
-  const filteredFleets = useMemo(() => {
-    if (fleetFilter === 'all') return allFleets;
-    const cat = FLEET_CATEGORIES.find(c => c.value.toLowerCase() === fleetFilter.toLowerCase());
-    return cat ? allFleets.filter(f => (f.category || 'Trailer') === cat.value) : allFleets;
-  }, [allFleets, fleetFilter]);
 
-  // The truck type picked in step 1 usually narrows step 2 down to a single
-  // unit. When that happens there is nothing left to decide, so preselect it
-  // rather than making the customer pick the same truck type twice.
-  useEffect(() => {
-    if (currentStep !== 2 || selectedFleet) return;
-    if (filteredFleets.length !== 1) return;
-    setSelectedFleet(filteredFleets[0].id);
-  }, [currentStep, selectedFleet, filteredFleets]);
+  const capacityWarning = useMemo(() => {
+    const weight = Number(formData.weight) || 0;
+    if (!weight) return null;
+    const inType = allFleets.filter(f => (f.category || 'Trailer') === formData.cargoType);
+    if (!inType.length) return null;
+    const fits = inType.filter(f => !f.loadCapacity || f.loadCapacity >= weight);
+    if (fits.length) return null;
+    const best = Math.max(...inType.map(f => f.loadCapacity || 0));
+    return `No available ${formData.cargoType.toLowerCase()} vehicle can carry ${weight.toLocaleString()} KG. The largest in this category handles ${best.toLocaleString()} KG — pick a larger type or reduce the load.`;
+  }, [allFleets, formData.weight, formData.cargoType]);
 
   /* ── Geolocation ── */
   const handleUseLocation = (target = 'pickup') => {
@@ -204,8 +200,9 @@ export default function BookTransport() {
       return;
     }
     setLoading(true);
-    const fleet = fleetTypes?.find(f => f.id === selectedFleet);
-    if (!fleet) { addToast('Please select a fleet type.', 'error'); setLoading(false); return; }
+    const truckType = formData.cargoType;
+    if (!truckType) { addToast('Please select a type of truck.', 'error'); setLoading(false); return; }
+    if (capacityWarning) { addToast(capacityWarning, 'error'); setLoading(false); return; }
     if (!formData.time) { addToast('Please select a specific time.', 'error'); setLoading(false); return; }
     const time = formData.time || '';
     const timeOK = /^([01]\d|2[0-3]):[0-5]\d$/.test(time) && time >= '08:00' && time <= '18:00';
@@ -213,30 +210,38 @@ export default function BookTransport() {
 
     const now = new Date();
     const timeString = now.toLocaleString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const quantity = Number(formData.truckQuantity) || 1;
 
+    // The truck type chosen in step 1 is what gets stored: `truckRoute` is the
+    // field the dashboard, admin bookings, reports, transactions and every
+    // email template read as the vehicle. The specific unit is assigned by the
+    // team when they send the quote.
     const bookingData = {
-      bookingType: formData.cargoType,
-      truckRoute: fleet.name,
+      bookingType: truckType,
+      truckRoute: truckType,
+      truckType,
       pickup: pickupFull, pickupStreet: formData.pickupStreet, pickupBarangay: formData.pickupBarangay, pickupCity: formData.pickupCity,
       delivery: deliveryFull, deliveryStreet: formData.deliveryStreet, deliveryBarangay: formData.deliveryBarangay, deliveryCity: formData.deliveryCity,
       date: formData.date, time: formData.time, weight: formData.weight,
       cargoSize: cargoSizeFull, cargoLength: formData.cargoLength, cargoWidth: formData.cargoWidth, cargoHeight: formData.cargoHeight,
-      routeType: routeInfo.route, notes: specialInstructions, fleetType: selectedFleet,
+      routeType: routeInfo.route, notes: specialInstructions,
       estimatedDistance: estimatedDistance,
-      truckQuantity: Number(formData.truckQuantity) || 1,
+      truckQuantity: quantity,
       status: 'Quote Requested', requestedAt: now.toISOString(),
       userId: user?.uid || 'anonymous', userEmail: user?.email || '', userName: user?.displayName || 'Guest',
     };
 
+    const vehicleLabel = quantity > 1 ? `${quantity} × ${truckType}` : truckType;
+
     const userNotif = {
       title: 'Quote Request Submitted',
-      message: `Your ${formData.cargoType} truck quote request for ${fleet.name} (${pickupFull} to ${deliveryFull}) has been received. Route: ${routeInfo.route}. Our team will calculate the cost and get back to you shortly.`,
+      message: `Your ${truckType} truck quote request for ${vehicleLabel} (${pickupFull} to ${deliveryFull}) has been received. Route: ${routeInfo.route}. Our team will calculate the cost and get back to you shortly.`,
       type: 'booking', isNew: true, time: timeString, userId: user?.uid || 'anonymous',
     };
 
     const adminNotif = {
       title: 'New Quote Request',
-      message: `${user?.displayName || 'A user'} submitted a ${formData.cargoType} truck quote request for ${fleet.name} -- ${pickupFull} to ${deliveryFull}. Weight: ${formData.weight || 'N/A'} KG, Size: ${cargoSizeFull || 'N/A'}. Auto-route: ${routeInfo.route}.`,
+      message: `${user?.displayName || 'A user'} submitted a ${truckType} truck quote request for ${vehicleLabel} -- ${pickupFull} to ${deliveryFull}. Weight: ${formData.weight || 'N/A'} KG, Size: ${cargoSizeFull || 'N/A'}. Auto-route: ${routeInfo.route}.`,
       type: 'booking', isNew: true, time: timeString, forAdmin: true, userId: 'admin', userEmail: user?.email || '',
     };
 
@@ -262,21 +267,7 @@ export default function BookTransport() {
     formData.pickupCity.trim().toLowerCase() === formData.deliveryCity.trim().toLowerCase() &&
     (formData.pickupBarangay || '').trim().toLowerCase() === (formData.deliveryBarangay || '').trim().toLowerCase());
   const canProceedStep1 = formData.pickupStreet && formData.deliveryStreet && formData.date && formData.time && formData.weight && formData.cargoLength && formData.cargoWidth && formData.cargoHeight && !isSameDestination;
-  const canProceedStep2 = !!selectedFleet;
   const today = new Date().toISOString().split('T')[0];
-  const selectedFleetData = allFleets?.find(f => f.id === selectedFleet);
-
-  /* ── Vehicle compare helper ── */
-  const handleCompareFleet = (fleet) => {
-    const specs = [
-      fleet.category ? `Type: ${fleet.category}` : null,
-      fleet.capacity ? `Capacity: ${fleet.capacity}` : null,
-      fleet.dimensions ? `Size: ${fleet.dimensions}` : null,
-      fleet.ratePerKm ? `Rate: ₱${fleet.ratePerKm}/km` : null,
-      fleet.passengerCapacity ? `Crew: ${fleet.passengerCapacity}` : null,
-    ].filter(Boolean);
-    addToast(`📋 ${fleet.name}: ${specs.join(' • ') || 'Details on request'}`, 'info', 6000);
-  };
 
   /* ── Inline map pin callback ── */
   const handleMapPin = (target, { street, barangay, city, lat, lng }) => {
@@ -450,6 +441,42 @@ export default function BookTransport() {
                     </div>
                   </div>
 
+                  {capacityWarning && (
+                    <div className={styles.sameDestWarning}>
+                      <span>⚠️</span>
+                      <div>
+                        <p style={{ fontWeight: 700, margin: '0 0 2px' }}>Vehicle capacity exceeded</p>
+                        <p style={{ margin: 0 }}>{capacityWarning}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className={styles.divider} />
+
+                  {/* Number of Trucks */}
+                  <div>
+                    <label className={styles.fieldLabel}>NUMBER OF TRUCKS</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '10px' }}>
+                      <button
+                        type="button"
+                        aria-label="Decrease truck quantity"
+                        onClick={() => setFormData(prev => ({ ...prev, truckQuantity: Math.max(1, (Number(prev.truckQuantity) || 1) - 1) }))}
+                        style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1.5px solid #bec9be', background: '#fff', fontSize: '1.25rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3f4941' }}
+                      >−</button>
+                      <div style={{ textAlign: 'center' }}>
+                        <span style={{ fontSize: '1.75rem', fontWeight: 800, color: '#00522c', display: 'block', lineHeight: 1 }}>{formData.truckQuantity || 1}</span>
+                        <span style={{ fontSize: '0.72rem', color: '#6f7a70' }}>{formData.truckQuantity === 1 ? 'truck' : 'trucks'}</span>
+                      </div>
+                      <button
+                        type="button"
+                        aria-label="Increase truck quantity"
+                        onClick={() => setFormData(prev => ({ ...prev, truckQuantity: Math.min(10, (Number(prev.truckQuantity) || 1) + 1) }))}
+                        style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1.5px solid #bec9be', background: '#fff', fontSize: '1.25rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3f4941' }}
+                      >+</button>
+                      <span style={{ fontSize: '0.8rem', color: '#6f7a70', marginLeft: '8px' }}>Max 10 trucks per booking. The final price will be quoted by our team.</span>
+                    </div>
+                  </div>
+
                   <div className={styles.divider} />
 
                   {/* Cargo Weight & Dimensions */}
@@ -525,15 +552,11 @@ export default function BookTransport() {
                     onClick={() => {
                       if (isSameDestination) { addToast('Pickup and drop-off cannot be the same location.', 'error'); return; }
                       if (highlightAndFocusMissingFields()) { addToast('Please fill in all required fields.', 'error'); return; }
-                      // Carry the truck type chosen in step 1 into the step 2
-                      // filter so the list is already narrowed to that category
-                      // instead of showing every vehicle and asking again.
-                      setFleetFilter((formData.cargoType || 'all').toLowerCase());
-                      setSelectedFleet('');
+                      if (capacityWarning) { addToast(capacityWarning, 'error'); return; }
                       setCurrentStep(2);
                     }}
                   >
-                    Continue to Vehicle <ArrowRight size={18} />
+                    Continue to Review <ArrowRight size={18} />
                   </button>
                 </div>
               </div>
@@ -585,219 +608,9 @@ export default function BookTransport() {
         )}
 
         {/* ════════════════════════════════════════════════════
-            STEP 2 — Choose Vehicle
+            STEP 2 — Review & Confirm
             ════════════════════════════════════════════════════ */}
         {currentStep === 2 && (
-          <div className={styles.fullColumn}>
-            <div className={styles.stepper}>
-              {STEPS.map((step, i) => {
-                const isDone = currentStep > step.number;
-                const isActive = currentStep === step.number;
-                return (
-                  <div key={step.number} className={styles.stepperGroup}>
-                    <div className={styles.stepperItem}>
-                      <div className={`${styles.stepperDot} ${isDone ? styles.stepperDotDone : ''} ${isActive ? styles.stepperDotActive : ''}`}>
-                        {isDone ? <Check size={14} /> : step.number}
-                      </div>
-                      <span className={`${styles.stepperLabel} ${isActive ? styles.stepperLabelActive : ''} ${isDone ? styles.stepperLabelDone : ''}`}>
-                        {step.label}
-                      </span>
-                    </div>
-                    {i < STEPS.length - 1 && (
-                      <div className={`${styles.stepperLine} ${currentStep > step.number ? styles.stepperLineDone : ''}`} />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className={styles.stepHeader}>
-              <h1 className={styles.stepTitle}>Select Your Vehicle</h1>
-              <p className={styles.stepSubtitle}>Showing fleet options based on your {formData.cargoType || 'Trailer'} truck requirements.</p>
-            </div>
-
-            {/* Filter tabs */}
-            <div className={styles.filterTabs}>
-              {['all', ...FLEET_CATEGORIES.map(c => c.value.toLowerCase())].map(tab => (
-                <button
-                  key={tab}
-                  className={`${styles.filterTab} ${fleetFilter === tab ? styles.filterTabActive : ''}`}
-                  onClick={() => { setSelectedFleet(''); setFleetFilter(tab); }}
-                >
-                  {tab === 'all' ? 'All Vehicles' : (
-                    (() => {
-                      const cat = FLEET_CATEGORIES.find(c => c.value.toLowerCase() === tab);
-                      if (!cat) return tab;
-                      const CatIcon = cat.icon;
-                      return (
-                        <>
-                          <CatIcon size={14} />
-                          {cat.label}
-                        </>
-                      );
-                    })()
-                  )}
-                </button>
-              ))}
-            </div>
-
-            {/* Fleet grid */}
-            <div className={styles.fleetGrid}>
-              {fleetLoading ? (
-                <div className={styles.loadingState}>Loading fleet...</div>
-              ) : filteredFleets.length === 0 ? (
-                <div className={styles.emptyState}>No vehicles found in this category.</div>
-              ) : (
-                filteredFleets.map((fleet, idx) => {
-                  const isSelected = selectedFleet === fleet.id;
-                  const isRecommended = idx === 0;
-                  /* Check if truck can handle the user's cargo weight */
-                  const userWeight = Number(formData.weight) || 0;
-                  // Prefer the numeric loadCapacity field; fall back to parsing the legacy capacity string
-                  const fleetCapKg = fleet.loadCapacity
-                    ? Number(fleet.loadCapacity)
-                    : (parseFloat((fleet.capacity || '').replace(/[^0-9.]/g, '')) || 0) * 1000;
-                  const isInsufficient = userWeight > 0 && fleetCapKg > 0 && userWeight > fleetCapKg;
-                  return (
-                    <div
-                      key={fleet.id}
-                      className={`${styles.truckCard} ${isSelected ? styles.truckCardSelected : ''} ${isRecommended && !isInsufficient ? styles.truckCardRecommended : ''} ${isInsufficient ? styles.truckCardDisabled : ''}`}
-                      onClick={() => { if (!isInsufficient) setSelectedFleet(fleet.id); }}
-                    >
-                      {isRecommended && !isInsufficient && (
-                        <div className={styles.recommendedBadge}><Star size={12} /> Recommended for your cargo</div>
-                      )}
-                      <div className={styles.truckImageWrap}>
-                        {fleet.imageUrl ? (
-                          <TruckImage src={fleet.imageUrl} alt={fleet.name} fill sizes="(max-width: 768px) 100vw, 33vw" className={styles.truckImage} />
-                        ) : (
-                          <div className={styles.truckImagePlaceholder}>
-                            <span className={styles.truckEmoji}>🚛</span>
-                          </div>
-                        )}
-                        <div className={styles.truckImageOverlay} />
-                        <div className={styles.truckImageLabel}>
-                          <p className={styles.truckName}>{fleet.name}</p>
-                          <p className={styles.truckSubtype}>{fleet.category || 'General'}</p>
-                        </div>
-                      </div>
-                      <div className={styles.truckSpecs}>
-                        <div className={styles.specGrid}>
-                          {/* PAYLOAD */}
-                          {(fleet.loadCapacity || fleet.capacity) && (
-                            <div className={styles.specItem}>
-                              <span className={styles.specLabel}>⚖ Payload</span>
-                              <span className={`${styles.specValue} ${isInsufficient ? styles.specValueDanger : ''}`}>
-                                {fleet.loadCapacity
-                                  ? `${Number(fleet.loadCapacity).toLocaleString()} kg`
-                                  : fleet.capacity}
-                              </span>
-                            </div>
-                          )}
-                          {/* CREW CAPACITY */}
-                          {fleet.passengerCapacity && (
-                            <div className={styles.specItem}>
-                              <span className={styles.specLabel}>👥 Crew</span>
-                              <span className={styles.specValue}>{fleet.passengerCapacity} persons</span>
-                            </div>
-                          )}
-                          {/* DIMENSIONS */}
-                          {fleet.dimensions && (
-                            <div className={styles.specItem}>
-                              <span className={styles.specLabel}>📐 Dimensions</span>
-                              <span className={`${styles.specValue} ${isInsufficient ? styles.specValueDanger : ''}`}>{fleet.dimensions}</span>
-                            </div>
-                          )}
-                          {/* PRICE (replaces Mileage) */}
-                          <div className={styles.specItem}>
-                            <span className={styles.specLabel}>💰 Price</span>
-                            <span className={styles.specValue} style={{ color: '#006d3c', fontWeight: 700 }}>
-                              {fleet.ratePerKm ? `₱${fleet.ratePerKm} / km` : fleet.price ? `₱${fleet.price}` : 'Request Quote'}
-                            </span>
-                          </div>
-                          {/* TRUCK NAME (replaces Engine) */}
-                          <div className={styles.specItem}>
-                            {isInsufficient ? (
-                              <>
-                                <span className={styles.specLabel}>⚠ Warning</span>
-                                <span className={`${styles.specValue} ${styles.specValueDanger}`}>Insufficient Capacity</span>
-                              </>
-                            ) : (
-                              <>
-                                <span className={styles.specLabel}>🚛 Truck Name</span>
-                                <span className={styles.specValue}>{fleet.name}</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                        <div className={styles.truckCardFooter}>
-                          {isInsufficient ? (
-                            <button className={styles.btnUnavailable} disabled>Unavailable for Cargo</button>
-                          ) : isSelected ? (
-                            <div className={styles.truckCardActions}>
-                              <button className={styles.btnSelected}><Check size={16} /> Selected</button>
-                            </div>
-                          ) : (
-                            <div className={styles.truckCardActions}>
-                              <button className={styles.btnSelectVehicle} onClick={() => setSelectedFleet(fleet.id)}>Select Vehicle</button>
-                              <button className={styles.btnCompare} title="Compare" onClick={() => handleCompareFleet(fleet)}>⇄</button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-
-            {/* Truck Quantity Stepper */}
-            {selectedFleet && (
-              <div style={{ margin: '24px 0', padding: '20px', background: '#f6fbf3', borderRadius: '10px', border: '1px solid #bec9be' }}>
-                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#3f4941', display: 'block', marginBottom: '12px' }}>
-                  NUMBER OF TRUCKS
-                </label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <button
-                    type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, truckQuantity: Math.max(1, (Number(prev.truckQuantity) || 1) - 1) }))}
-                    style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1.5px solid #bec9be', background: '#fff', fontSize: '1.25rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3f4941' }}
-                  >−</button>
-                  <div style={{ textAlign: 'center' }}>
-                    <span style={{ fontSize: '1.75rem', fontWeight: 800, color: '#00522c', display: 'block', lineHeight: 1 }}>{formData.truckQuantity || 1}</span>
-                    <span style={{ fontSize: '0.72rem', color: '#6f7a70' }}>{formData.truckQuantity === 1 ? 'truck' : 'trucks'}</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, truckQuantity: Math.min(10, (Number(prev.truckQuantity) || 1) + 1) }))}
-                    style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1.5px solid #bec9be', background: '#fff', fontSize: '1.25rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3f4941' }}
-                  >+</button>
-                  <span style={{ fontSize: '0.8rem', color: '#6f7a70', marginLeft: '8px' }}>Max 10 trucks per booking. The final price will be quoted by our team.</span>
-                </div>
-              </div>
-            )}
-
-            <div className={styles.stepActions}>
-              <button className={styles.btnGhost} onClick={() => setCurrentStep(1)}>
-                <ArrowLeft size={18} /> Back to Cargo
-              </button>
-              <button
-                className={styles.btnPrimary}
-                onClick={() => {
-                  if (!canProceedStep2) { addToast('Please select a vehicle.', 'error'); return; }
-                  setCurrentStep(3);
-                }}
-              >
-                Continue to Review <ArrowRight size={18} />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ════════════════════════════════════════════════════
-            STEP 3 — Review & Confirm
-            ════════════════════════════════════════════════════ */}
-        {currentStep === 3 && (
           <div className={styles.fullColumn}>
             <div className={styles.stepper}>
               {STEPS.map((step, i) => {
@@ -859,28 +672,24 @@ export default function BookTransport() {
                   </div>
                 </div>
 
-                {/* Vehicle */}
+                {/* Requested vehicle */}
                 <div className={styles.reviewCard}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 className={styles.reviewCardTitle}>Selected Vehicle</h3>
-                    <button className={styles.locBtn} onClick={() => setCurrentStep(2)}>Change</button>
+                    <h3 className={styles.reviewCardTitle}>Requested Vehicle</h3>
+                    <button className={styles.locBtn} onClick={() => setCurrentStep(1)}>Change</button>
                   </div>
-                  {selectedFleetData ? (
-                    <div className={styles.reviewVehicle}>
-                      {selectedFleetData.imageUrl ? (
-                        <TruckImage src={selectedFleetData.imageUrl} alt={selectedFleetData.name} width={72} height={56} className={styles.reviewVehicleImg} />
-                      ) : (
-                        <div className={styles.reviewVehicleImgPlaceholder}>🚛</div>
-                      )}
-                      <div>
-                        <p className={styles.reviewVehicleName}>{selectedFleetData.name}</p>
-                        <p className={styles.reviewVehicleMeta}>{selectedFleetData.category || 'General'}{selectedFleetData.capacity ? ` • ${selectedFleetData.capacity}` : ''}</p>
-                        <p className={styles.reviewVehicleMeta} style={{ marginTop: '4px', fontWeight: 700, color: '#00522c' }}>
-                          🚛 × {formData.truckQuantity || 1} {formData.truckQuantity === 1 ? 'truck' : 'trucks'} requested
-                        </p>
-                      </div>
+                  <div className={styles.reviewVehicle}>
+                    <div className={styles.reviewVehicleImgPlaceholder}>🚛</div>
+                    <div>
+                      <p className={styles.reviewVehicleName}>{formData.cargoType}</p>
+                      <p className={styles.reviewVehicleMeta}>
+                        × {formData.truckQuantity || 1} {formData.truckQuantity === 1 ? 'truck' : 'trucks'} requested
+                      </p>
+                      <p className={styles.reviewVehicleMeta} style={{ marginTop: '4px', color: '#6f7a70' }}>
+                        A specific unit is assigned by our team when we send your quote.
+                      </p>
                     </div>
-                  ) : <p style={{ color: '#6f7a70' }}>No vehicle selected.</p>}
+                  </div>
                 </div>
 
                 {/* Special instructions */}
@@ -931,8 +740,8 @@ export default function BookTransport() {
             </div>
 
             <div className={styles.stepActions}>
-              <button className={styles.btnGhost} onClick={() => setCurrentStep(2)}>
-                <ArrowLeft size={18} /> Back to Vehicle
+              <button className={styles.btnGhost} onClick={() => setCurrentStep(1)}>
+                <ArrowLeft size={18} /> Back to Route
               </button>
             </div>
           </div>
