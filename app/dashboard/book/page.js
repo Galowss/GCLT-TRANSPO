@@ -418,7 +418,7 @@ export default function BookTransport() {
                           Please choose a time between 8:00 AM and 6:00 PM
                         </span>
                       ) : (
-                        <span style={{ fontSize: '0.72rem', color: '#6f7a70', marginTop: '4px', display: 'block' }}>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--ink-muted)', marginTop: '4px', display: 'block' }}>
                           Bookings available 8:00 AM–6:00 PM
                         </span>
                       )}
@@ -461,19 +461,19 @@ export default function BookTransport() {
                         type="button"
                         aria-label="Decrease truck quantity"
                         onClick={() => setFormData(prev => ({ ...prev, truckQuantity: Math.max(1, (Number(prev.truckQuantity) || 1) - 1) }))}
-                        style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1.5px solid #bec9be', background: '#fff', fontSize: '1.25rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3f4941' }}
+                        style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1.5px solid var(--line)', background: 'var(--panel)', fontSize: '1.25rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-2)' }}
                       >−</button>
-                      <div style={{ textAlign: 'center' }}>
-                        <span style={{ fontSize: '1.75rem', fontWeight: 800, color: '#00522c', display: 'block', lineHeight: 1 }}>{formData.truckQuantity || 1}</span>
-                        <span style={{ fontSize: '0.72rem', color: '#6f7a70' }}>{formData.truckQuantity === 1 ? 'truck' : 'trucks'}</span>
+                      <div style={{ textAlign: 'center', flexShrink: 0 }}>
+                        <span style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--brand-ink)', display: 'block', lineHeight: 1 }}>{formData.truckQuantity || 1}</span>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--ink-muted)', display: 'block', whiteSpace: 'nowrap' }}>{formData.truckQuantity === 1 ? 'truck' : 'trucks'}</span>
                       </div>
                       <button
                         type="button"
                         aria-label="Increase truck quantity"
                         onClick={() => setFormData(prev => ({ ...prev, truckQuantity: Math.min(10, (Number(prev.truckQuantity) || 1) + 1) }))}
-                        style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1.5px solid #bec9be', background: '#fff', fontSize: '1.25rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3f4941' }}
+                        style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1.5px solid var(--line)', background: 'var(--panel)', fontSize: '1.25rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-2)' }}
                       >+</button>
-                      <span style={{ fontSize: '0.8rem', color: '#6f7a70', marginLeft: '8px' }}>Max 10 trucks per booking. The final price will be quoted by our team.</span>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--ink-muted)', marginLeft: '8px' }}>Max 10 trucks per booking. The final price will be quoted by our team.</span>
                     </div>
                   </div>
 
@@ -483,7 +483,7 @@ export default function BookTransport() {
                   <div>
                     <label className={styles.fieldLabel}>
                       CARGO WEIGHT &amp; DIMENSIONS{' '}
-                      <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, color: '#6f7a70' }}>(for route &amp; truck matching)</span>
+                      <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, color: 'var(--ink-muted)' }}>(for route &amp; truck matching)</span>
                     </label>
                     <div className={styles.scheduleGrid} style={{ marginTop: '10px' }}>
                       <div className={styles.fieldGroup}>
@@ -532,13 +532,13 @@ export default function BookTransport() {
 
                 {estimatedDistance && (
                   <div style={{
-                    marginTop: '16px', padding: '16px', background: '#f6fbf3', border: '1px solid #bec9be',
+                    marginTop: '16px', padding: '16px', background: 'var(--panel-alt)', border: '1px solid var(--line)',
                     borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '12px'
                   }}>
                     <div style={{ fontSize: '1.5rem' }}>📏</div>
                     <div>
-                      <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 700, color: '#6f7a70', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Estimated Travel Distance</p>
-                      <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#00522c' }}>{estimatedDistance} km</p>
+                      <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 700, color: 'var(--ink-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Estimated Travel Distance</p>
+                      <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: 'var(--brand-ink)' }}>{estimatedDistance} km</p>
                     </div>
                   </div>
                 )}
@@ -579,23 +579,23 @@ export default function BookTransport() {
                 {/* Route chip at bottom of map panel */}
                 {pickupFull && deliveryFull && (
                   <div className={styles.routeChip}>
-                    <span className={styles.routeChipDot} style={{ background: '#00522c' }} />
+                    <span className={styles.routeChipDot} style={{ background: 'var(--brand-fill)' }} />
                     <span style={{ fontWeight: 700 }}>{formData.pickupCity || 'Pickup'}</span>
-                    <ArrowRight size={12} color="#6f7a70" />
-                    <span className={styles.routeChipDot} style={{ background: '#ba1a1a' }} />
+                    <ArrowRight size={12} color="var(--ink-muted)" />
+                    <span className={styles.routeChipDot} style={{ background: 'var(--danger)' }} />
                     <span style={{ fontWeight: 700 }}>{formData.deliveryCity || 'Drop-off'}</span>
                     {(formData.weight || cargoSizeFull) && (
                       <>
-                        <span style={{ margin: '0 4px', color: '#bec9be' }}>|</span>
-                        <span style={{ fontWeight: 700, color: routeInfo.route === 'Old Road' ? '#E65100' : '#00522c' }}>
+                        <span style={{ margin: '0 4px', color: 'var(--line)' }}>|</span>
+                        <span style={{ fontWeight: 700, color: routeInfo.route === 'Old Road' ? 'var(--orange)' : 'var(--brand-fill)' }}>
                           {routeInfo.route === 'Old Road' ? '🛣️' : '🚀'} {routeInfo.route}
                         </span>
                       </>
                     )}
                     {estimatedDistance && (
                       <>
-                        <span style={{ margin: '0 4px', color: '#bec9be' }}>|</span>
-                        <span style={{ fontWeight: 700, color: '#3f4941' }}>
+                        <span style={{ margin: '0 4px', color: 'var(--line)' }}>|</span>
+                        <span style={{ fontWeight: 700, color: 'var(--ink-2)' }}>
                           📏 {estimatedDistance} km
                         </span>
                       </>
@@ -666,7 +666,7 @@ export default function BookTransport() {
                     <div><span className={styles.reviewMetaLabel}>Date</span><span className={styles.reviewMetaValue}>{formData.date || '—'}</span></div>
                     <div><span className={styles.reviewMetaLabel}>Time</span><span className={styles.reviewMetaValue}>{formData.time || '—'}</span></div>
                     <div><span className={styles.reviewMetaLabel}>Type of Truck</span><span className={styles.reviewMetaValue} style={{ textTransform: 'capitalize' }}>{formData.cargoType}</span></div>
-                    <div><span className={styles.reviewMetaLabel}>Route</span><span className={styles.reviewMetaValue} style={{ color: routeInfo.route === 'Old Road' ? '#E65100' : '#00522c', fontWeight: 700 }}>{routeInfo.route}</span></div>
+                    <div><span className={styles.reviewMetaLabel}>Route</span><span className={styles.reviewMetaValue} style={{ color: routeInfo.route === 'Old Road' ? 'var(--orange)' : 'var(--brand-fill)', fontWeight: 700 }}>{routeInfo.route}</span></div>
                     {formData.weight && <div><span className={styles.reviewMetaLabel}>Weight</span><span className={styles.reviewMetaValue}>{formData.weight} KG</span></div>}
                     {cargoSizeFull && <div><span className={styles.reviewMetaLabel}>Dimensions</span><span className={styles.reviewMetaValue}>{cargoSizeFull}</span></div>}
                   </div>
@@ -685,7 +685,7 @@ export default function BookTransport() {
                       <p className={styles.reviewVehicleMeta}>
                         × {formData.truckQuantity || 1} {formData.truckQuantity === 1 ? 'truck' : 'trucks'} requested
                       </p>
-                      <p className={styles.reviewVehicleMeta} style={{ marginTop: '4px', color: '#6f7a70' }}>
+                      <p className={styles.reviewVehicleMeta} style={{ marginTop: '4px', color: 'var(--ink-muted)' }}>
                         A specific unit is assigned by our team when we send your quote.
                       </p>
                     </div>

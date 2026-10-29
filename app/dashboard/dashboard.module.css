@@ -27,7 +27,7 @@
 .welcome {
   font-size: 1.6rem;
   margin-bottom: 2px;
-  background: linear-gradient(135deg, #004d26 0%, #006d37 100%);
+  background: linear-gradient(135deg, var(--brand-deep) 0%, var(--brand-bright) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -180,7 +180,7 @@
 
 /* Fast Booking */
 .fastBooking {
-  background: linear-gradient(135deg, #E8761C 0%, #d06014 100%);
+  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-dark) 100%);
   border-radius: var(--border-radius-lg);
   padding: 20px;
   color: var(--white);
@@ -227,8 +227,8 @@
   display: block;
   text-align: center;
   padding: 10px;
-  background: var(--white);
-  color: #E8761C;
+  background: var(--panel);
+  color: var(--orange);
   border-radius: var(--border-radius);
   font-weight: 700;
   font-size: 0.85rem;
@@ -259,7 +259,7 @@
 .aiAvatar {
   width: 38px;
   height: 38px;
-  background: linear-gradient(135deg, #006d37, #27ae60);
+  background: linear-gradient(135deg, var(--brand-bright), var(--green-bright));
   border-radius: 50%;
   display: flex;
   align-items: center;

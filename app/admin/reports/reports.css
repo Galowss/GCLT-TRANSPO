@@ -1,22 +1,22 @@
 /* ─────────────────────────────────────────────────────────────
    Report Viewer
    High-density back-office grid, themed off the GCLT design
-   tokens (--primary #006d37, --surface-container-*, --text-*)
+   tokens (--primary var(--brand-bright), --surface-container-*, --text-*)
    so it sits inside the existing admin shell.
    ───────────────────────────────────────────────────────────── */
 
 .rv-shell {
-  --rv-border: #e0e6e1;
+  --rv-border: var(--line-soft);
   --rv-border-soft: #edf1ee;
-  --rv-head: #f4f7f5;
-  --rv-zebra: #fafcfa;
-  --rv-selected: #e6f9e4;
-  --rv-accent: #e6f9e4;
-  --rv-accent-line: #006d37;
-  --rv-ink: #101f13;
-  --rv-ink-2: #3d4a3f;
-  --rv-ink-3: #6d7a6e;
-  --rv-accent-ink: #004d26;
+  --rv-head: var(--panel-muted);
+  --rv-zebra: var(--panel-alt);
+  --rv-selected: var(--panel-green);
+  --rv-accent: var(--panel-green);
+  --rv-accent-line: var(--brand-bright);
+  --rv-ink: var(--ink);
+  --rv-ink-2: var(--ink-2);
+  --rv-ink-3: var(--ink-muted);
+  --rv-accent-ink: var(--brand-deep);
   display: flex;
   flex-direction: column;
   gap: 0;

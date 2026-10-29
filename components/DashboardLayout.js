@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Truck, Bell, User, Menu, X, LogOut, LayoutDashboard, ShoppingBag, Calendar, MessageCircle } from 'lucide-react';
+import ThemeToggle from '@/components/ThemeToggle';
 
 const NAV_LINKS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -40,8 +41,10 @@ export default function DashboardLayout({ children }) {
 
   useEffect(() => {
     if (!loading && !user) {
+      console.warn('[dashboard] no user after auth settled — redirecting to /login');
       router.push('/login');
     } else if (!loading && user && ['admin', 'staff'].includes(user.role)) {
+      console.info('[dashboard] staff/admin account — redirecting to /admin', { role: user.role });
       router.push('/admin');
     }
   }, [user, loading, router]);
@@ -112,6 +115,7 @@ export default function DashboardLayout({ children }) {
           </nav>
 
           <div className="dash-nav-right">
+            <ThemeToggle className="theme-toggle dash-theme-toggle" />
             <Link href="/dashboard/notifications" className="dash-icon-btn" aria-label="Notifications">
               <Bell size={18} />
               <span className="dash-notif-dot"></span>
@@ -142,7 +146,7 @@ export default function DashboardLayout({ children }) {
               <Icon size={16} /> {label}
             </Link>
           ))}
-          <button className="dash-mmenu-item" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ba1a1a' }} onClick={handleLogout}>
+          <button className="dash-mmenu-item" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger-strong)' }} onClick={handleLogout}>
             <LogOut size={16} /> Logout
           </button>
         </div>

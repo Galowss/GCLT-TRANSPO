@@ -11,19 +11,19 @@ import { X, CreditCard, Banknote, CheckCircle, XCircle, Truck, MapPin, Clock, Pa
 import { compressImage } from '@/lib/compressImage';
 
 const STATUS_COLORS = {
-  'Quote Requested': { bg: '#FFF8E1', text: '#E65100' },
-  'Quoted': { bg: '#E3F2FD', text: '#1565C0' },
-  'Pending': { bg: '#FFF8E1', text: '#E65100' },
-  'Pending Payment': { bg: '#FFF8E1', text: '#E65100' },
-  'Confirmed': { bg: '#E8F5E9', text: '#2E7D32' },
-  'In Transit': { bg: '#E3F2FD', text: '#1565C0' },
-  'Completed': { bg: '#EBF9F1', text: '#00522c' },
-  'Cancelled': { bg: '#FFEBEE', text: '#C62828' },
-  'Declined': { bg: '#FFEBEE', text: '#C62828' },
+  'Quote Requested': { bg: 'var(--warn-bg)', text: 'var(--orange)' },
+  'Quoted': { bg: 'var(--info-bg)', text: 'var(--info-fg)' },
+  'Pending': { bg: 'var(--warn-bg)', text: 'var(--orange)' },
+  'Pending Payment': { bg: 'var(--warn-bg)', text: 'var(--orange)' },
+  'Confirmed': { bg: 'var(--ok-bg)', text: 'var(--ok-fg)' },
+  'In Transit': { bg: 'var(--info-bg)', text: 'var(--info-fg)' },
+  'Completed': { bg: 'var(--panel-green)', text: 'var(--brand-ink)' },
+  'Cancelled': { bg: 'var(--err-bg)', text: 'var(--danger-strong)' },
+  'Declined': { bg: 'var(--err-bg)', text: 'var(--danger-strong)' },
 };
 
 function StatusPill({ status }) {
-  const colors = STATUS_COLORS[status] || { bg: '#f0f0f0', text: '#666' };
+  const colors = STATUS_COLORS[status] || { bg: 'var(--line-soft)', text: 'var(--muted-666)' };
   return (
     <span style={{
       display: 'inline-flex',
@@ -236,9 +236,9 @@ export default function MyBookings() {
           <div className={`card animate-slide-up ${isClosingEdit ? 'animate-slide-out-down' : ''}`} style={{ width: '100%', maxWidth: '440px', position: 'relative', zIndex: 1001, padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ fontFamily: 'Manrope, sans-serif', fontSize: '1.25rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Edit3 size={20} color="#00522c" /> Request Edit
+                <Edit3 size={20} color="var(--brand-fill)" /> Request Edit
               </h3>
-              <button style={{ background: 'none', color: '#6f7a70' }} onClick={closeEditModal}><X size={20} /></button>
+              <button style={{ background: 'none', color: 'var(--ink-muted)' }} onClick={closeEditModal}><X size={20} /></button>
             </div>
             <div className="form-group">
               <label className="form-label">Describe changes needed *</label>
@@ -284,14 +284,14 @@ export default function MyBookings() {
       {/* ── Page Header ── */}
       <div className="animate-slide-up" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 style={{ fontFamily: 'Manrope, sans-serif', fontSize: '2.25rem', fontWeight: 800, color: '#181d19', margin: '0 0 6px', letterSpacing: '-0.01em' }}>My Bookings</h1>
-          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '1rem', color: '#3f4941', margin: 0 }}>Manage your active shipments and review past deliveries.</p>
+          <h1 style={{ fontFamily: 'Manrope, sans-serif', fontSize: '2.25rem', fontWeight: 800, color: 'var(--ink)', margin: '0 0 6px', letterSpacing: '-0.01em' }}>My Bookings</h1>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '1rem', color: 'var(--ink-2)', margin: 0 }}>Manage your active shipments and review past deliveries.</p>
         </div>
         <Link
           href="/dashboard/book"
           style={{
             display: 'inline-flex', alignItems: 'center', gap: '8px',
-            background: '#00522c', color: '#ffffff',
+            background: 'var(--brand-fill)', color: 'var(--on-accent)',
             padding: '12px 24px', borderRadius: '8px',
             fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '0.875rem',
             textDecoration: 'none',
@@ -307,39 +307,39 @@ export default function MyBookings() {
       <div className="animate-slide-up delay-100" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '20px', marginBottom: '24px' }}>
 
         {/* Active Shipments card */}
-        <div style={{ background: '#ffffff', border: '1px solid #bec9be', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 6px rgba(0,0,0,0.05)' }}>
+        <div style={{ background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 6px rgba(0,0,0,0.05)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2 style={{ fontFamily: 'Manrope, sans-serif', fontSize: '1.25rem', fontWeight: 700, color: '#181d19', margin: 0 }}>Active Shipments</h2>
+            <h2 style={{ fontFamily: 'Manrope, sans-serif', fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink)', margin: 0 }}>Active Shipments</h2>
             <button
               onClick={() => setFilterStatus('all')}
-              style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.825rem', fontWeight: 700, color: '#00522c', background: 'none', border: 'none', cursor: 'pointer' }}
+              style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.825rem', fontWeight: 700, color: 'var(--brand-ink)', background: 'none', border: 'none', cursor: 'pointer' }}
             >
               View All
             </button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {loading ? (
-              <div style={{ textAlign: 'center', padding: '32px', color: '#6f7a70', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem' }}>Loading shipments...</div>
+              <div style={{ textAlign: 'center', padding: '32px', color: 'var(--ink-muted)', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem' }}>Loading shipments...</div>
             ) : activeShipments.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '32px', color: '#6f7a70', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem' }}>
+              <div style={{ textAlign: 'center', padding: '32px', color: 'var(--ink-muted)', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem' }}>
                 No active shipments.{' '}
-                <Link href="/dashboard/book" style={{ color: '#00522c', fontWeight: 700 }}>Book your first truck →</Link>
+                <Link href="/dashboard/book" style={{ color: 'var(--brand-ink)', fontWeight: 700 }}>Book your first truck →</Link>
               </div>
             ) : activeShipments.map(booking => {
               const isInTransit = booking.status === 'In Transit';
               const isPending = ['Quote Requested', 'Quoted', 'Pending'].includes(booking.status);
-              const iconBg = isInTransit ? '#E3F2FD' : isPending ? '#FFF8E1' : '#EBF9F1';
-              const iconColor = isInTransit ? '#1565C0' : isPending ? '#E65100' : '#00522c';
+              const iconBg = isInTransit ? 'var(--info-bg)' : isPending ? 'var(--warn-bg)' : 'var(--panel-green)';
+              const iconColor = isInTransit ? 'var(--info-strong)' : isPending ? 'var(--orange)' : 'var(--brand-fill)';
               return (
                 <div
                   key={booking.id}
                   onClick={() => setSelectedBooking(booking)}
                   style={{
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '14px 16px', border: '1px solid #bec9be', borderRadius: '10px',
-                    background: selectedBooking?.id === booking.id ? '#EBF9F1' : '#f6fbf3',
+                    padding: '14px 16px', border: '1px solid var(--line)', borderRadius: '10px',
+                    background: selectedBooking?.id === booking.id ? 'var(--panel-green)' : 'var(--panel-alt)',
                     cursor: 'pointer', transition: 'all 0.15s ease',
-                    borderColor: selectedBooking?.id === booking.id ? '#00522c' : '#bec9be',
+                    borderColor: selectedBooking?.id === booking.id ? 'var(--brand-fill)' : 'var(--line)',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -348,21 +348,21 @@ export default function MyBookings() {
                     </div>
                     <div>
                       {/* Main heading: route summary */}
-                      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 700, color: '#181d19', margin: '0 0 3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <MapPin size={11} color="#6f7a70" />
+                      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 700, color: 'var(--ink)', margin: '0 0 3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <MapPin size={11} color="var(--ink-muted)" />
                         <span>{(booking.pickupCity || booking.pickup || '—').slice(0, 18)}</span>
-                        <ArrowRight size={11} color="#6f7a70" />
+                        <ArrowRight size={11} color="var(--ink-muted)" />
                         <span>{(booking.deliveryCity || booking.delivery || '—').slice(0, 18)}</span>
                       </p>
                       {/* Sub-label: truck type */}
-                      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', color: '#5f5e5e', margin: 0 }}>
+                      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', color: 'var(--ink-muted-2)', margin: 0 }}>
                         {booking.truckRoute || '—'}
                       </p>
                     </div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
                     <StatusPill status={booking.status} />
-                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: '#6f7a70', margin: 0 }}>
+                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: 'var(--ink-muted)', margin: 0 }}>
                       {booking.date || '—'}
                     </p>
                   </div>
@@ -375,29 +375,29 @@ export default function MyBookings() {
         {/* Right column: Fleet Status + Recent Docs */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Fleet Status */}
-          <div style={{ background: '#00522c', borderRadius: '12px', padding: '24px', color: '#ffffff', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ background: 'var(--brand-fill)', borderRadius: '12px', padding: '24px', color: 'var(--on-accent)', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', right: '-16px', top: '-16px', opacity: 0.08, fontSize: '7rem', lineHeight: 1 }}>📦</div>
             <h3 style={{ fontFamily: 'Manrope, sans-serif', fontSize: '1.1rem', fontWeight: 700, margin: '0 0 6px', position: 'relative', zIndex: 1 }}>Fleet Status</h3>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.8rem', color: '#80d99d', margin: '0 0 20px', position: 'relative', zIndex: 1 }}>Real-time overview of your booked vehicles.</p>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.8rem', color: 'var(--accent-mint2)', margin: '0 0 20px', position: 'relative', zIndex: 1 }}>Real-time overview of your booked vehicles.</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', position: 'relative', zIndex: 1 }}>
               <div>
                 <p style={{ fontFamily: 'Manrope, sans-serif', fontSize: '2rem', fontWeight: 800, margin: '0 0 2px' }}>{stats.inTransit}</p>
-                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#9bf6b7', margin: 0 }}>IN TRANSIT</p>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--accent-mint)', margin: 0 }}>IN TRANSIT</p>
               </div>
               <div>
                 <p style={{ fontFamily: 'Manrope, sans-serif', fontSize: '2rem', fontWeight: 800, margin: '0 0 2px' }}>{stats.pending}</p>
-                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#9bf6b7', margin: 0 }}>PENDING</p>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--accent-mint)', margin: 0 }}>PENDING</p>
               </div>
               <div style={{ gridColumn: '1 / -1', paddingTop: '16px', borderTop: '1px solid rgba(155, 246, 183, 0.3)' }}>
                 <p style={{ fontFamily: 'Manrope, sans-serif', fontSize: '2rem', fontWeight: 800, margin: '0 0 2px' }}>{stats.completed}</p>
-                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#9bf6b7', margin: 0 }}>COMPLETED ALL TIME</p>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--accent-mint)', margin: 0 }}>COMPLETED ALL TIME</p>
               </div>
             </div>
           </div>
 
           {/* Recent Documents placeholder */}
-          <div style={{ background: '#ffffff', border: '1px solid #bec9be', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 6px rgba(0,0,0,0.05)', flex: 1 }}>
-            <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: '1rem', fontWeight: 700, color: '#181d19', margin: '0 0 16px' }}>Recent Documents</h3>
+          <div style={{ background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 6px rgba(0,0,0,0.05)', flex: 1 }}>
+            <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: '1rem', fontWeight: 700, color: 'var(--ink)', margin: '0 0 16px' }}>Recent Documents</h3>
             {(bookings || []).filter(b => b.status === 'Completed').slice(0, 3).length > 0 ? (
               (bookings || []).filter(b => b.status === 'Completed').slice(0, 3).map(b => {
                 // Format date as "MMM DD, YYYY" from YYYY-MM-DD string
@@ -432,14 +432,14 @@ export default function MyBookings() {
                   <div
                     key={b.id}
                     style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', borderRadius: '6px', cursor: 'pointer', transition: 'background 0.15s' }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#f6fbf3'}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--panel-alt)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                   >
-                    <Receipt size={18} color="#6f7a70" />
-                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.825rem', color: '#181d19', flex: 1 }}>{docLabel}</span>
+                    <Receipt size={18} color="var(--ink-muted)" />
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.825rem', color: 'var(--ink)', flex: 1 }}>{docLabel}</span>
                     <button
                       onClick={handleDownloadInvoice}
-                      style={{ background: '#eaf4eb', border: '1px solid #00522c', cursor: 'pointer', color: '#00522c', display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '6px', transition: 'background 0.15s', fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', fontWeight: 700, flexShrink: 0 }}
+                      style={{ background: 'var(--panel-muted)', border: '1px solid var(--brand-fill)', cursor: 'pointer', color: 'var(--brand-ink)', display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '6px', transition: 'background 0.15s', fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', fontWeight: 700, flexShrink: 0 }}
                       title="Email the invoice to your account email"
                     >
                       <Mail size={14} /> Send
@@ -454,12 +454,12 @@ export default function MyBookings() {
                   { icon: Receipt, label: 'Invoice summary' },
                 ].map((doc, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', borderRadius: '6px', opacity: 0.45 }}>
-                    <doc.icon size={18} color="#6f7a70" />
-                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.825rem', color: '#3f4941', flex: 1 }}>{doc.label}</span>
-                    <Download size={16} color="#bec9be" />
+                    <doc.icon size={18} color="var(--ink-muted)" />
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.825rem', color: 'var(--ink-2)', flex: 1 }}>{doc.label}</span>
+                    <Download size={16} color="var(--line)" />
                   </div>
                 ))}
-                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: '#6f7a70', marginTop: '4px' }}>Documents appear when bookings are completed.</p>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: 'var(--ink-muted)', marginTop: '4px' }}>Documents appear when bookings are completed.</p>
               </div>
             )}
           </div>
@@ -467,19 +467,19 @@ export default function MyBookings() {
       </div>
 
       {/* ── Booking History Table ── */}
-      <div className="animate-slide-up delay-200" style={{ background: '#ffffff', border: '1px solid #bec9be', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 6px rgba(0,0,0,0.05)' }}>
+      <div className="animate-slide-up delay-200" style={{ background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 6px rgba(0,0,0,0.05)' }}>
         {/* Table header with filters */}
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid #ebefe8' }}>
+        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--panel-muted)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <h2 style={{ fontFamily: 'Manrope, sans-serif', fontSize: '1.25rem', fontWeight: 700, color: '#181d19', margin: 0 }}>Booking History</h2>
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: '#6f7a70' }}>
+            <h2 style={{ fontFamily: 'Manrope, sans-serif', fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink)', margin: 0 }}>Booking History</h2>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: 'var(--ink-muted)' }}>
               {filtered.length} record{filtered.length !== 1 ? 's' : ''}
             </span>
           </div>
           {/* Filter row 1: Search + Status + Payment */}
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '8px' }}>
             <div style={{ position: 'relative', flex: 1, minWidth: '180px' }}>
-              <Filter size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#6f7a70', pointerEvents: 'none' }} />
+              <Filter size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--ink-muted)', pointerEvents: 'none' }} />
               <input
                 type="text"
                 className="form-input"
@@ -532,7 +532,7 @@ export default function MyBookings() {
               style={{ width: '155px' }}
             />
             {filterDate && (
-              <button style={{ background: 'none', color: '#6f7a70', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px', border: 'none' }} onClick={() => { setFilterDate(''); setCurrentPage(1); }}>
+              <button style={{ background: 'none', color: 'var(--ink-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px', border: 'none' }} onClick={() => { setFilterDate(''); setCurrentPage(1); }}>
                 <X size={14} />
               </button>
             )}
@@ -540,7 +540,7 @@ export default function MyBookings() {
               <button
                 onClick={clearFilters}
                 className="btn btn-outline btn-sm"
-                style={{ color: 'var(--danger, #e53935)', borderColor: 'var(--danger, #e53935)', whiteSpace: 'nowrap' }}
+                style={{ color: 'var(--danger, var(--danger))', borderColor: 'var(--danger, var(--danger))', whiteSpace: 'nowrap' }}
               >
                 Clear Filters
               </button>
@@ -560,11 +560,11 @@ export default function MyBookings() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: '#6f7a70', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem' }}>Loading bookings…</td></tr>
+                <tr><td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: 'var(--ink-muted)', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem' }}>Loading bookings…</td></tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '48px', fontFamily: 'Inter, sans-serif', color: '#6f7a70' }}>
-                    {hasActiveFilters ? 'No bookings match your filters.' : <>No bookings yet. <Link href="/dashboard/book" style={{ color: '#00522c', fontWeight: 700 }}>Start by requesting a quote →</Link></>}
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '48px', fontFamily: 'Inter, sans-serif', color: 'var(--ink-muted)' }}>
+                    {hasActiveFilters ? 'No bookings match your filters.' : <>No bookings yet. <Link href="/dashboard/book" style={{ color: 'var(--brand-ink)', fontWeight: 700 }}>Start by requesting a quote →</Link></>}
                   </td>
                 </tr>
               ) : paginated.map((booking, idx) => (
@@ -572,23 +572,23 @@ export default function MyBookings() {
                   key={booking.id}
                   className="hoverable animate-fade-in"
                   style={{
-                    borderBottom: '1px solid #ebefe8',
-                    background: selectedBooking?.id === booking.id ? '#EBF9F1' : 'transparent',
+                    borderBottom: '1px solid var(--panel-muted)',
+                    background: selectedBooking?.id === booking.id ? 'var(--panel-green)' : 'transparent',
                     animationDelay: `${idx * 50}ms`
                   }}
                   onClick={() => setSelectedBooking(selectedBooking?.id === booking.id ? null : booking)}
                 >
-                  <td style={{ padding: '14px 16px', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: '#5f5e5e' }}>
+                  <td style={{ padding: '14px 16px', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: 'var(--ink-muted-2)' }}>
                     {booking.date || '—'}
                   </td>
                   <td style={{ padding: '16px 20px', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#181d19' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--ink)' }}>
                       <span style={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{booking.pickupCity || booking.pickup || '—'}</span>
-                      <ArrowRight size={12} color="#6f7a70" style={{ flexShrink: 0 }} />
+                      <ArrowRight size={12} color="var(--ink-muted)" style={{ flexShrink: 0 }} />
                       <span style={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{booking.deliveryCity || booking.delivery || '—'}</span>
                     </div>
                   </td>
-                  <td style={{ padding: '16px 20px', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: '#5f5e5e' }}>
+                  <td style={{ padding: '16px 20px', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: 'var(--ink-muted-2)' }}>
                     {booking.truckRoute || '—'}
                   </td>
                   <td style={{ padding: '16px 20px' }}>
@@ -596,14 +596,14 @@ export default function MyBookings() {
                   </td>
                   <td style={{ padding: '16px 20px', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem' }}>
                     {booking.quotedAmount
-                      ? <strong style={{ color: '#00522c' }}>PHP {booking.quotedAmount?.toLocaleString()}</strong>
-                      : <span style={{ color: '#9aaa9b', fontSize: '0.8rem' }}>Awaiting</span>}
+                      ? <strong style={{ color: 'var(--brand-ink)' }}>PHP {booking.quotedAmount?.toLocaleString()}</strong>
+                      : <span style={{ color: 'var(--gray-9a)', fontSize: '0.8rem' }}>Awaiting</span>}
                   </td>
                   <td style={{ padding: '16px 20px' }}>
                     <button
                       style={{
                         fontFamily: 'Inter, sans-serif', fontSize: '0.825rem', fontWeight: 700,
-                        color: '#00522c', background: 'none', border: 'none', cursor: 'pointer',
+                        color: 'var(--brand-ink)', background: 'none', border: 'none', cursor: 'pointer',
                       }}
                       onClick={e => { e.stopPropagation(); setSelectedBooking(selectedBooking?.id === booking.id ? null : booking); }}
                     >
@@ -618,21 +618,21 @@ export default function MyBookings() {
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', padding: '16px', borderTop: '1px solid #bec9be', background: '#f6fbf3' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', padding: '16px', borderTop: '1px solid var(--line)', background: 'var(--panel-alt)' }}>
             <button
               className="btn btn-outline btn-sm"
-              style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid #bec9be', background: currentPage === 1 ? '#e0e6e0' : '#fff', cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
+              style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid var(--line)', background: currentPage === 1 ? 'var(--line-soft)' : 'var(--panel)', cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
             >
               Previous
             </button>
-            <span style={{ fontSize: '0.85rem', color: '#5f5e5e', fontFamily: 'Inter, sans-serif' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--ink-muted-2)', fontFamily: 'Inter, sans-serif' }}>
               Page {currentPage} of {totalPages}
             </span>
             <button
               className="btn btn-outline btn-sm"
-              style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid #bec9be', background: currentPage === totalPages ? '#e0e6e0' : '#fff', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
+              style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid var(--line)', background: currentPage === totalPages ? 'var(--line-soft)' : 'var(--panel)', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
             >
@@ -650,16 +650,16 @@ export default function MyBookings() {
             style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.2)', zIndex: 499, backdropFilter: 'blur(2px)' }}
             onClick={closeBookingDrawer}
           />
-          <div className={`animate-slide-right ${isClosingBooking ? 'animate-slide-out-right' : ''}`} style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '380px', background: '#ffffff', borderLeft: '1px solid #bec9be', boxShadow: '-4px 0 20px rgba(0,0,0,0.1)', zIndex: 500, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+          <div className={`animate-slide-right ${isClosingBooking ? 'animate-slide-out-right' : ''}`} style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '380px', background: 'var(--panel)', borderLeft: '1px solid var(--line)', boxShadow: '-4px 0 20px rgba(0,0,0,0.1)', zIndex: 500, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
             {/* Drawer header */}
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #ebefe8', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f6fbf3', position: 'sticky', top: 0, zIndex: 10 }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--panel-muted)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--panel-alt)', position: 'sticky', top: 0, zIndex: 10 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <StatusPill status={selectedBooking.status} />
                 {selectedBooking.refNumber && (
-                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: '#6f7a70' }}>#{selectedBooking.refNumber}</span>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: 'var(--ink-muted)' }}>#{selectedBooking.refNumber}</span>
                 )}
               </div>
-              <button style={{ background: 'none', color: '#6f7a70', display: 'flex', alignItems: 'center' }} onClick={closeBookingDrawer}>
+              <button style={{ background: 'none', color: 'var(--ink-muted)', display: 'flex', alignItems: 'center' }} onClick={closeBookingDrawer}>
                 <X size={18} />
               </button>
             </div>
@@ -667,22 +667,22 @@ export default function MyBookings() {
             <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', flex: 1 }}>
               {/* Route */}
               <div>
-                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#5f5e5e', marginBottom: '10px' }}>Route Information</p>
-                <div style={{ paddingLeft: '12px', borderLeft: '3px solid #00522c', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--ink-muted-2)', marginBottom: '10px' }}>Route Information</p>
+                <div style={{ paddingLeft: '12px', borderLeft: '3px solid var(--brand-fill)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div>
-                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: '#6f7a70', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}><MapPin size={11} /> Pickup</p>
-                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 600, color: '#181d19', margin: 0 }}>{selectedBooking.pickup || '—'}</p>
+                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}><MapPin size={11} /> Pickup</p>
+                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 600, color: 'var(--ink)', margin: 0 }}>{selectedBooking.pickup || '—'}</p>
                   </div>
                   <div>
-                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: '#6f7a70', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}><MapPin size={11} /> Delivery</p>
-                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 600, color: '#181d19', margin: 0 }}>{selectedBooking.delivery || '—'}</p>
+                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}><MapPin size={11} /> Delivery</p>
+                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 600, color: 'var(--ink)', margin: 0 }}>{selectedBooking.delivery || '—'}</p>
                   </div>
                 </div>
               </div>
 
               {/* Details */}
               <div>
-                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#5f5e5e', marginBottom: '10px' }}>Cargo &amp; Schedule</p>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--ink-muted-2)', marginBottom: '10px' }}>Cargo &amp; Schedule</p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   {[
                     { label: 'Vehicle', value: selectedBooking.truckRoute, icon: <Truck size={11} /> },
@@ -693,19 +693,19 @@ export default function MyBookings() {
                     ...(selectedBooking.cargoSize ? [{ label: 'Cargo Size', value: selectedBooking.cargoSize, span: true }] : []),
                   ].map((item, i) => (
                     <div key={i} style={{ gridColumn: item.span ? '1 / -1' : undefined }}>
-                      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', color: '#6f7a70', display: 'flex', alignItems: 'center', gap: '3px' }}>{item.icon} {item.label}</span>
-                      <strong style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: '#181d19' }}>{item.value || '—'}</strong>
+                      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: '3px' }}>{item.icon} {item.label}</span>
+                      <strong style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: 'var(--ink)' }}>{item.value || '—'}</strong>
                     </div>
                   ))}
                 </div>
                 {selectedBooking.notes && (
-                  <div style={{ marginTop: '12px', padding: '10px 12px', background: '#f0f5ee', borderRadius: '8px', fontFamily: 'Inter, sans-serif', fontSize: '0.825rem', color: '#3f4941' }}>
+                  <div style={{ marginTop: '12px', padding: '10px 12px', background: 'var(--panel-muted)', borderRadius: '8px', fontFamily: 'Inter, sans-serif', fontSize: '0.825rem', color: 'var(--ink-2)' }}>
                     <strong>Notes: </strong>{selectedBooking.notes}
                   </div>
                 )}
                 {selectedBooking.editRequest && (
-                  <div style={{ marginTop: '12px', padding: '10px 12px', background: '#FFF8E1', borderRadius: '8px', border: '1px solid #F5A623' }}>
-                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', fontWeight: 700, color: '#E65100', marginBottom: '4px' }}>EDIT REQUESTED</p>
+                  <div style={{ marginTop: '12px', padding: '10px 12px', background: 'var(--warn-bg)', borderRadius: '8px', border: '1px solid var(--warning)' }}>
+                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', fontWeight: 700, color: 'var(--orange)', marginBottom: '4px' }}>EDIT REQUESTED</p>
                     <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.825rem', color: '#795548' }}>{selectedBooking.editRequest.message}</p>
                   </div>
                 )}
@@ -713,27 +713,27 @@ export default function MyBookings() {
 
               {/* Quote Amount Display / Invoice Receipt */}
               {selectedBooking.quotedAmount && (
-                <div style={{ marginBottom: '20px', padding: '16px', background: '#eaf4eb', borderRadius: '12px', border: '1px dashed #00522c' }}>
+                <div style={{ marginBottom: '20px', padding: '16px', background: 'var(--panel-muted)', borderRadius: '12px', border: '1px dashed var(--brand-fill)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <h5 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#00522c', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
+                    <h5 style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--brand-ink)', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
                       <FileText size={16} /> INVOICE / RECEIPT
                     </h5>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#00522c', background: '#fff', padding: '2px 6px', borderRadius: '4px' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--brand-ink)', background: 'var(--panel)', padding: '2px 6px', borderRadius: '4px' }}>
                       SENT
                     </span>
                   </div>
-                  <p style={{ fontSize: '0.8rem', color: '#3f4941', marginBottom: '12px', fontFamily: 'Inter, sans-serif' }}>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--ink-2)', marginBottom: '12px', fontFamily: 'Inter, sans-serif' }}>
                     {selectedBooking.refNumber ? `Invoice #${selectedBooking.refNumber}` : 'Invoice'} <br />
                     Generated: {selectedBooking.quotedAt ? new Date(selectedBooking.quotedAt).toLocaleDateString() : 'N/A'}
                   </p>
-                  <div style={{ textAlign: 'center', background: '#fff', padding: '12px', borderRadius: '6px' }}>
-                    <p style={{ fontSize: '0.75rem', color: '#6f7a70', marginBottom: '2px', fontFamily: 'Inter, sans-serif' }}>TOTAL QUOTED AMOUNT</p>
-                    <p style={{ fontSize: '1.5rem', fontWeight: 800, color: '#00522c', margin: 0, fontFamily: 'Manrope, sans-serif' }}>PHP {selectedBooking.quotedAmount?.toLocaleString()}</p>
+                  <div style={{ textAlign: 'center', background: 'var(--panel)', padding: '12px', borderRadius: '6px' }}>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--ink-muted)', marginBottom: '2px', fontFamily: 'Inter, sans-serif' }}>TOTAL QUOTED AMOUNT</p>
+                    <p style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--brand-ink)', margin: 0, fontFamily: 'Manrope, sans-serif' }}>PHP {selectedBooking.quotedAmount?.toLocaleString()}</p>
                     {selectedBooking.paymentMethod && (
                       <span style={{
                         display: 'inline-block', marginTop: '8px', padding: '4px 12px', borderRadius: '100px',
-                        background: selectedBooking.paymentMethod === 'stripe' ? '#E8F5E9' : '#FFF8E1',
-                        color: selectedBooking.paymentMethod === 'stripe' ? '#2E7D32' : '#E65100',
+                        background: selectedBooking.paymentMethod === 'stripe' ? 'var(--ok-bg)' : 'var(--warn-bg)',
+                        color: selectedBooking.paymentMethod === 'stripe' ? 'var(--ok-bg)' : 'var(--orange)',
                         fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', fontWeight: 700,
                       }}>
                         {selectedBooking.paymentMethod === 'stripe' ? 'Paid (Stripe)' : 'Cash on Delivery'}
@@ -745,8 +745,8 @@ export default function MyBookings() {
 
               {/* Cash Receipt Upload — for COD payments */}
               {selectedBooking.paymentMethod === 'cod' && ['Confirmed', 'Completed', 'In Transit'].includes(selectedBooking.status) && (
-                <div style={{ marginBottom: '16px', padding: '14px', background: '#f6fbf3', borderRadius: '12px', border: '1px solid #ebefe8' }}>
-                  <h5 style={{ fontSize: '0.8rem', fontWeight: 700, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px', color: '#3f4941', fontFamily: 'Inter, sans-serif' }}>
+                <div style={{ marginBottom: '16px', padding: '14px', background: 'var(--panel-alt)', borderRadius: '12px', border: '1px solid var(--panel-muted)' }}>
+                  <h5 style={{ fontSize: '0.8rem', fontWeight: 700, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--ink-2)', fontFamily: 'Inter, sans-serif' }}>
                     <FileImage size={14} /> Proof of Payment / Receipt
                   </h5>
                   {selectedBooking.receiptUrl ? (
@@ -754,7 +754,7 @@ export default function MyBookings() {
                       <img
                         src={selectedBooking.receiptUrl}
                         alt="Payment receipt"
-                        style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px', border: '1px solid #ebefe8', marginBottom: '8px' }}
+                        style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px', border: '1px solid var(--panel-muted)', marginBottom: '8px' }}
                       />
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <a href={selectedBooking.receiptUrl} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-sm" style={{ flex: 1, fontSize: '0.75rem' }}>View Full</a>
@@ -784,8 +784,8 @@ export default function MyBookings() {
                       </div>
                     </div>
                   ) : (
-                    <div style={{ textAlign: 'center', padding: '20px 10px', background: '#fff', borderRadius: '8px', border: '1px dashed #bec9be' }}>
-                      <p style={{ fontSize: '0.75rem', color: '#6f7a70', marginBottom: '12px', fontFamily: 'Inter, sans-serif' }}>Please upload your proof of payment or bank deposit slip.</p>
+                    <div style={{ textAlign: 'center', padding: '20px 10px', background: 'var(--panel)', borderRadius: '8px', border: '1px dashed var(--line)' }}>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--ink-muted)', marginBottom: '12px', fontFamily: 'Inter, sans-serif' }}>Please upload your proof of payment or bank deposit slip.</p>
                       <label className="btn btn-primary btn-sm" style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                         {receiptUploading ? <span className="spinner" style={{ width: '14px', height: '14px', borderWidth: '2px' }}></span> : <Upload size={14} />}
                         {receiptUploading ? 'Uploading...' : 'Upload Receipt'}
@@ -828,7 +828,7 @@ export default function MyBookings() {
               )}
 
               {selectedBooking.status === 'Quote Requested' && (
-                <div style={{ padding: '14px', background: '#FFF8E1', borderRadius: '8px', textAlign: 'center', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: '#E65100', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                <div style={{ padding: '14px', background: 'var(--warn-bg)', borderRadius: '8px', textAlign: 'center', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: 'var(--orange)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
                   <Clock size={16} />
                   <p style={{ margin: 0 }}>Awaiting admin quote. You will be notified once the price is calculated.</p>
                 </div>

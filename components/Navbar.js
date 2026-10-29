@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Menu, X, LayoutDashboard, LogOut, User } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -68,6 +69,7 @@ export default function Navbar() {
 
         {/* Actions */}
         <div className="navbar-actions">
+          <ThemeToggle className="theme-toggle" />
           {user && (
             <>
               {/* Authenticated: Dashboard + Avatar + Logout */}
@@ -137,7 +139,7 @@ export default function Navbar() {
             <button
               className="navbar-mobile-link"
               onClick={handleLogout}
-              style={{ width: '100%', textAlign: 'left', background: 'none', color: '#E8451C', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', borderBottom: 'none' }}
+              style={{ width: '100%', textAlign: 'left', background: 'none', color: 'var(--danger-strong)', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', borderBottom: 'none' }}
             >
               <LogOut size={16} style={{ marginRight: '8px' }} />
               Sign Out

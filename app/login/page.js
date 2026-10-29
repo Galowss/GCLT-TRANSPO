@@ -2,7 +2,7 @@
 
 import { useState, Suspense, lazy } from 'react';
 import dynamic from 'next/dynamic';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/AuthContext';
 import { safeRedirectPath } from '@/lib/routing';
 import Navbar from '@/components/Navbar';
@@ -21,7 +21,6 @@ const LegalDocsModal = dynamic(() => import('@/components/LegalDocsModal'), {
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const { login, register, loginWithGoogle, resetPassword } = useAuth();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') === 'register' ? 'register' : 'login');
   const [showPassword, setShowPassword] = useState(false);
@@ -100,27 +99,31 @@ function LoginForm() {
     setError('');
     try {
       // 1. Verify Turnstile token on the backend
+      console.info('[login] verifying turnstile…');
       const verifyRes = await fetch('/api/verify-turnstile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: turnstileToken }),
       });
       const verifyData = await verifyRes.json();
+      console.info('[login] turnstile result', { status: verifyRes.status, success: verifyData?.success, error: verifyData?.error });
       if (!verifyData.success) {
         throw new Error(verifyData.error || 'Bot verification failed.');
       }
 
       // 2. Proceed with login
       const user = await login(formData.email, formData.password);
-      if (!user.emailVerified) {
-        router.push(verifyHref());
-      } else {
-        router.push(homeFor(user));
-      }
+      const destination = !user.emailVerified ? verifyHref() : homeFor(user);
+      const hasSessionCookie = document.cookie.split(';').some((c) => c.trim().startsWith('gclt_session='));
+      console.info('[login] navigating', { destination, emailVerified: user.emailVerified, role: user.role, hasSessionCookie });
+      // Hard navigation (not router.push) so the middleware sees the session
+      // cookie on the very first request and cannot bounce us back to /login.
+      window.location.assign(destination);
     } catch (err) {
       // Reset security widget on error
       setTurnstileToken('');
       setTurnstileResetKey(prev => prev + 1);
+      console.error('[login] failed', { code: err?.code, message: err?.message, name: err?.name });
 
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
         setError('Invalid email or password. Please try again.');
@@ -181,7 +184,7 @@ function LoginForm() {
 
       // 2. Proceed with registration
       await register(formData.name, formData.email, formData.password, formData.dateOfBirth);
-      router.push(verifyHref());
+      window.location.assign(verifyHref());
     } catch (err) {
       // Reset security widget on error
       setTurnstileToken('');
@@ -203,7 +206,7 @@ function LoginForm() {
     setError('');
     try {
       const user = await loginWithGoogle();
-      router.push(homeFor(user));
+      window.location.assign(homeFor(user));
     } catch (err) {
       if (err.code === 'auth/popup-closed-by-user') {
         // User closed popup, do nothing
@@ -257,7 +260,7 @@ function LoginForm() {
           </div>
 
           {error && (
-            <div style={{ padding: '12px 16px', background: '#FFF0F0', border: '1px solid #E8451C', borderRadius: 'var(--border-radius)', color: '#E8451C', fontSize: '0.85rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ padding: '12px 16px', background: 'var(--err-bg)', border: '1px solid var(--danger)', borderRadius: 'var(--border-radius)', color: 'var(--danger-strong)', fontSize: '0.85rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <AlertCircle size={16} /> {error}
             </div>
           )}
@@ -271,7 +274,7 @@ function LoginForm() {
               {resetSent ? (
                 <>
                   <div style={{ display: 'flex', gap: '12px' }} className="alert alert-success" role="alert">
-                    <div style={{ fontSize: '0.9rem', padding: '12px 16px', background: '#EEF7EB', border: '1px solid #2E7D32', borderRadius: 'var(--border-radius)', color: '#24551F', marginBottom: '16px', lineHeight: '1.5' }}>
+                    <div style={{ fontSize: '0.9rem', padding: '12px 16px', background: 'var(--panel-muted)', border: '1px solid var(--ok-bg)', borderRadius: 'var(--border-radius)', color: 'var(--brand-ink)', marginBottom: '16px', lineHeight: '1.5' }}>
                       If an account exists for <strong>{resetEmail}</strong>, a password reset link has been sent. Check your inbox (and spam folder), then return here to sign in.
                     </div>
                   </div>
@@ -306,7 +309,7 @@ function LoginForm() {
               <div className="form-group">
                 <label className="form-label">Email Address</label>
                 <div className={styles.inputWithIcon}>
-                  <span className={styles.inputIcon}><Mail size={16} color="#9E9E9E" /></span>
+                  <span className={styles.inputIcon}><Mail size={16} color="var(--muted-999)" /></span>
                   <input
                     type="email"
                     name="email"
@@ -326,7 +329,7 @@ function LoginForm() {
                   <a href="#" className={styles.forgotLink} onClick={(e) => { e.preventDefault(); setShowReset(true); setError(''); }}>Forgot password?</a>
                 </div>
                 <div className={styles.inputWithIcon}>
-                  <span className={styles.inputIcon}><Lock size={16} color="#9E9E9E" /></span>
+                  <span className={styles.inputIcon}><Lock size={16} color="var(--muted-999)" /></span>
                   <input
                     type={showPassword ? 'text' : 'password'}
                     name="password"
@@ -422,7 +425,7 @@ function LoginForm() {
               <div className="form-group">
                 <label className="form-label">Date of Birth *</label>
                 <div className={styles.inputWithIcon}>
-                  <span className={styles.inputIcon}><Calendar size={16} color="#9E9E9E" /></span>
+                  <span className={styles.inputIcon}><Calendar size={16} color="var(--muted-999)" /></span>
                   <input
                     type="date"
                     name="dateOfBirth"

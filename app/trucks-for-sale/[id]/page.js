@@ -210,7 +210,7 @@ export default function TruckDetail() {
                       style={{
                         position: 'absolute', top: '50%', left: '12px', transform: 'translateY(-50%)',
                         background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
-                        color: '#fff', border: 'none', borderRadius: '50%',
+                        color: 'var(--on-accent)', border: 'none', borderRadius: '50%',
                         width: '38px', height: '38px', display: 'flex', alignItems: 'center',
                         justifyContent: 'center', cursor: 'pointer', zIndex: 2,
                       }}
@@ -223,7 +223,7 @@ export default function TruckDetail() {
                       style={{
                         position: 'absolute', top: '50%', right: '12px', transform: 'translateY(-50%)',
                         background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
-                        color: '#fff', border: 'none', borderRadius: '50%',
+                        color: 'var(--on-accent)', border: 'none', borderRadius: '50%',
                         width: '38px', height: '38px', display: 'flex', alignItems: 'center',
                         justifyContent: 'center', cursor: 'pointer', zIndex: 2,
                       }}
@@ -232,7 +232,7 @@ export default function TruckDetail() {
                     </button>
                     <span style={{
                       position: 'absolute', bottom: '12px', right: '14px',
-                      background: 'rgba(0,0,0,0.5)', color: '#fff',
+                      background: 'rgba(0,0,0,0.5)', color: 'var(--on-accent)',
                       fontSize: '0.75rem', padding: '3px 8px', borderRadius: '20px',
                     }}>
                       {selectedImage + 1} / {allImages.length}

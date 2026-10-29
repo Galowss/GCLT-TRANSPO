@@ -67,7 +67,7 @@ export default function Home() {
                 icon: Truck,
                 title: 'Truck Booking',
                 desc: 'Real-time transport across SBMA and Olongapo.',
-                color: '#1B7A3D',
+                color: 'var(--brand-ink)',
                 href: '/dashboard/book',
                 delay: '',
               },
@@ -75,7 +75,7 @@ export default function Home() {
                 icon: ClipboardList,
                 title: 'Fleet Sales',
                 desc: 'Schedule a viewing and secure your next heavy-duty vehicle.',
-                color: '#2DA65C',
+                color: 'var(--green-bright)',
                 href: '/trucks-for-sale',
                 delay: 'reveal-delay-1',
               },
@@ -83,7 +83,7 @@ export default function Home() {
                 icon: MessageCircle,
                 title: 'AI Assistant',
                 desc: '24/7 smart support for bookings and inquiries.',
-                color: '#145F2F',
+                color: 'var(--brand-ink)',
                 href: '/dashboard/ai-assistant',
                 delay: 'reveal-delay-2',
               },
@@ -227,7 +227,7 @@ export default function Home() {
             <Link
               href="/login?tab=register"
               className={`btn btn-accent btn-lg reveal reveal-delay-1`}
-              style={{ background: '#fff', color: 'var(--primary)' }}
+              style={{ background: 'var(--panel)', color: 'var(--primary)' }}
             >
               Start Your First Booking
             </Link>

@@ -6,7 +6,7 @@
 
 /* ── Admin Dashboard Layout polish ── */
 .dashboard-layout {
-  background: #f6fbf3;
+  background: var(--panel-alt);
 }
 
 /* ── Admin Topbar polish ── */
@@ -42,7 +42,7 @@
 
 /* ── Admin Sidebar polish ── */
 .sidebar {
-  background: linear-gradient(180deg, #00522c 0%, #003d20 100%);
+  background: linear-gradient(180deg, var(--brand-fill) 0%, var(--brand-deep) 100%);
   border-right: none;
   box-shadow: 2px 0 20px rgba(0,0,0,0.08);
 }
@@ -71,7 +71,7 @@
   transform: translateY(-50%) scaleY(0);
   width: 3px;
   height: 60%;
-  background: #92ecae;
+  background: var(--accent-mint3);
   border-radius: 0 4px 4px 0;
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -84,7 +84,7 @@
 
 .sidebar-link.active {
   background: rgba(146, 236, 174, 0.12);
-  color: #92ecae;
+  color: var(--accent-mint3);
   font-weight: 600;
 }
 
@@ -140,7 +140,7 @@
 }
 
 .table thead tr {
-  background: linear-gradient(180deg, #f0f5ee 0%, #ebefe8 100%);
+  background: linear-gradient(180deg, var(--panel-muted) 0%, var(--panel-muted) 100%);
 }
 
 .table thead th {
@@ -149,8 +149,8 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #3f4941;
-  border-bottom: 2px solid #bec9be;
+  color: var(--ink-2);
+  border-bottom: 2px solid var(--line);
   white-space: nowrap;
 }
 
@@ -172,7 +172,7 @@
 
 .table tbody td {
   padding: 14px 16px;
-  border-bottom: 1px solid #ebefe8;
+  border-bottom: 1px solid var(--panel-muted);
   font-size: 0.85rem;
   vertical-align: middle;
 }
@@ -181,7 +181,7 @@
 .form-input:focus,
 .form-select:focus,
 textarea:focus {
-  border-color: #006d3c;
+  border-color: var(--brand-bright);
   box-shadow: 0 0 0 3px rgba(0, 109, 60, 0.1);
   outline: none;
 }
@@ -256,7 +256,7 @@ textarea:focus {
 /* ── Spinner improvements ── */
 .spinner {
   border: 3px solid rgba(0, 109, 60, 0.15);
-  border-top-color: #006d3c;
+  border-top-color: var(--brand-bright);
 }
 
 

@@ -10,7 +10,7 @@
 
 /* ===== HERO ===== */
 .hero {
-  background: linear-gradient(135deg, #ecffea 0%, #e0f3de 50%, #e6f9e4 100%);
+  background: linear-gradient(135deg, var(--panel-green) 0%, var(--panel-green) 50%, var(--panel-green) 100%);
   padding: 80px 24px 60px;
   overflow: hidden;
   position: relative;
@@ -50,13 +50,13 @@
   align-items: center;
   gap: 8px;
   padding: 6px 16px;
-  background: #daedd9;
+  background: var(--panel-green);
   border: 1px solid rgba(0, 109, 55, 0.2);
   border-radius: 100px;
   font-size: 0.75rem;
   font-weight: 600;
   font-family: 'JetBrains Mono', monospace;
-  color: #006d37;
+  color: var(--brand-ink);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   width: fit-content;
@@ -68,12 +68,12 @@
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.02em;
-  color: #101f13;
+  color: var(--ink);
   margin: 0;
 }
 
 .heroHighlight {
-  color: #006d37;
+  color: var(--brand-ink);
 }
 
 .heroDesc {
@@ -104,7 +104,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--gray-200);
+  background: var(--line);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -143,7 +143,7 @@
 .heroImagePlaceholder {
   width: 100%;
   height: 420px;
-  background: #0B1A0E;
+  background: var(--dark-bg);
   border-radius: 2rem;
   position: relative;
   overflow: hidden;
@@ -160,13 +160,13 @@
   font-family: 'Manrope', sans-serif;
   font-size: 1.5rem;
   font-weight: 700;
-  color: white;
+  : var(--on-accent);
   margin-bottom: 8px;
 }
 
 .heroImageSubtext {
   font-size: 0.9rem;
-  color: #6d7a6e;
+  color: var(--ink-muted);
 }
 
 .heroStatusBadge {
@@ -183,7 +183,7 @@
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.7rem;
   font-weight: 600;
-  color: #27ae60;
+  color: var(--green-bright);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -191,7 +191,7 @@
 .statusDot {
   width: 8px;
   height: 8px;
-  background: #27AE60;
+  background: var(--green-bright);
   border-radius: 50%;
   animation: pulse 2s infinite;
   flex-shrink: 0;
@@ -205,9 +205,9 @@
 /* ===== STATS ===== */
 .stats {
   padding: 32px 24px;
-  background: white;
-  border-top: 1px solid #E0E6E1;
-  border-bottom: 1px solid #E0E6E1;
+  background: var(--panel);
+  border-top: 1px solid var(--line-soft);
+  border-bottom: 1px solid var(--line-soft);
   position: relative;
   overflow: hidden;
 }
@@ -272,13 +272,13 @@
   font-family: 'Manrope', sans-serif;
   font-size: 2.25rem;
   font-weight: 800;
-  color: #006d37;
+  color: var(--brand-ink);
 }
 
 .statLabel {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.65rem;
-  color: #6d7a6e;
+  color: var(--ink-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 500;
@@ -287,7 +287,7 @@
 /* ===== FEATURES ===== */
 .features {
   padding: 60px 24px;
-  background: var(--white);
+  background: var(--panel);
   background-image: radial-gradient(circle, rgba(0,109,55,0.065) 1.5px, transparent 1.5px);
   background-size: 28px 28px;
   position: relative;
@@ -319,8 +319,8 @@
 .featureCard {
   text-align: left;
   padding: 24px;
-  border: 1px solid #E0E6E1;
-  background: rgba(255,255,255,0.92);
+  border: 1px solid var(--line-soft);
+  background: var(--panel);
   backdrop-filter: blur(4px);
   transition: transform 0.35s cubic-bezier(0.16,1,0.3,1),
               box-shadow 0.35s cubic-bezier(0.16,1,0.3,1),
@@ -381,7 +381,7 @@
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  background: var(--gray-50);
+  background: var(--panel-alt);
   border: 1px solid var(--gray-200);
   border-radius: 100px;
   font-size: 0.78rem;
@@ -392,7 +392,7 @@
 /* ===== PARTNER ===== */
 .partner {
   padding: 60px 24px;
-  background: var(--white);
+  background: var(--panel);
   position: relative;
   overflow: hidden;
 }
@@ -503,7 +503,7 @@
 /* ===== CONTACT ===== */
 .contact {
   padding: 60px 24px;
-  background: var(--gray-50);
+  background: var(--panel-alt);
   border-top: 1px solid var(--gray-100);
   position: relative;
   overflow: hidden;
@@ -538,7 +538,7 @@
 }
 
 .contactCard {
-  background: var(--white);
+  background: var(--panel);
   border-radius: var(--border-radius-lg);
   padding: 20px;
   text-align: left;
@@ -576,7 +576,7 @@
 /* ===== CTA ===== */
 .cta {
   padding: 0 24px;
-  background: linear-gradient(135deg, #004d26 0%, #006d37 45%, #27ae60 100%);
+  background: linear-gradient(135deg, var(--brand-deep) 0%, var(--brand-bright) 45%, var(--green-bright) 100%);
   background-size: 200% 200%;
   animation: gradientShift 8s ease infinite;
   position: relative;

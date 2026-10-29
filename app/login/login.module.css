@@ -47,7 +47,7 @@
 
 /* ── Left panel — slides in from left ── */
 .bgImage {
-  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  background: linear-gradient(135deg, var(--panel-green) 0%, var(--panel-green) 100%);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -156,7 +156,7 @@
 .formHeaderIcon {
   width: 40px;
   height: 40px;
-  background: var(--gray-100);
+  background: var(--panel-muted);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -183,7 +183,7 @@
   padding: 12px;
   font-size: 0.875rem;
   font-weight: 600;
-  background: var(--gray-100);
+  background: var(--panel-muted);
   color: var(--text-secondary);
   border: 1px solid var(--gray-200);
   transition: var(--transition);
@@ -287,7 +287,7 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: var(--gray-200);
+  background: var(--line);
 }
 
 .supportText {

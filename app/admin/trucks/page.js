@@ -177,7 +177,7 @@ export default function AdminTrucks() {
         loadSize: formData.loadSize,
         transmission: formData.transmission,
         speedGear: formData.transmission === 'Manual' ? formData.speedGear : '',
-        typeColor: '#1B7A3D',
+        typeColor: 'var(--brand-fill)',
       };
 
       if (editingId) {
@@ -347,7 +347,7 @@ export default function AdminTrucks() {
                       style={{
                         position: 'absolute', top: '4px', right: '4px',
                         width: '20px', height: '20px', borderRadius: '50%',
-                        background: 'rgba(0,0,0,0.6)', color: '#fff',
+                        background: 'rgba(0,0,0,0.6)', color: 'var(--on-accent)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: '0.7rem', cursor: 'pointer', border: 'none',
                       }}

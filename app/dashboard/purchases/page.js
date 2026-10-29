@@ -175,8 +175,8 @@ export default function UserPurchases() {
                       </td>
                       <td>
                         <span className="badge" style={{
-                          background: purchase.paymentMethod === 'stripe' ? '#E8F5E9' : '#FFF8E1',
-                          color: purchase.paymentMethod === 'stripe' ? '#2E7D32' : '#E65100'
+                          background: purchase.paymentMethod === 'stripe' ? 'var(--ok-bg)' : 'var(--warn-bg)',
+                          color: purchase.paymentMethod === 'stripe' ? 'var(--ok-bg)' : 'var(--orange)'
                         }}>
                           {purchase.paymentMethod === 'stripe' ? 'Stripe' : 'COD'}
                         </span>

@@ -156,8 +156,8 @@ export default function TransactionsPage() {
               ) : filtered.map((b) => (
                 <tr key={b.id}>
                   <td>
-                    <span style={{ fontFamily: 'monospace', background: '#f0f5ee', color: '#00522c', padding: '2px 8px', borderRadius: '4px', fontWeight: 700, fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
-                      {b.refNumber || <span style={{ color: '#9E9E9E' }}>Legacy</span>}
+                    <span style={{ fontFamily: 'monospace', background: 'var(--panel-muted)', color: 'var(--brand-ink)', padding: '2px 8px', borderRadius: '4px', fontWeight: 700, fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
+                      {b.refNumber || <span style={{ color: 'var(--muted-999)' }}>Legacy</span>}
                     </span>
                   </td>
                   <td>{b.truckRoute || 'Transport Service'}</td>
@@ -167,8 +167,8 @@ export default function TransactionsPage() {
                   </td>
                   <td>
                     <span className="badge" style={{
-                      background: b.paymentMethod === 'stripe' ? '#E8F5E9' : '#FFF8E1',
-                      color: b.paymentMethod === 'stripe' ? '#2E7D32' : '#E65100'
+                      background: b.paymentMethod === 'stripe' ? 'var(--ok-bg)' : 'var(--warn-bg)',
+                      color: b.paymentMethod === 'stripe' ? 'var(--ok-bg)' : 'var(--orange)'
                     }}>
                       {b.paymentMethod === 'stripe' ? 'Stripe' : 'COD'}
                     </span>

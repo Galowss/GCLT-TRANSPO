@@ -16,7 +16,7 @@ function SuccessContent() {
     }}>
       <div className="card card-lg" style={{ maxWidth: '500px', textAlign: 'center' }}>
         <div style={{
-          width: '80px', height: '80px', borderRadius: '50%', background: 'var(--success-light, #E8F5E9)',
+          width: '80px', height: '80px', borderRadius: '50%', background: 'var(--success-light, var(--ok-bg))',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           margin: '0 auto 24px', color: 'var(--success)',
         }}>

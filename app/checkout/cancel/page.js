@@ -17,7 +17,7 @@ export default function CheckoutCancel() {
         <div style={{
           width: '80px', height: '80px', borderRadius: '50%', background: 'var(--warning-light)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          margin: '0 auto 24px', color: '#F5A623',
+          margin: '0 auto 24px', color: 'var(--warning)',
         }}>
           <AlertTriangle size={40} />
         </div>

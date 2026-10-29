@@ -140,13 +140,13 @@ export default function LeafletInlineMap({
 
         const greenIcon = L.divIcon({
           className: '',
-          html: `<div style="width:20px;height:20px;border-radius:50%;background:#00522c;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>`,
+          html: `<div style="width:20px;height:20px;border-radius:50%;background:var(--brand-fill);border:3px solid var(--panel);box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>`,
           iconSize: [20, 20], iconAnchor: [10, 10],
         });
 
         const redIcon = L.divIcon({
           className: '',
-          html: `<div style="width:20px;height:20px;border-radius:50%;background:#ba1a1a;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>`,
+          html: `<div style="width:20px;height:20px;border-radius:50%;background:var(--danger);border:3px solid var(--panel);box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>`,
           iconSize: [20, 20], iconAnchor: [10, 10],
         });
 
@@ -248,12 +248,12 @@ export default function LeafletInlineMap({
               }
             }
 
-            let lineColor = '#00522c'; // Expressway green
+            let lineColor = 'var(--brand-fill)'; // Expressway green
             let lineWeight = 4;
             let dashArray = null;
 
             if (routeType === 'Old Road') {
-              lineColor = '#E65100'; // Orange to match Old Road alert
+              lineColor = 'var(--orange)'; // Orange to match Old Road alert
               dashArray = '8 6'; // Dashed line to signify alternate/old road
             }
 
@@ -273,7 +273,7 @@ export default function LeafletInlineMap({
           } catch (err) {
             console.error('Routing error, falling back to straight line:', err);
             routeLineRef.current = L.polyline(bounds, {
-              color: routeType === 'Old Road' ? '#E65100' : '#00522c', weight: 3, dashArray: '8 6', opacity: 0.7,
+              color: routeType === 'Old Road' ? 'var(--orange)' : 'var(--brand-fill)', weight: 3, dashArray: '8 6', opacity: 0.7,
             }).addTo(map);
             if (onRouteCalculated) onRouteCalculated(null);
             map.fitBounds(bounds, { padding: [60, 60], maxZoom: 14 });
@@ -297,18 +297,18 @@ export default function LeafletInlineMap({
       <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
       <style>{`
         .leaflet-tooltip-custom {
-          background: #ffffff !important;
-          border: 1px solid #bec9be !important;
+          background: var(--panel) !important;
+          border: 1px solid var(--line) !important;
           border-radius: 6px !important;
           padding: 3px 8px !important;
           font-family: 'Inter', sans-serif !important;
           font-size: 0.72rem !important;
           font-weight: 700 !important;
-          color: #181d19 !important;
+          color: var(--ink) !important;
           box-shadow: 0 2px 6px rgba(0,0,0,0.1) !important;
         }
         .leaflet-tooltip-custom::before {
-          border-top-color: #bec9be !important;
+          border-top-color: var(--line) !important;
         }
       `}</style>
 
@@ -322,7 +322,7 @@ export default function LeafletInlineMap({
           display: 'flex', flexDirection: 'column', gap: '6px',
         }}>
           <div style={{
-            background: '#fff', borderRadius: '10px', padding: '6px',
+            background: 'var(--panel)', borderRadius: '10px', padding: '6px',
             boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
             display: 'flex', gap: '4px',
             fontFamily: 'Inter, sans-serif',
@@ -333,8 +333,8 @@ export default function LeafletInlineMap({
                 padding: '6px 14px', borderRadius: '7px', border: 'none',
                 fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer',
                 transition: 'all 0.15s ease',
-                background: pinTarget === 'pickup' ? '#00522c' : 'transparent',
-                color: pinTarget === 'pickup' ? '#fff' : '#3f4941',
+                background: pinTarget === 'pickup' ? 'var(--brand-fill)' : 'transparent',
+                color: pinTarget === 'pickup' ? 'var(--panel)' : 'var(--ink-2)',
               }}
             >
               🟢 Pin Pickup
@@ -345,8 +345,8 @@ export default function LeafletInlineMap({
                 padding: '6px 14px', borderRadius: '7px', border: 'none',
                 fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer',
                 transition: 'all 0.15s ease',
-                background: pinTarget === 'delivery' ? '#ba1a1a' : 'transparent',
-                color: pinTarget === 'delivery' ? '#fff' : '#3f4941',
+                background: pinTarget === 'delivery' ? 'var(--danger)' : 'transparent',
+                color: pinTarget === 'delivery' ? 'var(--panel)' : 'var(--ink-2)',
               }}
             >
               📍 Pin Drop-off
@@ -357,7 +357,7 @@ export default function LeafletInlineMap({
           <div style={{
             background: 'rgba(255,255,255,0.92)', borderRadius: '8px',
             padding: '5px 10px', fontSize: '0.7rem', fontWeight: 600,
-            color: '#5f5e5e', fontFamily: 'Inter, sans-serif',
+            color: 'var(--ink-muted-2)', fontFamily: 'Inter, sans-serif',
             boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
             maxWidth: '220px',
           }}>
@@ -367,7 +367,7 @@ export default function LeafletInlineMap({
           {/* Feedback after pin */}
           {pinFeedback && (
             <div style={{
-              background: '#00522c', color: '#fff', borderRadius: '8px',
+              background: 'var(--brand-fill)', color: 'var(--on-accent)', borderRadius: '8px',
               padding: '6px 12px', fontSize: '0.72rem', fontWeight: 600,
               fontFamily: 'Inter, sans-serif', maxWidth: '260px',
               boxShadow: '0 2px 8px rgba(0,82,44,0.3)',

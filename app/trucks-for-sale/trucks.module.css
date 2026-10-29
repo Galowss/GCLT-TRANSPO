@@ -2,7 +2,7 @@
 .pageHeader {
   padding-bottom: 24px;
   margin-bottom: 32px;
-  border-bottom: 1px solid #E0E6E1;
+  border-bottom: 1px solid var(--line-soft);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -20,20 +20,20 @@
   font-size: clamp(2rem, 5vw, 3.5rem);
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: #101f13;
+  color: var(--ink);
   margin-bottom: 8px;
 }
 
 .pageSubtitle {
   font-size: 1.05rem;
-  color: #3d4a3f;
+  color: var(--ink-2);
   max-width: 600px;
   line-height: 1.6;
 }
 
 /* ─── Search Bar ──────────────────────────────── */
 .searchBar {
-  background: #e0f3de;
+  background: var(--panel-green);
   border-radius: 12px;
   padding: 16px;
   display: flex;
@@ -41,7 +41,7 @@
   gap: 16px;
   align-items: center;
   justify-content: space-between;
-  border: 1px solid #E0E6E1;
+  border: 1px solid var(--line-soft);
   margin-bottom: 32px;
 }
 
@@ -57,17 +57,17 @@
 .searchInput {
   flex: 1;
   padding: 10px 16px 10px 40px;
-  border: 1px solid #E0E6E1;
+  border: 1px solid var(--line-soft);
   border-radius: 8px;
   font-size: 0.95rem;
-  background: white;
+  background: var(--panel);
   transition: var(--transition);
 }
 
 .searchInput:focus {
-  outline: 2px solid #006d37;
+  outline: 2px solid var(--brand-bright);
   outline-offset: 0;
-  border-color: #006d37;
+  border-color: var(--brand-bright);
 }
 
 .filterBtns {
@@ -111,7 +111,7 @@
 /* ─── Inventory ───────────────────────────────── */
 .inventory {
   padding: 48px 32px;
-  background: var(--gray-50);
+  background: var(--panel-alt);
 }
 
 .inventoryInner {
@@ -140,7 +140,7 @@
 .regionTabs {
   display: flex;
   gap: 0;
-  background: var(--gray-200);
+  background: var(--line);
   border-radius: var(--border-radius);
   padding: 4px;
 }
@@ -158,7 +158,7 @@
 }
 
 .regionTabActive {
-  background: var(--white);
+  background: var(--panel);
   color: var(--primary);
   box-shadow: var(--shadow-sm);
 }
@@ -173,10 +173,10 @@
 
 /* ─── Truck Card ──────────────────────────────── */
 .truckCard {
-  background: white;
+  background: var(--panel);
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid #E0E6E1;
+  border: 1px solid var(--line-soft);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   display: flex;
   flex-direction: column;
@@ -202,7 +202,7 @@
   position: relative;
   height: 240px;
   overflow: hidden;
-  background: #F4F7F5;
+  background: var(--panel-muted);
 }
 
 .truckImage img {
@@ -248,7 +248,7 @@
 .truckImagePlaceholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  background: linear-gradient(135deg, var(--dark-1e) 0%, var(--dark-0f) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -314,7 +314,7 @@
   font-family: 'Manrope', sans-serif;
   font-size: 1.2rem;
   font-weight: 700;
-  color: #101f13;
+  color: var(--ink);
   line-height: 1.3;
   margin: 0;
 }
@@ -322,8 +322,8 @@
 .truckYear {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
-  background: #e6f9e4;
-  color: #006d37;
+  background: var(--panel-green);
+  color: var(--brand-ink);
   padding: 4px 8px;
   border-radius: 6px;
   font-weight: 600;
@@ -332,7 +332,7 @@
 
 .truckSubtitle {
   font-size: 0.9rem;
-  color: #3d4a3f;
+  color: var(--ink-2);
   margin-bottom: 16px;
 }
 
@@ -345,7 +345,7 @@
 }
 
 .specCell {
-  background: #e0f3de;
+  background: var(--panel-green);
   border-radius: 8px;
   padding: 12px;
   display: flex;
@@ -356,7 +356,7 @@
 }
 
 .specIcon {
-  color: #006d37;
+  color: var(--brand-ink);
   font-size: 1.1rem;
   margin-bottom: 4px;
 }
@@ -366,13 +366,13 @@
   font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #6d7a6e;
+  color: var(--ink-muted);
 }
 
 .specValue {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #101f13;
+  color: var(--ink);
 }
 
 /* Legacy spec styles (kept for compatibility) */
@@ -395,7 +395,7 @@
   display: flex;
   gap: 12px;
   padding: 16px 24px 24px;
-  border-top: 1px solid #E0E6E1;
+  border-top: 1px solid var(--line-soft);
   position: relative;
   z-index: 2;
 }
@@ -407,8 +407,8 @@
   gap: 8px;
   flex: 1;
   padding: 12px;
-  background: #006d37;
-  color: white;
+  background: var(--brand-bright);
+  : var(--on-accent);
   border-radius: 8px;
   font-weight: 700;
   font-size: 0.9rem;
@@ -419,7 +419,7 @@
 }
 
 .truckBtn:hover {
-  background: #005228;
+  background: var(--brand-fill-hover);
 }
 
 .viewingBtn {
@@ -428,9 +428,9 @@
   justify-content: center;
   gap: 6px;
   padding: 12px 16px;
-  border: 1px solid #E0E6E1;
-  background: white;
-  color: #101f13;
+  border: 1px solid var(--line-soft);
+  background: var(--panel);
+  color: var(--ink);
   border-radius: 8px;
   font-weight: 600;
   font-size: 0.9rem;
@@ -440,8 +440,8 @@
 }
 
 .viewingBtn:hover {
-  border-color: #006d37;
-  color: #006d37;
+  border-color: var(--brand-bright);
+  color: var(--brand-ink);
 }
 
 /* ─── Pagination ──────────────────────────────── */
@@ -479,7 +479,7 @@
   transition: var(--transition);
 }
 .pageNum:hover {
-  background: var(--gray-200);
+  background: var(--line);
   color: var(--text-primary);
 }
 
@@ -489,7 +489,7 @@
   border-radius: var(--border-radius);
   font-size: 0.95rem;
   font-weight: 600;
-  background: var(--white);
+  background: var(--panel);
   color: var(--text-primary);
   cursor: pointer;
   transition: var(--transition);

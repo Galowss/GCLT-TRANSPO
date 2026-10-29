@@ -211,7 +211,7 @@ export default function AdminAppointments() {
               style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.2)', zIndex: 499, backdropFilter: 'blur(2px)' }} 
               onClick={() => setSelectedAppointment(null)} 
             />
-            <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '400px', background: '#ffffff', borderLeft: '1px solid var(--gray-200)', boxShadow: '-4px 0 24px rgba(0,0,0,0.15)', zIndex: 500, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+            <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '400px', background: 'var(--panel)', borderLeft: '1px solid var(--gray-200)', boxShadow: '-4px 0 24px rgba(0,0,0,0.15)', zIndex: 500, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
             <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--gray-200)', background: 'var(--gray-50)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
               <span className={`status ${selectedAppointment.status === 'Confirmed' ? 'status-confirmed' : selectedAppointment.status === 'Cancelled' ? 'status-declined' : 'status-pending'}`}>
                 {selectedAppointment.status}

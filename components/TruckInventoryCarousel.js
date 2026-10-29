@@ -225,8 +225,8 @@ export default function TruckInventoryCarousel() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        background: '#111827',
-                        color: '#6f7a70',
+                        background: 'var(--ink)',
+                        color: 'var(--ink-muted)',
                       }}>
                         <Truck size={48} />
                       </div>
@@ -234,7 +234,7 @@ export default function TruckInventoryCarousel() {
                     {/* Status badge */}
                     <span className={`${styles.statusBadge} ${statusInfo.className}`}>
                       <span className={`${styles.statusDot} ${styles[statusInfo.dotClass] || ''}`}
-                        style={{ background: statusInfo.dotClass === 'green' ? '#006837' : statusInfo.dotClass === 'red' ? '#ba1a1a' : '#F59E0B' }}
+                        style={{ background: statusInfo.dotClass === 'green' ? 'var(--brand-bright)' : statusInfo.dotClass === 'red' ? 'var(--danger)' : 'var(--warning)' }}
                       />
                       {statusInfo.label}
                     </span>

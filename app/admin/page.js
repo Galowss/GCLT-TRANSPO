@@ -48,7 +48,7 @@ export default function AdminDashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '24px', marginBottom: '32px' }}>
         {[
           { title: 'Total Bookings', value: totalBookings, icon: Truck, color: 'var(--primary)' },
-          { title: 'Pending Requests', value: pendingBookings, icon: Clock, color: '#F5A623' },
+          { title: 'Pending Requests', value: pendingBookings, icon: Clock, color: 'var(--warning)' },
           { title: 'Active / Confirmed', value: confirmedBookings, icon: CheckCircle, color: 'var(--success)' },
           { title: 'Completed', value: completedBookings, icon: ClipboardList, color: 'var(--primary-dark)' },
         ].map((stat) => {

@@ -11,8 +11,8 @@ const LeafletMapModal = dynamic(() => import('./LeafletMapModal'), {
       zIndex: 10000,
     }}>
       <div style={{
-        background: '#fff', borderRadius: '16px', padding: '40px 60px',
-        fontFamily: 'Inter, sans-serif', color: '#3f4941', fontSize: '0.875rem',
+        background: 'var(--panel)', borderRadius: '16px', padding: '40px 60px',
+        fontFamily: 'Inter, sans-serif', color: 'var(--ink-2)', fontSize: '0.875rem',
       }}>
         Loading map…
       </div>

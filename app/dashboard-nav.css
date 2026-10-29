@@ -1,13 +1,13 @@
 /* ═══════════════════════════════════════════════════════════════
    GCLT — User Dashboard Navigation (booking-website style)
    Replaces the sidebar with a sticky top navigation bar.
-   Brand colors retained: green (#006d3c/#00522c), orange, navy.
+   Brand colors retained: green (var(--brand-bright)/var(--brand-fill)), orange, navy.
    ═══════════════════════════════════════════════════════════════ */
 
 /* ── Shell: ambient animated backdrop ── */
 .dash-shell {
   min-height: 100vh;
-  background: #f4f9f2;
+  background: var(--panel-alt);
   position: relative;
   overflow-x: clip;
 }
@@ -61,7 +61,7 @@
   content: '';
   display: block;
   height: 3px;
-  background: linear-gradient(90deg, #006d3c 0%, #00a355 55%, #ff8a33 100%);
+  background: linear-gradient(90deg, var(--brand-bright) 0%, #00a355 55%, #ff8a33 100%);
 }
 
 .dash-nav-inner {
@@ -90,8 +90,8 @@
   border-radius: 11px;
   display: grid;
   place-items: center;
-  color: #fff;
-  background: linear-gradient(135deg, #006d3c 0%, #00a355 100%);
+  color: var(--on-accent);
+  background: linear-gradient(135deg, var(--brand-bright) 0%, #00a355 100%);
   box-shadow: 0 6px 16px rgba(0, 109, 60, 0.35);
   position: relative;
   overflow: hidden;
@@ -131,14 +131,14 @@
   font-family: 'Manrope', sans-serif;
   font-weight: 800;
   letter-spacing: -0.01em;
-  color: #10281a;
+  color: var(--ink);
   font-size: 1.02rem;
   line-height: 1.1;
 }
 
 .dash-brand-sub {
   font-size: 0.66rem;
-  color: #6f8a76;
+  color: var(--ink-muted);
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -164,7 +164,7 @@
   gap: 6px;
   padding: 8px 11px;
   border-radius: 100px;
-  color: #33503c;
+  color: var(--ink-2);
   font-size: 0.8rem;
   font-weight: 600;
   text-decoration: none;
@@ -175,13 +175,13 @@
 
 .dash-nav-item:hover {
   background: rgba(0, 109, 60, 0.06);
-  color: #006d3c;
+  color: var(--brand-ink);
   transform: translateY(-1px);
 }
 
 .dash-nav-item.active {
-  background: linear-gradient(135deg, #006d3c 0%, #00a355 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--brand-bright) 0%, #00a355 100%);
+  color: var(--on-accent);
   box-shadow: 0 6px 16px rgba(0, 109, 60, 0.35);
 }
 
@@ -212,7 +212,7 @@
   display: grid;
   place-items: center;
   border-radius: 12px;
-  color: #33503c;
+  color: var(--ink-2);
   background: rgba(0, 109, 60, 0.06);
   border: none;
   cursor: pointer;
@@ -222,7 +222,7 @@
 
 .dash-icon-btn:hover {
   background: rgba(0, 109, 60, 0.12);
-  color: #006d3c;
+  color: var(--brand-ink);
   transform: translateY(-1px);
 }
 
@@ -233,8 +233,8 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #e8451c;
-  border: 2px solid #fff;
+  background: var(--danger);
+  border: 2px solid var(--panel);
   animation: dashRing 2s ease-out infinite;
 }
 
@@ -253,7 +253,7 @@
   background: rgba(0, 109, 60, 0.06);
   border: 1px solid rgba(0, 109, 60, 0.10);
   text-decoration: none;
-  color: #10281a;
+  color: var(--ink);
   transition: all 0.2s ease;
 }
 
@@ -270,8 +270,8 @@
   place-items: center;
   font-size: 0.78rem;
   font-weight: 800;
-  color: #fff;
-  background: linear-gradient(135deg, #ff8a33 0%, #e65100 100%);
+  color: var(--on-accent);
+  background: linear-gradient(135deg, #ff8a33 0%, var(--orange) 100%);
   box-shadow: 0 2px 8px rgba(230, 81, 0, 0.35);
   overflow: hidden;
 }
@@ -299,7 +299,7 @@
   border-radius: 12px;
   border: none;
   background: transparent;
-  color: #7a4a3a;
+  color: var(--ink-muted-2);
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
@@ -308,7 +308,7 @@
 
 .dash-logout:hover {
   background: rgba(186, 26, 26, 0.08);
-  color: #ba1a1a;
+  color: var(--danger-strong);
 }
 
 /* ── Mobile slide-down menu ── */
@@ -319,7 +319,7 @@
   border-radius: 12px;
   border: 1px solid rgba(0, 82, 44, 0.12);
   background: rgba(0, 109, 60, 0.06);
-  color: #006d3c;
+  color: var(--brand-ink);
   place-items: center;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -334,7 +334,7 @@
   flex-direction: column;
   gap: 6px;
   padding: 12px 24px 18px;
-  background: #fff;
+  background: var(--panel);
   border-bottom: 1px solid rgba(0, 82, 44, 0.08);
   box-shadow: 0 18px 30px -18px rgba(0, 82, 44, 0.25);
   animation: dashDrop 0.28s cubic-bezier(0.4, 0, 0.2, 1);
@@ -355,7 +355,7 @@
   gap: 11px;
   padding: 11px 14px;
   border-radius: 12px;
-  color: #33503c;
+  color: var(--ink-2);
   font-size: 0.88rem;
   font-weight: 600;
   text-decoration: none;
@@ -364,12 +364,12 @@
 
 .dash-mmenu-item:hover {
   background: rgba(0, 109, 60, 0.06);
-  color: #006d3c;
+  color: var(--brand-ink);
 }
 
 .dash-mmenu-item.active {
-  background: linear-gradient(135deg, #006d3c 0%, #00a355 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--brand-bright) 0%, #00a355 100%);
+  color: var(--on-accent);
 }
 
 /* ── Main content over the ambient backdrop ──
@@ -402,7 +402,7 @@
   padding: 26px 24px;
   text-align: center;
   font-size: 0.8rem;
-  color: #6f8a76;
+  color: var(--ink-muted);
 }
 
 /* ── Responsive ──

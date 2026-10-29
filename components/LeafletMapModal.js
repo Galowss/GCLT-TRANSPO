@@ -92,7 +92,7 @@ export default function LeafletMapModal({ target, onApply, onClose }) {
     >
       <div
         style={{
-          background: '#fff', borderRadius: '16px',
+          background: 'var(--panel)', borderRadius: '16px',
           width: '92%', maxWidth: '680px',
           overflow: 'hidden',
           boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
@@ -102,15 +102,15 @@ export default function LeafletMapModal({ target, onApply, onClose }) {
         {/* Header */}
         <div style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          padding: '16px 20px', borderBottom: '1px solid #bec9be',
+          padding: '16px 20px', borderBottom: '1px solid var(--line)',
         }}>
-          <h3 style={{ margin: 0, fontFamily: 'Manrope, sans-serif', fontSize: '1rem', fontWeight: 700, color: '#181d19', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h3 style={{ margin: 0, fontFamily: 'Manrope, sans-serif', fontSize: '1rem', fontWeight: 700, color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '1.1rem' }}>{isDrop ? '📍' : '🟢'}</span>
             Pin {isDrop ? 'Delivery Destination' : 'Pickup Location'}
           </h3>
           <button
             onClick={onClose}
-            style={{ background: 'none', border: 'none', color: '#6f7a70', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
+            style={{ background: 'none', border: 'none', color: 'var(--ink-muted)', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
           >
             ✕
           </button>
@@ -118,14 +118,14 @@ export default function LeafletMapModal({ target, onApply, onClose }) {
 
         {/* Hint */}
         <div style={{ padding: '10px 20px 4px' }}>
-          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.8rem', color: '#5f5e5e', margin: 0 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.8rem', color: 'var(--ink-muted-2)', margin: 0 }}>
             🖱️ Click anywhere on the map — the address fills in automatically.
           </p>
         </div>
 
         {/* Map */}
         {mapError ? (
-          <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f5ee', color: '#5f5e5e', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', padding: '24px', textAlign: 'center' }}>
+          <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--panel-muted)', color: 'var(--ink-muted-2)', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', padding: '24px', textAlign: 'center' }}>
             {mapError}
           </div>
         ) : (
@@ -143,7 +143,7 @@ export default function LeafletMapModal({ target, onApply, onClose }) {
         )}
 
         {/* Address input + apply */}
-        <div style={{ padding: '14px 20px', borderTop: '1px solid #bec9be', display: 'flex', gap: '10px' }}>
+        <div style={{ padding: '14px 20px', borderTop: '1px solid var(--line)', display: 'flex', gap: '10px' }}>
           <input
             type="text"
             value={address}
@@ -152,9 +152,9 @@ export default function LeafletMapModal({ target, onApply, onClose }) {
             placeholder="Detected address appears here, or type manually…"
             style={{
               flex: 1, height: '42px', padding: '0 14px',
-              border: '1.5px solid #bec9be', borderRadius: '8px',
-              fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: '#181d19',
-              background: '#f6fbf3', outline: 'none',
+              border: '1.5px solid var(--line)', borderRadius: '8px',
+              fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: 'var(--ink)',
+              background: 'var(--panel-alt)', outline: 'none',
             }}
           />
           <button
@@ -162,8 +162,8 @@ export default function LeafletMapModal({ target, onApply, onClose }) {
             disabled={!address.trim()}
             style={{
               height: '42px', padding: '0 20px',
-              background: address.trim() ? '#00522c' : '#bec9be',
-              color: '#fff', border: 'none', borderRadius: '8px',
+              background: address.trim() ? 'var(--brand-fill)' : 'var(--line)',
+              color: 'var(--on-accent)', border: 'none', borderRadius: '8px',
               fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 700,
               cursor: address.trim() ? 'pointer' : 'not-allowed',
               whiteSpace: 'nowrap',

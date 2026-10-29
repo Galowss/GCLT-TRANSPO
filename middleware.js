@@ -7,6 +7,7 @@ export function middleware(request) {
   // Protect /dashboard and /admin routes
   if (request.nextUrl.pathname.startsWith('/dashboard') || request.nextUrl.pathname.startsWith('/admin')) {
     if (!session) {
+      console.warn('[middleware] blocked (no gclt_session)', { path: request.nextUrl.pathname });
       // Create redirect URL to login page, passing the original intended URL
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('redirect', request.nextUrl.pathname);

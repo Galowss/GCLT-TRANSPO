@@ -10,9 +10,9 @@ import { useState } from 'react';
 
 // Status pill style consistent with the rest of the dashboard card system
 const STATUS_STYLES = {
-  Pending:   { bg: '#FFF8E1', text: '#E65100', border: '#F5A623' },
-  Confirmed: { bg: '#E8F5E9', text: '#2E7D32', border: '#2E7D32' },
-  Cancelled: { bg: '#FFEBEE', text: '#C62828', border: '#C62828' },
+  Pending:   { bg: 'var(--warn-bg)', text: 'var(--orange)', border: 'var(--warning)' },
+  Confirmed: { bg: 'var(--ok-bg)', text: 'var(--ok-fg)', border: 'var(--ok-bg)' },
+  Cancelled: { bg: 'var(--err-bg)', text: 'var(--danger-strong)', border: 'var(--danger)' },
 };
 
 const FILTER_OPTIONS = ['All', 'Pending', 'Confirmed', 'Cancelled'];

@@ -217,8 +217,8 @@ export default function AdminPurchasesPage() {
                     </td>
                     <td>
                       <span className="badge" style={{
-                        background: p.paymentMethod === 'stripe' ? '#E8F5E9' : '#FFF8E1',
-                        color: p.paymentMethod === 'stripe' ? '#2E7D32' : '#E65100'
+                        background: p.paymentMethod === 'stripe' ? 'var(--ok-bg)' : 'var(--warn-bg)',
+                        color: p.paymentMethod === 'stripe' ? 'var(--ok-bg)' : 'var(--orange)'
                       }}>
                         {p.paymentMethod === 'stripe' ? 'Stripe' : 'COD'}
                       </span>

@@ -90,7 +90,7 @@ export default function UserManagement() {
           <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>Admins</span>
         </div>
         <div className="card" style={{ padding: '20px', textAlign: 'center' }}>
-          <span style={{ fontSize: '1.75rem', fontWeight: 800, color: '#F5A623' }}>{staffCount}</span>
+          <span style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--warning)' }}>{staffCount}</span>
           <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>Staff</span>
         </div>
         <div className="card" style={{ padding: '20px', textAlign: 'center' }}>
@@ -162,7 +162,7 @@ export default function UserManagement() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div style={{
                         width: '36px', height: '36px', borderRadius: '50%',
-                        background: u.role === 'admin' ? 'var(--primary)' : u.role === 'staff' ? '#F5A623' : 'var(--gray-200)',
+                        background: u.role === 'admin' ? 'var(--primary)' : u.role === 'staff' ? 'var(--warning)' : 'var(--gray-200)',
                         color: u.role === 'admin' || u.role === 'staff' ? 'var(--white)' : 'var(--text-secondary)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontWeight: 700, fontSize: '0.8rem',

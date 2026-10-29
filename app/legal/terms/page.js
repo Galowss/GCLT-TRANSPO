@@ -9,11 +9,11 @@ export default function TermsPage() {
   return (
     <>
       <Navbar />
-      <div style={{ maxWidth: '860px', margin: '0 auto', padding: '80px 24px 60px', fontFamily: 'Inter, sans-serif', color: '#181d19', lineHeight: '1.8' }}>
+      <div style={{ maxWidth: '860px', margin: '0 auto', padding: '80px 24px 60px', fontFamily: 'Inter, sans-serif', color: 'var(--ink)', lineHeight: '1.8' }}>
         <div style={{ marginBottom: '40px' }}>
-          <p style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.1em', color: '#6f7a70', textTransform: 'uppercase' }}>Legal</p>
-          <h1 style={{ fontSize: '2rem', fontWeight: 800, color: '#00522c', margin: '8px 0 12px' }}>Terms &amp; Conditions</h1>
-          <p style={{ color: '#6f7a70', fontSize: '0.875rem' }}>Last updated: August 14, 2026 &nbsp;|&nbsp; Effective immediately upon registration</p>
+          <p style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.1em', color: 'var(--ink-muted)', textTransform: 'uppercase' }}>Legal</p>
+          <h1 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--brand-ink)', margin: '8px 0 12px' }}>Terms &amp; Conditions</h1>
+          <p style={{ color: 'var(--ink-muted)', fontSize: '0.875rem' }}>Last updated: August 14, 2026 &nbsp;|&nbsp; Effective immediately upon registration</p>
         </div>
 
         <Section title="1. Acceptance of Terms">
@@ -110,10 +110,10 @@ export default function TermsPage() {
           Tel: (047) 222-4065 | Email: gclttruckingservices@yahoo.com
         </Section>
 
-        <div style={{ marginTop: '48px', padding: '16px', background: '#f6fbf3', borderRadius: '8px', border: '1px solid #bec9be', fontSize: '0.8rem', color: '#6f7a70' }}>
-          <a href="/login?tab=register" style={{ color: '#00522c', fontWeight: 700 }}>← Return to Registration</a>
+        <div style={{ marginTop: '48px', padding: '16px', background: 'var(--panel-alt)', borderRadius: '8px', border: '1px solid var(--line)', fontSize: '0.8rem', color: 'var(--ink-muted)' }}>
+          <a href="/login?tab=register" style={{ color: 'var(--brand-ink)', fontWeight: 700 }}>← Return to Registration</a>
           &nbsp;&nbsp;|&nbsp;&nbsp;
-          <a href="/legal/privacy" style={{ color: '#00522c', fontWeight: 700 }}>Privacy Policy →</a>
+          <a href="/legal/privacy" style={{ color: 'var(--brand-ink)', fontWeight: 700 }}>Privacy Policy →</a>
         </div>
       </div>
     </>
@@ -123,8 +123,8 @@ export default function TermsPage() {
 function Section({ title, children }) {
   return (
     <div style={{ marginBottom: '32px' }}>
-      <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#181d19', marginBottom: '10px', paddingBottom: '8px', borderBottom: '1px solid #ebefe8' }}>{title}</h2>
-      <div style={{ fontSize: '0.9rem', color: '#3f4941' }}>{children}</div>
+      <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--ink)', marginBottom: '10px', paddingBottom: '8px', borderBottom: '1px solid var(--panel-muted)' }}>{title}</h2>
+      <div style={{ fontSize: '0.9rem', color: 'var(--ink-2)' }}>{children}</div>
     </div>
   );
 }

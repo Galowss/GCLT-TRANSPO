@@ -25,7 +25,7 @@ const STAT_CONFIGS = [
   {
     title: 'Active Bookings',
     icon: Truck,
-    accent: '#006d37',
+    accent: 'var(--brand-bright)',
     iconBg: 'rgba(0,109,55,0.12)',
     bgFrom: 'rgba(0,109,55,0.05)',
     filter: (b) => b.status !== 'Completed' && b.status !== 'Cancelled',
@@ -35,7 +35,7 @@ const STAT_CONFIGS = [
   {
     title: 'Viewings',
     icon: Calendar,
-    accent: '#0ea5e9',
+    accent: 'var(--info-strong)',
     iconBg: 'rgba(14,165,233,0.12)',
     bgFrom: 'rgba(14,165,233,0.04)',
     filter: (a) => a.status !== 'Cancelled',
@@ -45,7 +45,7 @@ const STAT_CONFIGS = [
   {
     title: 'Pending',
     icon: Clock,
-    accent: '#f59e0b',
+    accent: 'var(--warning)',
     iconBg: 'rgba(245,158,11,0.12)',
     bgFrom: 'rgba(245,158,11,0.04)',
     filter: (b) => ['Pending', 'Pending Payment', 'Quote Requested', 'Quoted'].includes(b.status),
@@ -55,7 +55,7 @@ const STAT_CONFIGS = [
   {
     title: 'Completed',
     icon: TrendingUp,
-    accent: '#27ae60',
+    accent: 'var(--green-bright)',
     iconBg: 'rgba(39,174,96,0.12)',
     bgFrom: 'rgba(39,174,96,0.05)',
     filter: (b) => b.status === 'Completed',
@@ -165,8 +165,8 @@ export default function Dashboard() {
                         <span
                           className="badge"
                           style={{
-                            background: (booking.statusColor || '#6B7280') + '20',
-                            color: booking.statusColor || '#6B7280',
+                            background: (booking.statusColor || 'var(--panel-muted)') + '20',
+                            color: booking.statusColor || 'var(--panel-muted)',
                           }}
                         >
                           {booking.status}

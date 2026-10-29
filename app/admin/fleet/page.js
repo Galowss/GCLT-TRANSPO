@@ -287,7 +287,7 @@ export default function AdminFleet() {
                       style={{
                         position: 'absolute', top: '4px', right: '4px',
                         width: '20px', height: '20px', borderRadius: '50%',
-                        background: 'rgba(0,0,0,0.6)', color: '#fff',
+                        background: 'rgba(0,0,0,0.6)', color: 'var(--on-accent)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: '0.7rem', cursor: 'pointer', border: 'none',
                       }}

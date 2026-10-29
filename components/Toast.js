@@ -21,10 +21,10 @@ export function ToastProvider({ children }) {
   }, []);
 
   const icons = {
-    success: <CheckCircle size={18} color="#27AE60" />,
-    error: <AlertTriangle size={18} color="#E8451C" />,
-    warning: <AlertTriangle size={18} color="#F5A623" />,
-    info: <Info size={18} color="#1B7A3D" />,
+    success: <CheckCircle size={18} color="var(--green-bright)" />,
+    error: <AlertTriangle size={18} color="var(--danger)" />,
+    warning: <AlertTriangle size={18} color="var(--warning)" />,
+    info: <Info size={18} color="var(--brand-fill)" />,
   };
 
   return (

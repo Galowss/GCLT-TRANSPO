@@ -9,12 +9,12 @@ export default function PrivacyPage() {
   return (
     <>
       <Navbar />
-      <div style={{ maxWidth: '860px', margin: '0 auto', padding: '80px 24px 60px', fontFamily: 'Inter, sans-serif', color: '#181d19', lineHeight: '1.8' }}>
+      <div style={{ maxWidth: '860px', margin: '0 auto', padding: '80px 24px 60px', fontFamily: 'Inter, sans-serif', color: 'var(--ink)', lineHeight: '1.8' }}>
         <div style={{ marginBottom: '40px' }}>
-          <p style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.1em', color: '#6f7a70', textTransform: 'uppercase' }}>Legal</p>
-          <h1 style={{ fontSize: '2rem', fontWeight: 800, color: '#00522c', margin: '8px 0 12px' }}>Privacy Policy</h1>
-          <p style={{ color: '#6f7a70', fontSize: '0.875rem' }}>Last updated: August 14, 2026 &nbsp;|&nbsp; Aligned with RA 10173 — Data Privacy Act of the Philippines</p>
-          <div style={{ marginTop: '16px', padding: '12px 16px', background: '#f0f5ee', borderRadius: '8px', borderLeft: '4px solid #00522c', fontSize: '0.875rem', color: '#3f4941' }}>
+          <p style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.1em', color: 'var(--ink-muted)', textTransform: 'uppercase' }}>Legal</p>
+          <h1 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--brand-ink)', margin: '8px 0 12px' }}>Privacy Policy</h1>
+          <p style={{ color: 'var(--ink-muted)', fontSize: '0.875rem' }}>Last updated: August 14, 2026 &nbsp;|&nbsp; Aligned with RA 10173 — Data Privacy Act of the Philippines</p>
+          <div style={{ marginTop: '16px', padding: '12px 16px', background: 'var(--panel-muted)', borderRadius: '8px', borderLeft: '4px solid var(--brand-fill)', fontSize: '0.875rem', color: 'var(--ink-2)' }}>
             GCLT Transport &amp; Trucking Services, Inc. is committed to protecting the privacy and security of your personal data in compliance with <strong>Republic Act No. 10173</strong> (Data Privacy Act of 2012) and its Implementing Rules and Regulations.
           </div>
         </div>
@@ -29,9 +29,9 @@ export default function PrivacyPage() {
           We collect the following categories of personal data:
           <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '12px', fontSize: '0.85rem' }}>
             <thead>
-              <tr style={{ background: '#f0f5ee' }}>
-                <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 700, color: '#3f4941', borderBottom: '2px solid #bec9be' }}>Data Category</th>
-                <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 700, color: '#3f4941', borderBottom: '2px solid #bec9be' }}>Specific Data Points</th>
+              <tr style={{ background: 'var(--panel-muted)' }}>
+                <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 700, color: 'var(--ink-2)', borderBottom: '2px solid var(--line)' }}>Data Category</th>
+                <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 700, color: 'var(--ink-2)', borderBottom: '2px solid var(--line)' }}>Specific Data Points</th>
               </tr>
             </thead>
             <tbody>
@@ -45,9 +45,9 @@ export default function PrivacyPage() {
                 ['Technical Data', 'IP address, browser type, device type, pages visited, session duration (via server logs)'],
                 ['Uploaded Files', 'Proof-of-payment receipt images (for COD bookings)'],
               ].map(([cat, data], i) => (
-                <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#f6fbf3' }}>
-                  <td style={{ padding: '10px 12px', borderBottom: '1px solid #ebefe8', fontWeight: 600, whiteSpace: 'nowrap', verticalAlign: 'top' }}>{cat}</td>
-                  <td style={{ padding: '10px 12px', borderBottom: '1px solid #ebefe8', color: '#5f5e5e' }}>{data}</td>
+                <tr key={i} style={{ background: i % 2 === 0 ? 'var(--panel)' : 'var(--panel-alt)' }}>
+                  <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--panel-muted)', fontWeight: 600, whiteSpace: 'nowrap', verticalAlign: 'top' }}>{cat}</td>
+                  <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--panel-muted)', color: 'var(--ink-muted-2)' }}>{data}</td>
                 </tr>
               ))}
             </tbody>
@@ -79,10 +79,10 @@ export default function PrivacyPage() {
           We share your data only with processors who help us deliver our services, bound by data processing agreements:
           <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '12px', fontSize: '0.85rem' }}>
             <thead>
-              <tr style={{ background: '#f0f5ee' }}>
-                <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 700, color: '#3f4941', borderBottom: '2px solid #bec9be' }}>Processor</th>
-                <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 700, color: '#3f4941', borderBottom: '2px solid #bec9be' }}>Purpose</th>
-                <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 700, color: '#3f4941', borderBottom: '2px solid #bec9be' }}>Location</th>
+              <tr style={{ background: 'var(--panel-muted)' }}>
+                <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 700, color: 'var(--ink-2)', borderBottom: '2px solid var(--line)' }}>Processor</th>
+                <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 700, color: 'var(--ink-2)', borderBottom: '2px solid var(--line)' }}>Purpose</th>
+                <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 700, color: 'var(--ink-2)', borderBottom: '2px solid var(--line)' }}>Location</th>
               </tr>
             </thead>
             <tbody>
@@ -93,10 +93,10 @@ export default function PrivacyPage() {
                 ['Cloudflare', 'Bot protection (Turnstile)', 'USA'],
                 ['OpenStreetMap / Nominatim', 'Map display and address geocoding', 'EU (open-source, anonymized)'],
               ].map(([proc, purpose, loc], i) => (
-                <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#f6fbf3' }}>
-                  <td style={{ padding: '10px 12px', borderBottom: '1px solid #ebefe8', fontWeight: 600 }}>{proc}</td>
-                  <td style={{ padding: '10px 12px', borderBottom: '1px solid #ebefe8', color: '#5f5e5e' }}>{purpose}</td>
-                  <td style={{ padding: '10px 12px', borderBottom: '1px solid #ebefe8', color: '#5f5e5e' }}>{loc}</td>
+                <tr key={i} style={{ background: i % 2 === 0 ? 'var(--panel)' : 'var(--panel-alt)' }}>
+                  <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--panel-muted)', fontWeight: 600 }}>{proc}</td>
+                  <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--panel-muted)', color: 'var(--ink-muted-2)' }}>{purpose}</td>
+                  <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--panel-muted)', color: 'var(--ink-muted-2)' }}>{loc}</td>
                 </tr>
               ))}
             </tbody>
@@ -147,10 +147,10 @@ export default function PrivacyPage() {
           Tel: (047) 222-4065
         </Section>
 
-        <div style={{ marginTop: '48px', padding: '16px', background: '#f6fbf3', borderRadius: '8px', border: '1px solid #bec9be', fontSize: '0.8rem', color: '#6f7a70' }}>
-          <a href="/legal/terms" style={{ color: '#00522c', fontWeight: 700 }}>← Terms &amp; Conditions</a>
+        <div style={{ marginTop: '48px', padding: '16px', background: 'var(--panel-alt)', borderRadius: '8px', border: '1px solid var(--line)', fontSize: '0.8rem', color: 'var(--ink-muted)' }}>
+          <a href="/legal/terms" style={{ color: 'var(--brand-ink)', fontWeight: 700 }}>← Terms &amp; Conditions</a>
           &nbsp;&nbsp;|&nbsp;&nbsp;
-          <a href="/login?tab=register" style={{ color: '#00522c', fontWeight: 700 }}>Return to Registration →</a>
+          <a href="/login?tab=register" style={{ color: 'var(--brand-ink)', fontWeight: 700 }}>Return to Registration →</a>
         </div>
       </div>
     </>
@@ -160,8 +160,8 @@ export default function PrivacyPage() {
 function Section({ title, children }) {
   return (
     <div style={{ marginBottom: '32px' }}>
-      <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#181d19', marginBottom: '10px', paddingBottom: '8px', borderBottom: '1px solid #ebefe8' }}>{title}</h2>
-      <div style={{ fontSize: '0.9rem', color: '#3f4941' }}>{children}</div>
+      <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--ink)', marginBottom: '10px', paddingBottom: '8px', borderBottom: '1px solid var(--panel-muted)' }}>{title}</h2>
+      <div style={{ fontSize: '0.9rem', color: 'var(--ink-2)' }}>{children}</div>
     </div>
   );
 }

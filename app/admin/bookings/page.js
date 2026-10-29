@@ -34,15 +34,15 @@ function exportToCsv(bookings) {
 }
 
 const STATUS_COLORS = {
-  'Quote Requested': '#F5A623',
-  'Quoted': '#1565C0',
-  'Pending': '#F5A623',
-  'Pending Payment': '#F5A623',
-  'Confirmed': '#2E7D32',
-  'In Transit': '#1565C0',
-  'Completed': '#27AE60',
-  'Cancelled': '#E8451C',
-  'Declined': '#E8451C',
+  'Quote Requested': 'var(--warning)',
+  'Quoted': 'var(--info-strong)',
+  'Pending': 'var(--warning)',
+  'Pending Payment': 'var(--warning)',
+  'Confirmed': 'var(--ok-bg)',
+  'In Transit': 'var(--info-strong)',
+  'Completed': 'var(--green-bright)',
+  'Cancelled': 'var(--danger)',
+  'Declined': 'var(--danger)',
 };
 
 export default function BookingManagement() {
@@ -118,7 +118,7 @@ export default function BookingManagement() {
   });
 
 
-  const getStatusColor = (status) => STATUS_COLORS[status] || '#6B7280';
+  const getStatusColor = (status) => STATUS_COLORS[status] || 'var(--panel-muted)';
   const getStatusClass = (status) => {
     if (['Quote Requested', 'Quoted', 'Pending', 'Pending Payment'].includes(status)) return 'status-pending';
     if (['Confirmed', 'In Transit', 'Completed'].includes(status)) return 'status-confirmed';
@@ -407,8 +407,8 @@ export default function BookingManagement() {
                       onClick={() => { setSelectedBooking(booking); setQuoteAmount(booking.quotedAmount?.toString() || ''); }}
                     >
                       <td>
-                        <span style={{ fontFamily: 'monospace', background: '#f0f5ee', color: '#00522c', padding: '2px 8px', borderRadius: '4px', fontWeight: 700, fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
-                          {booking.refNumber || <span style={{ color: '#9E9E9E' }}>Legacy</span>}
+                        <span style={{ fontFamily: 'monospace', background: 'var(--panel-muted)', color: 'var(--brand-ink)', padding: '2px 8px', borderRadius: '4px', fontWeight: 700, fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
+                          {booking.refNumber || <span style={{ color: 'var(--muted-999)' }}>Legacy</span>}
                         </span>
                       </td>
                       <td>{booking.userName || 'Guest'}</td>
@@ -456,7 +456,7 @@ export default function BookingManagement() {
               style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.2)', zIndex: 499, backdropFilter: 'blur(2px)' }}
               onClick={() => setSelectedBooking(null)}
             />
-            <div className="animate-slide-right" style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '400px', background: '#ffffff', borderLeft: '1px solid var(--gray-200)', boxShadow: '-4px 0 24px rgba(0,0,0,0.15)', zIndex: 500, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+            <div className="animate-slide-right" style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '400px', background: 'var(--panel)', borderLeft: '1px solid var(--gray-200)', boxShadow: '-4px 0 24px rgba(0,0,0,0.15)', zIndex: 500, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
               <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--gray-200)', background: 'var(--gray-50)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
                 <span className="badge" style={{ background: getStatusColor(selectedBooking.status) + '20', color: getStatusColor(selectedBooking.status) }}>
                   {selectedBooking.status}
@@ -525,8 +525,8 @@ export default function BookingManagement() {
 
                 {/* Quote Input — for Quote Requested status */}
                 {selectedBooking.status === 'Quote Requested' && (
-                  <div style={{ marginBottom: '20px', padding: '16px', background: '#FFF8E1', borderRadius: 'var(--border-radius)', border: '1px solid #F5A623' }}>
-                    <h5 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px', color: '#E65100' }}>
+                  <div style={{ marginBottom: '20px', padding: '16px', background: 'var(--warn-bg)', borderRadius: 'var(--border-radius)', border: '1px solid var(--warning)' }}>
+                    <h5 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--orange)' }}>
                       ₱ Set Transport Quote (PHP)
                     </h5>
                     {!showQuoteConfirm ? (
@@ -562,11 +562,11 @@ export default function BookingManagement() {
                         </p>
                       </>
                     ) : (
-                      <div style={{ background: '#fff', borderRadius: '8px', border: '1px solid #F5A623', padding: '16px' }}>
-                        <p style={{ fontSize: '0.85rem', fontWeight: 700, color: '#E65100', marginBottom: '6px' }}>Confirm Quotation</p>
+                      <div style={{ background: 'var(--panel)', borderRadius: '8px', border: '1px solid var(--warning)', padding: '16px' }}>
+                        <p style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--orange)', marginBottom: '6px' }}>Confirm Quotation</p>
                         <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: '1.5' }}>
                           Send a quote of{' '}
-                          <strong style={{ color: '#00522c' }}>₱{Number(quoteAmount).toLocaleString()}</strong>{' '}
+                          <strong style={{ color: 'var(--brand-ink)' }}>₱{Number(quoteAmount).toLocaleString()}</strong>{' '}
                           to <strong>{selectedBooking.userName || 'this customer'}</strong> for{' '}
                           <strong>{selectedBooking.pickup} → {selectedBooking.delivery}</strong>?
                         </p>

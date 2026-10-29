@@ -1,6 +1,6 @@
 .container {
   min-height: 100vh;
-  background: var(--gray-50);
+  background: var(--panel-alt);
   padding: 32px 24px;
 }
 
@@ -39,7 +39,7 @@
   height: 380px;
   border-radius: var(--border-radius-xl);
   overflow: hidden;
-  background: var(--gray-100);
+  background: var(--panel-muted);
 }
 
 .mainImage img {
@@ -83,7 +83,7 @@
 
 .thumb {
   height: 80px;
-  background: var(--gray-200);
+  background: var(--line);
   border-radius: var(--border-radius);
   display: flex;
   align-items: center;
