@@ -92,17 +92,45 @@
   flex-grow: 1;
 }
 
-/* ── Logo — pops in with spring bounce ── */
-.heroLogo {
-  max-width: 400px;
-  width: 100%;
-  height: auto;
-  filter: drop-shadow(0 12px 24px rgba(27, 122, 61, 0.2));
+/* Brand group � logo + text stack, mirrors the navbar brand */
+.heroBrand {
+  display: flex;
+  align-items: center;
+  gap: 20px;
   animation:
     loginPopIn 0.8s cubic-bezier(0.16,1,0.3,1) 0.25s both,
     float 6s ease-in-out 1.1s infinite;
 }
 
+.heroLogo {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 18px rgba(27, 122, 61, 0.35));
+  flex-shrink: 0;
+}
+
+.heroBrandText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.heroBrandName {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+}
+
+.heroBrandTagline {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 1.5px;
+}
 .bgOverlay {
   width: 100%;
   animation: loginFadeUp 0.5s ease 0.7s both;
@@ -364,8 +392,16 @@
   }
 
   .heroLogo {
-    max-width: 160px;
-    width: 100%;
+    width: 60px;
+    height: 60px;
+  }
+
+  .heroBrandName {
+    font-size: 1.4rem;
+  }
+
+  .heroBrandTagline {
+    font-size: 0.65rem;
   }
 
   .bgOverlay {

@@ -221,7 +221,13 @@ function LoginForm() {
     <div className={styles.container}>
       <div className={styles.bgImage}>
         <div className={styles.logoContainer}>
-          <img src="/gclt-logo-new.png" alt="GCLT Logo" className={styles.heroLogo} />
+          <div className={styles.heroBrand}>
+            <img src="/gclt-logo-new.png" alt="GCLT Logo" className={styles.heroLogo} />
+            <div className={styles.heroBrandText}>
+              <span className={styles.heroBrandName}>GCLT Transport</span>
+              <span className={styles.heroBrandTagline}>BOOK · TRUCK · DELIVER</span>
+            </div>
+          </div>
         </div>
         <div className={styles.bgOverlay}>
           <div className={styles.hqInfo}>
