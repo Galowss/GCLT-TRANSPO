@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Truck, Bell, User, Menu, X, LogOut, LayoutDashboard, ShoppingBag, Calendar, MessageCircle } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
+import NotificationBell from '@/components/NotificationBell';
 
 const NAV_LINKS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -116,10 +117,11 @@ export default function DashboardLayout({ children }) {
 
           <div className="dash-nav-right">
             <ThemeToggle className="theme-toggle dash-theme-toggle" />
-            <Link href="/dashboard/notifications" className="dash-icon-btn" aria-label="Notifications">
-              <Bell size={18} />
-              <span className="dash-notif-dot"></span>
-            </Link>
+            <NotificationBell
+              userId={user.uid}
+              href="/dashboard/notifications"
+              className="dash-icon-btn"
+            />
             <Link href="/dashboard/profile" className="dash-user-chip" title={user.displayName || 'Profile'}>
               <span className="dash-avatar">
                 {user.photoURL ? (
@@ -134,15 +136,27 @@ export default function DashboardLayout({ children }) {
             <button className="dash-logout" onClick={handleLogout}>
               <LogOut size={15} /> <span className="dash-logout-label">Logout</span>
             </button>
-            <button className="dash-burger" onClick={() => setMenuOpen((v) => !v)} aria-label="Menu">
+            <button
+              type="button"
+              className="dash-burger"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={menuOpen}
+              aria-controls="dashboard-mobile-menu"
+            >
               {menuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
 
-        <div className={`dash-mmenu ${menuOpen ? 'open' : ''}`}>
+        <div id="dashboard-mobile-menu" className={`dash-mmenu ${menuOpen ? 'open' : ''}`}>
           {[...NAV_LINKS, ...MENU_ONLY_LINKS].map(({ href, label, icon: Icon }) => (
-            <Link key={href} href={href} className={`dash-mmenu-item ${isActive(href) ? 'active' : ''}`}>
+            <Link
+              key={href}
+              href={href}
+              className={`dash-mmenu-item ${isActive(href) ? 'active' : ''}`}
+              onClick={() => setMenuOpen(false)}
+            >
               <Icon size={16} /> {label}
             </Link>
           ))}

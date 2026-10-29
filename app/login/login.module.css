@@ -92,7 +92,7 @@
   flex-grow: 1;
 }
 
-/* Brand group — logo + text stack, mirrors the navbar brand */
+/* Brand group â€” logo + text stack, mirrors the navbar brand */
 .heroBrand {
   display: flex;
   align-items: center;

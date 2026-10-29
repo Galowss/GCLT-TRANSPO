@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/AuthContext';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Truck, Bell, User, Menu } from 'lucide-react';
+import { User, Menu } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
+import NotificationBell from '@/components/NotificationBell';
 
 export default function AdminLayout({ children }) {
   const { user, loading } = useAuth();
@@ -56,10 +57,11 @@ export default function AdminLayout({ children }) {
         </div>
         <div className="dashboard-topbar-actions">
           <ThemeToggle className="theme-toggle theme-toggle-on-dark" />
-          <Link href="/admin/notifications" className="dashboard-topbar-notification" aria-label="Notifications">
-            <Bell size={20} />
-            <span className="notif-badge"></span>
-          </Link>
+          <NotificationBell
+            admin
+            href="/admin/notifications"
+            className="dashboard-topbar-notification"
+          />
           <Link href="/admin/settings" className="dashboard-topbar-avatar">
             <User size={18} />
           </Link>

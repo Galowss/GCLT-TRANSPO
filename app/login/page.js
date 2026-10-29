@@ -225,7 +225,7 @@ function LoginForm() {
             <img src="/gclt-logo-new.png" alt="GCLT Logo" className={styles.heroLogo} />
             <div className={styles.heroBrandText}>
               <span className={styles.heroBrandName}>GCLT Transport</span>
-              <span className={styles.heroBrandTagline}>BOOK · TRUCK · DELIVER</span>
+              <span className={styles.heroBrandTagline}>BOOK Â· TRUCK Â· DELIVER</span>
             </div>
           </div>
         </div>

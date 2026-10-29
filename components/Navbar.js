@@ -13,6 +13,8 @@ export default function Navbar() {
   const router = useRouter();
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const isLoginPage = pathname === '/login';
+  const showAuthLinks = !user && !isLoginPage;
 
   const navLinks = [
     { label: 'Book a Truck', href: '/dashboard/book', isActive: pathname === '/dashboard/book' },
@@ -70,6 +72,17 @@ export default function Navbar() {
         {/* Actions */}
         <div className="navbar-actions">
           <ThemeToggle className="theme-toggle" />
+          {showAuthLinks && (
+            <>
+              <Link href="/login" className="navbar-link">
+                Login
+              </Link>
+              <Link href="/login?tab=register" className="btn-pill">
+                Register
+              </Link>
+            </>
+          )}
+
           {user && (
             <>
               {/* Authenticated: Dashboard + Avatar + Logout */}
@@ -125,6 +138,17 @@ export default function Navbar() {
             </Link>
           )
         ))}
+        {showAuthLinks && (
+          <>
+            <div className="navbar-mobile-divider" />
+            <Link href="/login" className="navbar-mobile-link" onClick={() => setMobileOpen(false)}>
+              Login
+            </Link>
+            <Link href="/login?tab=register" className="navbar-mobile-link" onClick={() => setMobileOpen(false)}>
+              Register
+            </Link>
+          </>
+        )}
         {user && (
           <>
             <div className="navbar-mobile-divider" />
